@@ -53,6 +53,8 @@ export const edgeEnvSchema = z.object({
   // Model used for syllabus parsing and OCR; defaults to the parser's default model.
   PARSER_MODEL: optionalNonEmpty,
   SENTRY_DSN: optionalUrl,
+  // Shared secret pg_cron sends (x-cron-secret) to scheduled functions. Unset = cron endpoints refuse all calls.
+  CRON_SECRET: optionalNonEmpty,
 });
 export type EdgeEnv = z.infer<typeof edgeEnvSchema>;
 

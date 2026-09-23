@@ -512,6 +512,41 @@ export type Database = {
           },
         ];
       };
+      study_plan_alerts: {
+        Row: {
+          created_at: string;
+          details: Json;
+          id: string;
+          kind: string;
+          local_date: string;
+          user_id: string;
+        };
+        Insert: {
+          created_at?: string;
+          details?: Json;
+          id?: string;
+          kind?: string;
+          local_date: string;
+          user_id: string;
+        };
+        Update: {
+          created_at?: string;
+          details?: Json;
+          id?: string;
+          kind?: string;
+          local_date?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "study_plan_alerts_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       study_sessions: {
         Row: {
           assignment_id: string | null;
@@ -796,6 +831,14 @@ export type Database = {
       };
       is_valid_letter_scale: { Args: { scale: Json }; Returns: boolean };
       is_valid_timezone: { Args: { tz: string }; Returns: boolean };
+      mark_missed_blocks: {
+        Args: { p_before?: string };
+        Returns: {
+          done: number;
+          missed: number;
+          user_id: string;
+        }[];
+      };
       parse_entitlements: {
         Args: { p_user_id: string };
         Returns: {
@@ -806,6 +849,10 @@ export type Database = {
       replace_study_plan: {
         Args: { p_blocks: Json; p_from: string; p_user_id: string };
         Returns: number;
+      };
+      set_plan_alerts: {
+        Args: { p_alerts: Json; p_from: string; p_user_id: string };
+        Returns: undefined;
       };
       study_capacity: {
         Args: { p_date: string; p_user_id: string };
@@ -821,6 +868,13 @@ export type Database = {
           p_status: Database["public"]["Enums"]["assignment_status"];
         };
         Returns: number;
+      };
+      users_due_for_replan: {
+        Args: { p_local_hour?: number; p_now?: string };
+        Returns: {
+          timezone: string;
+          user_id: string;
+        }[];
       };
     };
     Enums: {

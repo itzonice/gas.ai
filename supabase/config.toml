@@ -425,3 +425,10 @@ enabled = true
 verify_jwt = true
 import_map = "./functions/deno.json"
 entrypoint = "./functions/plan-study/index.ts"
+
+[functions.nightly-replan]
+enabled = true
+# Called by pg_cron with x-cron-secret, not a user JWT.
+verify_jwt = false
+import_map = "./functions/deno.json"
+entrypoint = "./functions/nightly-replan/index.ts"

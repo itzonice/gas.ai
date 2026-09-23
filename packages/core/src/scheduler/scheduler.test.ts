@@ -89,7 +89,10 @@ describe("scheduleStudyBlocks", () => {
     expect(minutesBy(r.blocks, "sooner")).toBe(120); // Mon + Tue
     expect(minutesBy(r.blocks, "later")).toBe(60); // only Wed left
     expect(r.unscheduled).toEqual([{ assignmentId: "later", minutes: 60 }]);
-    expect(r.overloadedDays).toEqual(["2027-03-01", "2027-03-02", "2027-03-03"]);
+    expect(r.overloads).toEqual([
+      { date: "2027-03-03", unscheduledMinutes: 60, assignmentIds: ["later"] },
+    ]);
+    expect(r.overloadedDays).toEqual(["2027-03-03"]);
   });
 
   it("respects capacity, locked blocks, and time already planned for a task", () => {

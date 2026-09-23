@@ -54,7 +54,12 @@ export interface PlannedBlock {
 export interface ScheduleResult {
   blocks: PlannedBlock[];
   unscheduled: { assignmentId: string; minutes: number }[];
-  /** Days where scheduled demand filled the capacity and some work still didn't fit. */
+  /**
+   * Crunch points: the local due date of each task that didn't fully fit, with the
+   * minutes short and which tasks. "You won't have enough time before Thursday."
+   */
+  overloads: { date: IsoDate; unscheduledMinutes: number; assignmentIds: string[] }[];
+  /** The dates in `overloads`. */
   overloadedDays: IsoDate[];
 }
 
@@ -160,7 +165,6 @@ export function scheduleStudyBlocks(
     { task: SchedulableTask; date: IsoDate; minutes: number }[]
   >();
   const unscheduled: { assignmentId: string; minutes: number }[] = [];
-  const overloaded = new Set<IsoDate>();
 
   for (const task of ordered) {
     let need = task.minutesRemaining - (alreadyPlanned.get(task.assignmentId) ?? 0);
@@ -196,10 +200,7 @@ export function scheduleStudyBlocks(
       list.push({ task, date, minutes });
       allocations.set(date, list);
     }
-    if (need > 0) {
-      unscheduled.push({ assignmentId: task.assignmentId, minutes: need });
-      for (const d of usable) if (d.free < MIN_BLOCK_MINUTES) overloaded.add(d.date);
-    }
+    if (need > 0) unscheduled.push({ assignmentId: task.assignmentId, minutes: need });
   }
 
   // Place each day's allocations back to back, soonest deadline first, splitting long ones.
@@ -251,5 +252,20 @@ export function scheduleStudyBlocks(
     else unscheduled.push({ assignmentId: block.assignmentId, minutes: lost });
   }
 
-  return { blocks: safe, unscheduled, overloadedDays: [...overloaded].sort() };
+  const byDate = new Map<
+    IsoDate,
+    { date: IsoDate; unscheduledMinutes: number; assignmentIds: string[] }
+  >();
+  for (const u of unscheduled) {
+    const task = tasks.find((t) => t.assignmentId === u.assignmentId);
+    if (!task || u.minutes <= 0) continue;
+    const date = localDate(new Date(task.dueAt), timezone);
+    const entry = byDate.get(date) ?? { date, unscheduledMinutes: 0, assignmentIds: [] };
+    entry.unscheduledMinutes += u.minutes;
+    entry.assignmentIds.push(u.assignmentId);
+    byDate.set(date, entry);
+  }
+  const overloads = [...byDate.values()].sort((a, b) => a.date.localeCompare(b.date));
+
+  return { blocks: safe, unscheduled, overloads, overloadedDays: overloads.map((o) => o.date) };
 }

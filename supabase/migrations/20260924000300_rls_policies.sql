@@ -107,3 +107,7 @@ using ((select auth.uid()) = user_id and (select private.owns_course(course_id))
 -- anon has no policies; drop its default table privileges too (defence in depth).
 revoke all on public.profiles, public.courses, public.grade_categories,
   public.assignments, public.study_sessions from anon;
+
+-- Profiles are created by the signup trigger and removed with the auth user
+-- (account deletion runs server-side), never deleted directly by clients.
+revoke delete on public.profiles from authenticated;

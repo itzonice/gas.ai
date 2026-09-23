@@ -4,7 +4,13 @@ select plan(13);
 
 select tests.create_user('ada@example.com', '{"timezone": "America/Chicago"}') as ada \gset
 select tests.create_user('bob@example.com') as bob \gset
-update public.profiles set daily_study_minutes = 180 where id = :'ada';
+-- Use a timezone where it's currently daytime, so "today" never splits the test's
+-- study session across local midnight whatever time the suite runs.
+update public.profiles set daily_study_minutes = 180, timezone = (
+  select tz from unnest(array['America/Chicago', 'Europe/London', 'Asia/Tokyo', 'Pacific/Honolulu', 'Asia/Kolkata', 'Pacific/Auckland']) tz
+  where extract(hour from now() at time zone tz) between 6 and 20
+  limit 1
+) where id = :'ada';
 
 insert into public.courses (id, user_id, name) values
   ('c0000000-0000-0000-0000-000000000001', :'ada', 'Biology'),

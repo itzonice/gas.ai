@@ -846,6 +846,15 @@ export type Database = {
           plan_tier: Database["public"]["Enums"]["plan_tier"];
         }[];
       };
+      replace_review_plan: {
+        Args: {
+          p_assignment_ids: string[];
+          p_blocks: Json;
+          p_from: string;
+          p_user_id: string;
+        };
+        Returns: number;
+      };
       replace_study_plan: {
         Args: { p_blocks: Json; p_from: string; p_user_id: string };
         Returns: number;

@@ -11,6 +11,7 @@ import {
   priority,
   type TaskKind,
 } from "@studypulse/core/priority/index.ts";
+import { buildReviewPlan } from "@studypulse/core/review/index.ts";
 import { scheduleStudyBlocks, type ScheduleResult } from "@studypulse/core/scheduler/index.ts";
 import { addDays, dayOfWeek, localDate, zonedTimeToUtc } from "@studypulse/core/time/index.ts";
 
@@ -21,6 +22,7 @@ export const PLAN_HORIZON_DAYS = 28;
 export interface ReplanSummary extends ScheduleResult {
   timezone: string;
   inserted: number;
+  reviewBlocks: number;
 }
 
 export async function replanUser(
@@ -41,6 +43,38 @@ export async function replanUser(
   const horizonEnd = zonedTimeToUtc(addDays(today, PLAN_HORIZON_DAYS + 1), "00:00", tz);
   const todayStart = zonedTimeToUtc(today, "00:00", tz);
 
+  // 1. Exam review sessions (7/3/1 days before), persisted first so the scheduler
+  //    works around them and counts them toward each exam's study time.
+  const { data: exams, error: examsError } = await db
+    .from("assignments")
+    .select("id, course_id, due_at, courses!inner(user_id, archived_at)")
+    .eq("courses.user_id", userId)
+    .is("courses.archived_at", null)
+    .eq("kind", "exam")
+    .in("status", ["todo", "in_progress"])
+    .gt("due_at", now.toISOString())
+    .lt("due_at", horizonEnd.toISOString());
+  if (examsError) throw examsError;
+  const reviews = buildReviewPlan(
+    (exams ?? []).flatMap((e) =>
+      e.due_at ? [{ assignmentId: e.id, courseId: e.course_id, dueAt: e.due_at }] : [],
+    ),
+    { timezone: tz, now, startTime: profile.study_start_time.slice(0, 5) },
+  );
+  const { data: reviewBlocks, error: reviewError } = await db.rpc("replace_review_plan", {
+    p_user_id: userId,
+    p_from: now.toISOString(),
+    p_assignment_ids: (exams ?? []).map((e) => e.id),
+    p_blocks: reviews.map((r) => ({
+      assignment_id: r.assignmentId,
+      course_id: r.courseId,
+      starts_at: r.startsAt,
+      ends_at: r.endsAt,
+    })),
+  });
+  if (reviewError) throw reviewError;
+
+  // 2. Everything the scheduler needs.
   const [assignmentsRes, sessionsRes, blocksRes] = await Promise.all([
     db
       .from("assignments")
@@ -154,5 +188,5 @@ export async function replanUser(
     unscheduled: result.unscheduled.length,
     overloaded_days: result.overloadedDays.length,
   });
-  return { ...result, timezone: tz, inserted: inserted ?? 0 };
+  return { ...result, timezone: tz, inserted: inserted ?? 0, reviewBlocks: reviewBlocks ?? 0 };
 }

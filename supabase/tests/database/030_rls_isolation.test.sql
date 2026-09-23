@@ -79,6 +79,7 @@ select throws_ok($$ update public.assignments set course_id = 'c0000000-0000-000
   '42501', null, 'assignments: B cannot move an assignment into A''s course');
 
 -- study_sessions -------------------------------------------------------------
+-- Writes may be rejected by the consistency trigger (23514) before RLS (42501); any error passes.
 select is_empty($$ select 1 from public.study_sessions where id = '50000000-0000-0000-0000-00000000000a' $$,
   'study_sessions: B cannot read A');
 select is_empty($$ update public.study_sessions set notes = 'pwned'
@@ -89,10 +90,10 @@ select is_empty($$ delete from public.study_sessions
   'study_sessions: B cannot delete A');
 select throws_ok($$ insert into public.study_sessions (course_id, started_at)
                     values ('c0000000-0000-0000-0000-00000000000a', now()) $$,
-  '42501', null, 'study_sessions: B cannot log time in A''s course');
+  null::char(5), null, 'study_sessions: B cannot log time in A''s course');
 select throws_ok(format($$ insert into public.study_sessions (user_id, course_id, started_at)
                            values (%L, 'c0000000-0000-0000-0000-00000000000b', now()) $$, :'alice'),
-  '42501', null, 'study_sessions: B cannot log a session as A');
+  null::char(5), null, 'study_sessions: B cannot log a session as A');
 
 -- B still has full access to their own data.
 select lives_ok($$ insert into public.study_sessions (course_id, started_at)

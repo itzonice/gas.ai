@@ -245,6 +245,13 @@ export type Database = {
             foreignKeyName: "notification_log_assignment_id_fkey";
             columns: ["assignment_id"];
             isOneToOne: false;
+            referencedRelation: "assignment_grade_shares";
+            referencedColumns: ["assignment_id"];
+          },
+          {
+            foreignKeyName: "notification_log_assignment_id_fkey";
+            columns: ["assignment_id"];
+            isOneToOne: false;
             referencedRelation: "assignments";
             referencedColumns: ["id"];
           },
@@ -463,6 +470,13 @@ export type Database = {
             foreignKeyName: "study_blocks_assignment_id_fkey";
             columns: ["assignment_id"];
             isOneToOne: false;
+            referencedRelation: "assignment_grade_shares";
+            referencedColumns: ["assignment_id"];
+          },
+          {
+            foreignKeyName: "study_blocks_assignment_id_fkey";
+            columns: ["assignment_id"];
+            isOneToOne: false;
             referencedRelation: "assignments";
             referencedColumns: ["id"];
           },
@@ -530,6 +544,13 @@ export type Database = {
           user_id?: string;
         };
         Relationships: [
+          {
+            foreignKeyName: "study_sessions_assignment_id_fkey";
+            columns: ["assignment_id"];
+            isOneToOne: false;
+            referencedRelation: "assignment_grade_shares";
+            referencedColumns: ["assignment_id"];
+          },
           {
             foreignKeyName: "study_sessions_assignment_id_fkey";
             columns: ["assignment_id"];
@@ -707,7 +728,22 @@ export type Database = {
       };
     };
     Views: {
-      [_ in never]: never;
+      assignment_grade_shares: {
+        Row: {
+          assignment_id: string | null;
+          course_id: string | null;
+          grade_share: number | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "assignments_course_id_fkey";
+            columns: ["course_id"];
+            isOneToOne: false;
+            referencedRelation: "courses";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
     };
     Functions: {
       commit_parsed_syllabus: {
@@ -733,6 +769,17 @@ export type Database = {
           ocr_allowed: boolean;
           plan_tier: Database["public"]["Enums"]["plan_tier"];
         }[];
+      };
+      task_priority: {
+        Args: {
+          p_daily_minutes?: number;
+          p_due_at: string;
+          p_grade_share: number;
+          p_minutes_remaining: number;
+          p_now: string;
+          p_status: Database["public"]["Enums"]["assignment_status"];
+        };
+        Returns: number;
       };
     };
     Enums: {

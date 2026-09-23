@@ -10,7 +10,8 @@
     "./parser": "./src/parser/index.ts",
     "./time": "./src/time/index.ts",
     "./plans": "./src/plans/index.ts",
-    "./grades": "./src/grades/index.ts"
+    "./grades": "./src/grades/index.ts",
+    "./priority": "./src/priority/index.ts"
   },
   "scripts": {
     "lint": "eslint .",
@@ -20,7 +21,8 @@
     "test:coverage": "vitest run --coverage",
     "parser:schema": "node scripts/gen-parser-schema.ts && prettier --write src/parser/prompts",
     "eval:generate": "node scripts/gen-eval-cases.ts && prettier --write evals/syllabi",
-    "eval": "node scripts/eval-parser.ts"
+    "eval": "node scripts/eval-parser.ts",
+    "priority:parity": "node scripts/gen-priority-parity.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "0.128.0",

@@ -6,6 +6,7 @@ export * from "./env/index.ts";
 export * from "./observability/index.ts";
 export * from "./grades/index.ts";
 export * from "./plans/index.ts";
+export * from "./priority/index.ts";
 export * from "./time/index.ts";
 
 export const APP_NAME = "StudyPulse";

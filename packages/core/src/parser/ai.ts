@@ -36,12 +36,20 @@ export interface AiCallOptions {
   client: Anthropic;
   model?: string;
   system: string;
+  /** Cache the system prompt; worth it when the same long prompt is sent repeatedly. */
+  cacheSystem?: boolean;
   content: Anthropic.Beta.BetaContentBlockParam[];
   effort?: Effort;
   maxTokens?: number;
   /** Per-attempt timeout; the SDK also retries 429/5xx/connection errors itself. */
   timeoutMs?: number;
   signal?: AbortSignal;
+}
+
+function systemParam(options: AiCallOptions): string | Anthropic.Beta.BetaTextBlockParam[] {
+  return options.cacheSystem
+    ? [{ type: "text", text: options.system, cache_control: { type: "ephemeral" } }]
+    : options.system;
 }
 
 function usageOf(message: Anthropic.Beta.BetaMessage): AiUsage {
@@ -90,7 +98,7 @@ export async function callStructured<S extends z.ZodType>(
         {
           model: options.model ?? DEFAULT_PARSER_MODEL,
           max_tokens: options.maxTokens ?? 16000,
-          system: options.system,
+          system: systemParam(options),
           messages: [{ role: "user", content: options.content }],
           output_config: {
             format: betaZodOutputFormat(schema),
@@ -125,7 +133,7 @@ export async function callText(options: AiCallOptions): Promise<{ text: string; 
       {
         model: options.model ?? DEFAULT_PARSER_MODEL,
         max_tokens: options.maxTokens ?? 64000,
-        system: options.system,
+        system: systemParam(options),
         messages: [{ role: "user", content: options.content }],
         output_config: { effort: options.effort ?? "low" },
         betas: [FALLBACK_BETA],

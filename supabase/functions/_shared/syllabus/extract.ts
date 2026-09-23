@@ -10,6 +10,7 @@ import {
   ocrSyllabus,
 } from "@studypulse/core/parser/index.ts";
 import type { Logger } from "@studypulse/core/observability/index.ts";
+import type { AiUsage } from "@studypulse/core/parser/index.ts";
 
 import { anthropic } from "../anthropic.ts";
 import { env } from "../env.ts";
@@ -19,6 +20,8 @@ export interface ExtractedText {
   text: string;
   pageCount: number;
   method: "text_layer" | "ocr" | "url";
+  /** Token usage when OCR was needed. */
+  usage?: AiUsage;
 }
 
 const IMAGE_MEDIA_TYPES = { png: "image/png", jpeg: "image/jpeg", webp: "image/webp" } as const;
@@ -28,7 +31,12 @@ async function ocr(input: Parameters<typeof ocrSyllabus>[1], log: Logger): Promi
     const model = env().PARSER_MODEL;
     const result = await ocrSyllabus(anthropic(), input, model ? { model } : {});
     log.info("ocr complete", { pages: result.pageCount, ...result.usage });
-    return { text: result.text, pageCount: Math.max(1, result.pageCount), method: "ocr" };
+    return {
+      text: result.text,
+      pageCount: Math.max(1, result.pageCount),
+      method: "ocr",
+      usage: result.usage,
+    };
   } catch (error) {
     if (error instanceof AiCallError && error.kind === "refusal") {
       throw new ParseFailure(

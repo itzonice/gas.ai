@@ -608,6 +608,7 @@ export type Database = {
       };
       syllabus_uploads: {
         Row: {
+          ai_usage: Json;
           course_id: string | null;
           created_at: string;
           error: string | null;
@@ -632,6 +633,7 @@ export type Database = {
           user_id: string;
         };
         Insert: {
+          ai_usage?: Json;
           course_id?: string | null;
           created_at?: string;
           error?: string | null;
@@ -656,6 +658,7 @@ export type Database = {
           user_id?: string;
         };
         Update: {
+          ai_usage?: Json;
           course_id?: string | null;
           created_at?: string;
           error?: string | null;

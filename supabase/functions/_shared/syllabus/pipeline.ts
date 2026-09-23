@@ -1,4 +1,9 @@
+import { AiCallError, parseSyllabusText, type AiUsage } from "@studypulse/core/parser/index.ts";
 import type { Logger } from "@studypulse/core/observability/index.ts";
+import { localDate } from "@studypulse/core/time/index.ts";
+
+import { anthropic } from "../anthropic.ts";
+import { env } from "../env.ts";
 
 import { Sentry } from "../sentry.ts";
 import { adminClient } from "../supabase.ts";
@@ -18,12 +23,45 @@ type UploadRow = {
   file_path: string | null;
   source_url: string | null;
   extracted_text: string | null;
+  term_start_hint: string | null;
+  term_end_hint: string | null;
 };
 
+/** User-facing messages for AI failures. */
+function aiFailure(error: AiCallError): ParseFailure {
+  switch (error.kind) {
+    case "refusal":
+      return new ParseFailure(
+        "This syllabus couldn't be processed automatically. Try pasting the text.",
+        "ai_refused",
+      );
+    case "truncated":
+      return new ParseFailure(
+        "This syllabus is too long to read in one go. Try uploading just the schedule pages.",
+        "ai_truncated",
+      );
+    case "timeout":
+      return new ParseFailure(
+        "Reading this syllabus took too long. Please try again.",
+        "ai_timeout",
+      );
+    case "invalid_output":
+      return new ParseFailure(GENERIC_FAILURE, "ai_invalid_output");
+    case "api":
+      return new ParseFailure(
+        "Syllabus reading is temporarily unavailable. Please try again soon.",
+        "ai_unavailable",
+      );
+  }
+}
+
 /** Gets normalized text for an upload, extracting (and saving) it if needed. */
-async function ensureText(upload: UploadRow, log: Logger): Promise<string> {
+async function ensureText(
+  upload: UploadRow,
+  log: Logger,
+): Promise<{ text: string; usage: AiUsage[] }> {
   // Pasted text (and uploads extracted on an earlier attempt) already have text.
-  if (upload.extracted_text) return upload.extracted_text;
+  if (upload.extracted_text) return { text: upload.extracted_text, usage: [] };
 
   const db = adminClient();
   let extracted: ExtractedText;
@@ -54,7 +92,7 @@ async function ensureText(upload: UploadRow, log: Logger): Promise<string> {
     pages: extracted.pageCount,
     chars: extracted.text.length,
   });
-  return extracted.text;
+  return { text: extracted.text, usage: extracted.usage ? [extracted.usage] : [] };
 }
 
 /**
@@ -72,7 +110,9 @@ export async function processSyllabusUpload(uploadId: string, log: Logger): Prom
     .update({ status: "processing", error: null })
     .eq("id", uploadId)
     .eq("status", "pending")
-    .select("id, user_id, source, file_path, source_url, extracted_text")
+    .select(
+      "id, user_id, source, file_path, source_url, extracted_text, term_start_hint, term_end_hint",
+    )
     .maybeSingle();
   if (claimError) {
     plog.error("could not claim upload", { error: claimError.message });
@@ -84,8 +124,56 @@ export async function processSyllabusUpload(uploadId: string, log: Logger): Prom
   }
 
   try {
-    await ensureText(upload, plog);
-    throw new ParseFailure("Syllabus parsing is not available yet.", "not_implemented");
+    const { text, usage: extractionUsage } = await ensureText(upload, plog);
+
+    const { data: profile } = await db
+      .from("profiles")
+      .select("timezone")
+      .eq("id", upload.user_id)
+      .single();
+    const timezone = profile?.timezone ?? "UTC";
+
+    let parsed;
+    try {
+      parsed = await parseSyllabusText(
+        anthropic(),
+        text,
+        {
+          timezone,
+          today: localDate(new Date(), timezone),
+          termStart: upload.term_start_hint,
+          termEnd: upload.term_end_hint,
+        },
+        env().PARSER_MODEL ? { model: env().PARSER_MODEL } : {},
+      );
+    } catch (error) {
+      throw error instanceof AiCallError ? aiFailure(error) : error;
+    }
+
+    const { error: saveError } = await db
+      .from("syllabus_uploads")
+      .update({
+        status: "parsed",
+        parse_result: {
+          prompt_version: parsed.promptVersion,
+          model: parsed.usage.model,
+          output: parsed.output,
+        },
+        prompt_version: parsed.promptVersion,
+        model: parsed.usage.model,
+        parsed_at: new Date().toISOString(),
+        ai_usage: [
+          ...extractionUsage.map((u) => ({ step: "ocr", ...u })),
+          { step: "parse", ...parsed.usage },
+        ],
+      })
+      .eq("id", upload.id);
+    if (saveError) throw saveError;
+    plog.info("syllabus parsed", {
+      assignments: parsed.output.assignments.length,
+      categories: parsed.output.categories.length,
+      ...parsed.usage,
+    });
   } catch (error) {
     const message = error instanceof ParseFailure ? error.message : GENERIC_FAILURE;
     if (error instanceof ParseFailure) {

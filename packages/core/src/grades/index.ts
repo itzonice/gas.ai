@@ -2,3 +2,5 @@
 // calculation in SQL for views.
 export * from "./current.ts";
 export * from "./types.ts";
+export * from "./needed.ts";
+export * from "./projection.ts";

@@ -39,3 +39,19 @@ export const exportCardsInputSchema = z.object({
   format: z.enum(["anki", "quizlet"]).default("anki"),
 });
 export type ExportCardsInput = z.input<typeof exportCardsInputSchema>;
+
+export const startSessionInputSchema = z.object({
+  /** Client-generated id; reuse it when retrying so the start is idempotent. */
+  id: uuidSchema,
+  courseId: uuidSchema,
+  assignmentId: uuidSchema.optional(),
+  /** When the timer actually started (offline starts); defaults to now on the server. */
+  startedAt: z.iso.datetime({ offset: true }).optional(),
+});
+export type StartSessionInput = z.input<typeof startSessionInputSchema>;
+
+export const stopSessionInputSchema = z.object({
+  id: uuidSchema,
+  endedAt: z.iso.datetime({ offset: true }).optional(),
+});
+export type StopSessionInput = z.input<typeof stopSessionInputSchema>;

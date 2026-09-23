@@ -9,10 +9,14 @@ import { commitPayloadSchema, type CommitPayload } from "../parser/commit.ts";
 import { ApiError, fromPostgrestError } from "./errors.ts";
 import {
   exportCardsInputSchema,
+  startSessionInputSchema,
+  stopSessionInputSchema,
   todayFeedInputSchema,
   uploadSyllabusInputSchema,
   uuidSchema,
   type ExportCardsInput,
+  type StartSessionInput,
+  type StopSessionInput,
   type TodayFeedInput,
   type UploadSyllabusInput,
 } from "./schemas.ts";
@@ -119,6 +123,39 @@ export function createApiClient(db: Db) {
       async feed(input: TodayFeedInput = {}): Promise<TodayFeedRow[]> {
         const { date } = validate(todayFeedInputSchema, input);
         return unwrap(await db.rpc("get_today_feed", date ? { p_date: date } : {}));
+      },
+    },
+
+    sessions: {
+      /**
+       * Starts a study session. Pass a client-generated id (e.g. crypto.randomUUID())
+       * and persist it before calling, so a retry after a lost response is idempotent.
+       * Fails with 409 conflict if another session overlaps (stop it first).
+       */
+      async start(input: Omit<StartSessionInput, "id"> & { id?: string }) {
+        const { id, courseId, assignmentId, startedAt } = validate(startSessionInputSchema, {
+          ...input,
+          id: input.id ?? crypto.randomUUID(),
+        });
+        return unwrap(
+          await db
+            .rpc("start_study_session", {
+              p_id: id,
+              p_course_id: courseId,
+              ...(assignmentId ? { p_assignment_id: assignmentId } : {}),
+              ...(startedAt ? { p_started_at: startedAt } : {}),
+            })
+            .single(),
+        );
+      },
+      /** Stops a session. Safe to retry: stopping a stopped session returns it unchanged. */
+      async stop(input: StopSessionInput) {
+        const { id, endedAt } = validate(stopSessionInputSchema, input);
+        return unwrap(
+          await db
+            .rpc("stop_study_session", { p_id: id, ...(endedAt ? { p_ended_at: endedAt } : {}) })
+            .single(),
+        );
       },
     },
 

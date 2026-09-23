@@ -19,7 +19,8 @@ function fakeDb(responses: {
   const db = {
     rpc: (name: string, args: unknown) => {
       calls.push({ kind: "rpc", name, args });
-      return Promise.resolve(responses.rpc?.[name] ?? { data: null, error: null });
+      const result = responses.rpc?.[name] ?? { data: null, error: null };
+      return Object.assign(Promise.resolve(result), { single: () => Promise.resolve(result) });
     },
     functions: {
       invoke: (name: string, options: unknown) => {
@@ -153,5 +154,32 @@ describe("calls", () => {
       invoke: { "plan-study": { data: null, error: new Error("fetch failed") } },
     });
     await expect(api.plan.rebuild()).rejects.toMatchObject({ status: 503, code: "network_error" });
+  });
+});
+
+describe("sessions", () => {
+  it("generates an id when none is given and passes offline start times", async () => {
+    const { api, calls } = fakeDb({
+      rpc: { start_study_session: { data: { id: "x" }, error: null } },
+    });
+    await api.sessions.start({ courseId: uploadId, startedAt: "2027-03-01T15:00:00Z" });
+    const args = calls[0]?.args as Record<string, string>;
+    expect(args.p_id).toMatch(/^[0-9a-f-]{36}$/);
+    expect(args).toMatchObject({ p_course_id: uploadId, p_started_at: "2027-03-01T15:00:00Z" });
+  });
+
+  it("surfaces overlaps as 409 conflicts", async () => {
+    const { api } = fakeDb({
+      rpc: {
+        start_study_session: {
+          data: null,
+          error: { code: "23P01", message: "another study session overlaps this one" },
+        },
+      },
+    });
+    await expect(api.sessions.start({ id: uploadId, courseId: uploadId })).rejects.toMatchObject({
+      status: 409,
+      code: "conflict",
+    });
   });
 });

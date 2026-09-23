@@ -994,6 +994,55 @@ export type Database = {
         Args: { p_alerts: Json; p_from: string; p_user_id: string };
         Returns: undefined;
       };
+      start_study_session: {
+        Args: {
+          p_assignment_id?: string;
+          p_course_id: string;
+          p_id: string;
+          p_started_at?: string;
+        };
+        Returns: {
+          assignment_id: string | null;
+          course_id: string;
+          created_at: string;
+          duration_minutes: number | null;
+          ended_at: string | null;
+          id: string;
+          notes: string | null;
+          source: string;
+          started_at: string;
+          updated_at: string;
+          user_id: string;
+        };
+        SetofOptions: {
+          from: "*";
+          to: "study_sessions";
+          isOneToOne: true;
+          isSetofReturn: false;
+        };
+      };
+      stop_study_session: {
+        Args: { p_ended_at?: string; p_id: string };
+        Returns: {
+          assignment_id: string | null;
+          course_id: string;
+          created_at: string;
+          duration_minutes: number | null;
+          ended_at: string | null;
+          id: string;
+          notes: string | null;
+          source: string;
+          started_at: string;
+          updated_at: string;
+          user_id: string;
+        };
+        SetofOptions: {
+          from: "*";
+          to: "study_sessions";
+          isOneToOne: true;
+          isSetofReturn: false;
+        };
+      };
       study_capacity: {
         Args: { p_date: string; p_user_id: string };
         Returns: number;

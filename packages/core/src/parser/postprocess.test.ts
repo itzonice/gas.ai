@@ -151,4 +151,42 @@ describe("postProcess", () => {
     expect(result.assignments[2]!.flags.tbd).toBe(true);
     expect(parseResultSchema.safeParse(result).success).toBe(true);
   });
+
+  it("matches category names fuzzily and flags the ones it can't match", () => {
+    const input = syllabus([
+      item({ title: "Quiz 1", category_name: "Quiz" }),
+      item({ title: "Lab 1", category_name: "Labs" }),
+      item({ title: "Bonus", category_name: "Extra Credit" }),
+      item({ title: "Reading", category_name: null }),
+    ]);
+    input.categories = [
+      { name: "Quizzes", weight: 40, drop_lowest: 1 },
+      { name: "Labs", weight: 60, drop_lowest: null },
+    ];
+    const result = postProcess(input, ctx);
+    const byTitle = Object.fromEntries(result.assignments.map((a) => [a.title, a]));
+    expect(byTitle["Quiz 1"]).toMatchObject({
+      category_name: "Quizzes",
+      original_category_name: "Quiz",
+    });
+    expect(byTitle["Lab 1"]!.category_name).toBe("Labs");
+    expect(byTitle.Bonus).toMatchObject({
+      category_name: null,
+      flags: { category_unmatched: true },
+    });
+    expect(byTitle.Reading).toMatchObject({
+      category_name: null,
+      flags: { category_unmatched: false },
+    });
+    expect(result.warnings.map((w) => w.code)).toEqual(["categories_unmatched"]);
+  });
+
+  it("warns when category weights don't total about 100", () => {
+    const input = syllabus([]);
+    input.categories = [
+      { name: "Exams", weight: 50, drop_lowest: null },
+      { name: "Labs", weight: 25, drop_lowest: null },
+    ];
+    expect(postProcess(input, ctx).warnings.map((w) => w.code)).toContain("weights_not_100");
+  });
 });

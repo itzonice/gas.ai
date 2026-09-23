@@ -12,3 +12,4 @@ export * from "./parse.ts";
 export * from "./dates.ts";
 export * from "./postprocess.ts";
 export * from "./result.ts";
+export * from "./categories.ts";

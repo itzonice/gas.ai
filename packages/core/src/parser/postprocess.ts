@@ -1,4 +1,5 @@
 // Turns the model's raw extraction into the stored ParseResult.
+import { matchCategory, weightWarnings } from "./categories.ts";
 import {
   DEFAULT_DUE_TIME,
   dedupeAssignments,
@@ -80,17 +81,35 @@ export function postProcess(output: AiSyllabusV1, ctx: PostProcessContext): Pars
   const { kept, dropped: duplicates } = dedupeAssignments(inTerm);
   dropped.push(...duplicates);
 
+  // 4. Match category names to the extracted categories; unmatched become null + flag.
+  const categories = output.categories.map((c) => ({ ...c, name: c.name.trim() }));
+  let unmatched = 0;
   const assignments = kept
     .map(toParsedAssignment)
+    .map((a) => {
+      if (!a.original_category_name) return a;
+      const match = matchCategory(a.original_category_name, categories);
+      if (match.name) return { ...a, category_name: match.name };
+      unmatched++;
+      return { ...a, category_name: null, flags: { ...a.flags, category_unmatched: true } };
+    })
     // Dated items in chronological order, TBD items last.
     .sort((a, b) => (a.due_at ?? "9999").localeCompare(b.due_at ?? "9999"));
+
+  if (unmatched > 0) {
+    warnings.push({
+      code: "categories_unmatched",
+      message: `${String(unmatched)} item${unmatched === 1 ? "" : "s"} couldn't be matched to a grade category. Pick one so it counts toward your grade.`,
+    });
+  }
+  warnings.push(...weightWarnings(categories));
 
   return {
     prompt_version: ctx.promptVersion,
     model: ctx.model,
     timezone: ctx.timezone,
     course: { ...output.course, term_start: term.start, term_end: term.end },
-    categories: output.categories.map((c) => ({ ...c, name: c.name.trim() })),
+    categories,
     assignments,
     dropped,
     grading_scale: output.grading_scale,

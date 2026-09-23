@@ -1,0 +1,3 @@
+// Syllabus parser: file checks, text extraction helpers, prompts, and post-processing.
+// Server-side only (edge functions); not imported by the apps.
+export * from "./file-type.ts";

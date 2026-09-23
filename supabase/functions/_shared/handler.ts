@@ -5,6 +5,8 @@ import {
   type Logger,
 } from "@studypulse/core/observability/index.ts";
 
+import { corsHeaders } from "./cors.ts";
+import { HttpError } from "./http.ts";
 import { Sentry } from "./sentry.ts";
 
 export interface RequestContext {
@@ -33,25 +35,45 @@ export function createHandler(functionName: string, handler: ContextHandler) {
 
     let response: Response;
     try {
-      response = await handler(req, { requestId, log });
+      response =
+        req.method === "OPTIONS"
+          ? new Response(null, { status: 204 })
+          : await handler(req, { requestId, log });
     } catch (error) {
-      log.error("unhandled error", { error, method: req.method, path });
-      Sentry.withScope((scope) => {
-        scope.setTag("function", functionName);
-        scope.setTag("request_id", requestId);
-        scope.setContext("request", { method: req.method, path });
-        Sentry.captureException(error);
-      });
-      await Sentry.flush(2000);
-      response = Response.json({ error: "internal_error", request_id: requestId }, { status: 500 });
+      if (error instanceof HttpError) {
+        log.info("request rejected", { status: error.status, code: error.code });
+        response = Response.json(
+          {
+            error: error.code,
+            message: error.message,
+            details: error.details,
+            request_id: requestId,
+          },
+          { status: error.status },
+        );
+      } else {
+        log.error("unhandled error", { error, method: req.method, path });
+        Sentry.withScope((scope) => {
+          scope.setTag("function", functionName);
+          scope.setTag("request_id", requestId);
+          scope.setContext("request", { method: req.method, path });
+          Sentry.captureException(error);
+        });
+        await Sentry.flush(2000);
+        response = Response.json(
+          { error: "internal_error", request_id: requestId },
+          { status: 500 },
+        );
+      }
     }
 
     // Some responses (e.g. from fetch) have immutable headers; copy if needed.
+    const extraHeaders = { ...corsHeaders, [REQUEST_ID_HEADER]: requestId };
     try {
-      response.headers.set(REQUEST_ID_HEADER, requestId);
+      for (const [k, v] of Object.entries(extraHeaders)) response.headers.set(k, v);
     } catch {
       response = new Response(response.body, response);
-      response.headers.set(REQUEST_ID_HEADER, requestId);
+      for (const [k, v] of Object.entries(extraHeaders)) response.headers.set(k, v);
     }
 
     log.info("request completed", {

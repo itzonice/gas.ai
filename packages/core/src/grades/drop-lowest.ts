@@ -1,7 +1,11 @@
 // Drop-lowest-N: removes the N graded items whose removal gives the highest category
 // percentage. With points pooled in a category that isn't always the N lowest
-// percentages (dropping a 40/100 can beat dropping a 5/10), so small cases are solved
-// exactly and large ones greedily.
+// percentages (dropping a 40/100 can beat dropping a 5/10).
+//
+// Exact method (Kern & Bailey, "Optimal drop-lowest", 1997): a pooled percent q is
+// achievable when keeping k items is possible with sum(earned - q * possible) >= 0, and
+// the best k items for a given q are simply the k largest (earned - q * possible). So
+// bisect on q. The SQL function private.best_kept_percent uses the same algorithm.
 
 interface Scored {
   id: string;
@@ -9,71 +13,42 @@ interface Scored {
   possible: number;
 }
 
-/** Above this many subsets to check, fall back to the greedy choice. */
-const MAX_EXACT_COMBINATIONS = 20_000;
+const ITERATIONS = 60;
 
-function combinationsCount(n: number, k: number): number {
-  let c = 1;
-  for (let i = 0; i < k; i++) c = (c * (n - i)) / (i + 1);
-  return c;
-}
-
-function percentWithout(items: readonly Scored[], dropped: ReadonlySet<number>): number {
-  let earned = 0;
-  let possible = 0;
-  items.forEach((it, i) => {
-    if (!dropped.has(i)) {
-      earned += it.earned;
-      possible += it.possible;
-    }
-  });
-  return possible > 0 ? earned / possible : 0;
+/** The k items to keep for a trial percent q (largest earned - q * possible). */
+function keepFor(items: readonly Scored[], q: number, k: number): Scored[] {
+  return [...items]
+    .sort(
+      (a, b) => b.earned - q * b.possible - (a.earned - q * a.possible) || a.id.localeCompare(b.id),
+    )
+    .slice(0, k);
 }
 
 /** Returns the ids to drop. Never drops every item. */
 export function chooseDrops(items: readonly Scored[], dropLowest: number): string[] {
   const n = Math.min(Math.max(0, Math.floor(dropLowest)), items.length - 1);
   if (n <= 0) return [];
+  const k = items.length - n;
+  const ratio = (xs: readonly Scored[]) => {
+    const p = xs.reduce((s, x) => s + x.possible, 0);
+    return p > 0 ? xs.reduce((s, x) => s + x.earned, 0) / p : 0;
+  };
 
-  if (combinationsCount(items.length, n) <= MAX_EXACT_COMBINATIONS) {
-    let best: number[] = [];
-    let bestPercent = -Infinity;
-    const pick: number[] = [];
-    const visit = (start: number) => {
-      if (pick.length === n) {
-        const p = percentWithout(items, new Set(pick));
-        if (p > bestPercent + 1e-12) {
-          bestPercent = p;
-          best = [...pick];
-        }
-        return;
-      }
-      for (let i = start; i <= items.length - (n - pick.length); i++) {
-        pick.push(i);
-        visit(i + 1);
-        pick.pop();
-      }
-    };
-    visit(0);
-    return best.map((i) => items[i]?.id ?? "");
+  let lo = 0;
+  let hi = Math.max(...items.map((x) => (x.possible > 0 ? x.earned / x.possible : 0)), 0);
+  for (let i = 0; i < ITERATIONS; i++) {
+    const q = (lo + hi) / 2;
+    const kept = keepFor(items, q, k);
+    if (kept.reduce((s, x) => s + x.earned - q * x.possible, 0) >= 0) lo = q;
+    else hi = q;
   }
-
-  // Greedy: repeatedly drop the single item whose removal helps most.
-  const dropped = new Set<number>();
-  for (let k = 0; k < n; k++) {
-    let bestIndex = -1;
-    let bestPercent = -Infinity;
-    for (let i = 0; i < items.length; i++) {
-      if (dropped.has(i)) continue;
-      dropped.add(i);
-      const p = percentWithout(items, dropped);
-      dropped.delete(i);
-      if (p > bestPercent) {
-        bestPercent = p;
-        bestIndex = i;
-      }
-    }
-    dropped.add(bestIndex);
-  }
-  return [...dropped].map((i) => items[i]?.id ?? "");
+  // The set chosen at the best feasible q; re-check against the naive "lowest percent"
+  // choice to guard against float ties.
+  const candidate = keepFor(items, lo, k);
+  const naive = [...items]
+    .sort((a, b) => b.earned / b.possible - a.earned / a.possible)
+    .slice(0, k);
+  const kept = ratio(naive) > ratio(candidate) + 1e-12 ? naive : candidate;
+  const keptIds = new Set(kept.map((x) => x.id));
+  return items.filter((x) => !keptIds.has(x.id)).map((x) => x.id);
 }

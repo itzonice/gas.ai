@@ -95,6 +95,13 @@ export type Database = {
             referencedRelation: "courses";
             referencedColumns: ["id"];
           },
+          {
+            foreignKeyName: "assignments_course_id_fkey";
+            columns: ["course_id"];
+            isOneToOne: false;
+            referencedRelation: "weekly_focus_by_course";
+            referencedColumns: ["course_id"];
+          },
         ];
       };
       courses: {
@@ -206,6 +213,13 @@ export type Database = {
             referencedRelation: "courses";
             referencedColumns: ["id"];
           },
+          {
+            foreignKeyName: "flashcards_course_id_fkey";
+            columns: ["course_id"];
+            isOneToOne: false;
+            referencedRelation: "weekly_focus_by_course";
+            referencedColumns: ["course_id"];
+          },
         ];
       };
       grade_categories: {
@@ -246,6 +260,13 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "courses";
             referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "grade_categories_course_id_fkey";
+            columns: ["course_id"];
+            isOneToOne: false;
+            referencedRelation: "weekly_focus_by_course";
+            referencedColumns: ["course_id"];
           },
         ];
       };
@@ -552,6 +573,13 @@ export type Database = {
             referencedColumns: ["id"];
           },
           {
+            foreignKeyName: "study_blocks_course_id_fkey";
+            columns: ["course_id"];
+            isOneToOne: false;
+            referencedRelation: "weekly_focus_by_course";
+            referencedColumns: ["course_id"];
+          },
+          {
             foreignKeyName: "study_blocks_rescheduled_from_fkey";
             columns: ["rescheduled_from"];
             isOneToOne: false;
@@ -663,6 +691,13 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "courses";
             referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "study_sessions_course_id_fkey";
+            columns: ["course_id"];
+            isOneToOne: false;
+            referencedRelation: "weekly_focus_by_course";
+            referencedColumns: ["course_id"];
           },
           {
             foreignKeyName: "study_sessions_user_id_fkey";
@@ -817,6 +852,13 @@ export type Database = {
             referencedColumns: ["id"];
           },
           {
+            foreignKeyName: "syllabus_uploads_course_id_fkey";
+            columns: ["course_id"];
+            isOneToOne: false;
+            referencedRelation: "weekly_focus_by_course";
+            referencedColumns: ["course_id"];
+          },
+          {
             foreignKeyName: "syllabus_uploads_user_id_fkey";
             columns: ["user_id"];
             isOneToOne: false;
@@ -841,6 +883,35 @@ export type Database = {
             referencedRelation: "courses";
             referencedColumns: ["id"];
           },
+          {
+            foreignKeyName: "assignments_course_id_fkey";
+            columns: ["course_id"];
+            isOneToOne: false;
+            referencedRelation: "weekly_focus_by_course";
+            referencedColumns: ["course_id"];
+          },
+        ];
+      };
+      weekly_focus_by_course: {
+        Row: {
+          course_code: string | null;
+          course_id: string | null;
+          course_name: string | null;
+          current_grade: number | null;
+          current_letter: string | null;
+          focus_minutes: number | null;
+          session_count: number | null;
+          user_id: string | null;
+          week_start: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "courses_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
         ];
       };
     };
@@ -849,6 +920,7 @@ export type Database = {
         Args: { p_payload?: Json; p_upload_id: string };
         Returns: string;
       };
+      course_current_grade: { Args: { p_course_id: string }; Returns: number };
       default_task_minutes: {
         Args: { p_kind: Database["public"]["Enums"]["assignment_kind"] };
         Returns: number;
@@ -886,6 +958,10 @@ export type Database = {
       };
       is_valid_letter_scale: { Args: { scale: Json }; Returns: boolean };
       is_valid_timezone: { Args: { tz: string }; Returns: boolean };
+      letter_for: {
+        Args: { p_percent: number; p_scale?: Json };
+        Returns: string;
+      };
       mark_missed_blocks: {
         Args: { p_before?: string };
         Returns: {

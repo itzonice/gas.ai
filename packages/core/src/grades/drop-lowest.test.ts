@@ -22,10 +22,33 @@ describe("chooseDrops", () => {
     expect(chooseDrops([s("a", 1, 10)], 1)).toEqual([]);
   });
 
-  it("falls back to greedy for large categories", () => {
+  it("handles large categories", () => {
     const many = Array.from({ length: 40 }, (_, i) => s(`i${String(i)}`, i === 7 ? 0 : 9, 10));
     expect(chooseDrops(many, 5)).toContain("i7");
     expect(chooseDrops(many, 5)).toHaveLength(5);
+  });
+
+  it("matches brute force on random categories", () => {
+    let seed = 42;
+    const rand = () => (seed = (seed * 1103515245 + 12345) % 2 ** 31) / 2 ** 31;
+    const pct = (xs: { earned: number; possible: number }[]) =>
+      xs.reduce((a, x) => a + x.earned, 0) / xs.reduce((a, x) => a + x.possible, 0);
+    for (let trial = 0; trial < 200; trial++) {
+      const n = 2 + Math.floor(rand() * 7);
+      const drop = 1 + Math.floor(rand() * Math.min(3, n - 1));
+      const items = Array.from({ length: n }, (_, i) => {
+        const possible = [5, 10, 20, 50, 100][Math.floor(rand() * 5)]!;
+        return s(`x${String(i)}`, Math.round(rand() * possible * 1.1), possible);
+      });
+      // Best achievable percent by trying every subset of size n - drop.
+      let best = -1;
+      for (let mask = 0; mask < 1 << n; mask++) {
+        const kept = items.filter((_, i) => mask & (1 << i));
+        if (kept.length === n - drop) best = Math.max(best, pct(kept));
+      }
+      const dropped = new Set(chooseDrops(items, drop));
+      expect(pct(items.filter((x) => !dropped.has(x.id)))).toBeCloseTo(best, 9);
+    }
   });
 });
 

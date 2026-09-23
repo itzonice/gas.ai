@@ -178,7 +178,10 @@ describe("postProcess", () => {
       category_name: null,
       flags: { category_unmatched: false },
     });
-    expect(result.warnings.map((w) => w.code)).toEqual(["categories_unmatched"]);
+    expect(result.warnings.map((w) => w.code)).toEqual([
+      "low_confidence_items",
+      "categories_unmatched",
+    ]);
   });
 
   it("warns when category weights don't total about 100", () => {

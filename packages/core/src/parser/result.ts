@@ -72,6 +72,19 @@ export const parseResultSchema = z.object({
   dropped: z.array(droppedAssignmentSchema),
   grading_scale: z.array(z.object({ letter: z.string(), min_percent: z.number().min(0).max(100) })),
   warnings: z.array(parseWarningSchema),
+  /** Counts of confidence levels and flags, for the review screen header. */
+  summary: z.object({
+    total: z.number().int(),
+    high: z.number().int(),
+    medium: z.number().int(),
+    low: z.number().int(),
+    inferred_dates: z.number().int(),
+    inferred_years: z.number().int(),
+    expanded_recurring: z.number().int(),
+    tbd: z.number().int(),
+    default_times: z.number().int(),
+    categories_unmatched: z.number().int(),
+  }),
 });
 
 export type AssignmentFlags = z.infer<typeof assignmentFlagsSchema>;

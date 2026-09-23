@@ -1,4 +1,5 @@
 // Turns the model's raw extraction into the stored ParseResult.
+import { assignmentConfidence, summarizeConfidence } from "./confidence.ts";
 import { matchCategory, weightWarnings } from "./categories.ts";
 import {
   DEFAULT_DUE_TIME,
@@ -96,6 +97,20 @@ export function postProcess(output: AiSyllabusV1, ctx: PostProcessContext): Pars
     // Dated items in chronological order, TBD items last.
     .sort((a, b) => (a.due_at ?? "9999").localeCompare(b.due_at ?? "9999"));
 
+  // 5. Confidence per item, from its flags.
+  const termKnown = Boolean(term.start && term.end);
+  const scored = assignments.map((a) => ({
+    ...a,
+    confidence: assignmentConfidence(a.flags, { termKnown }),
+  }));
+  const summary = summarizeConfidence(scored);
+  if (summary.low > 0) {
+    warnings.push({
+      code: "low_confidence_items",
+      message: `${String(summary.low)} item${summary.low === 1 ? " needs" : "s need"} a closer look (no date, a calculated date, or no category).`,
+    });
+  }
+
   if (unmatched > 0) {
     warnings.push({
       code: "categories_unmatched",
@@ -110,9 +125,10 @@ export function postProcess(output: AiSyllabusV1, ctx: PostProcessContext): Pars
     timezone: ctx.timezone,
     course: { ...output.course, term_start: term.start, term_end: term.end },
     categories,
-    assignments,
+    assignments: scored,
     dropped,
     grading_scale: output.grading_scale,
     warnings,
+    summary,
   };
 }

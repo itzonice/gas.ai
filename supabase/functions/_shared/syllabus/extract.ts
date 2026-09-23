@@ -48,7 +48,22 @@ async function ocr(input: Parameters<typeof ocrSyllabus>[1], log: Logger): Promi
   }
 }
 
-export async function extractSyllabusText(bytes: Uint8Array, log: Logger): Promise<ExtractedText> {
+export interface ExtractOptions {
+  /** OCR (scanned PDFs, photos) is a Pro feature. */
+  ocrAllowed: boolean;
+}
+
+const ocrNeedsPro = () =>
+  new ParseFailure(
+    "This PDF is a scan, and reading scans is a StudyPulse Pro feature. Upgrade, or paste the syllabus text instead.",
+    "pro_required_ocr",
+  );
+
+export async function extractSyllabusText(
+  bytes: Uint8Array,
+  log: Logger,
+  options: ExtractOptions,
+): Promise<ExtractedText> {
   const type = detectSyllabusFileType(bytes.subarray(0, 1024));
 
   if (type === "pdf") {
@@ -57,16 +72,19 @@ export async function extractSyllabusText(bytes: Uint8Array, log: Logger): Promi
       ({ pages } = await extractPdfText(bytes));
     } catch (error) {
       log.warn("pdf text extraction failed; falling back to ocr", { error });
+      if (!options.ocrAllowed) throw ocrNeedsPro();
       return await ocr({ kind: "pdf", base64: encodeBase64(bytes) }, log);
     }
     if (needsOcr(pages)) {
       log.info("pdf text layer too thin; using ocr", { pages: pages.length });
+      if (!options.ocrAllowed) throw ocrNeedsPro();
       return await ocr({ kind: "pdf", base64: encodeBase64(bytes) }, log);
     }
     return { text: joinPages(pages), pageCount: pages.length, method: "text_layer" };
   }
 
   if (type === "png" || type === "jpeg" || type === "webp") {
+    if (!options.ocrAllowed) throw ocrNeedsPro();
     return await ocr(
       { kind: "image", base64: encodeBase64(bytes), mediaType: IMAGE_MEDIA_TYPES[type] },
       log,

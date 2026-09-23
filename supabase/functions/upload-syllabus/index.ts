@@ -24,6 +24,13 @@ import { adminClient, requireUser, type AuthedUser } from "../_shared/supabase.t
 import { processSyllabusUpload } from "../_shared/syllabus/pipeline.ts";
 
 const BUCKET = "syllabi";
+
+/** Turns quota/plan errors raised by the syllabus_uploads trigger into HTTP errors. */
+function planError(error: { code?: string; message: string }): HttpError | null {
+  if (error.code === "SPL01") return new HttpError(429, "parse_limit_reached", error.message);
+  if (error.code === "SPP01") return new HttpError(402, "pro_required", error.message);
+  return null;
+}
 export const MIN_PASTED_CHARS = 200;
 export const MAX_PASTED_CHARS = 200_000;
 
@@ -134,6 +141,11 @@ async function fromFile(
     .select("id, status")
     .single();
   if (insertError) {
+    const planErr = planError(insertError);
+    if (planErr) {
+      await db.storage.from(BUCKET).remove([body.file_path]);
+      throw planErr;
+    }
     // Lost a race with a concurrent retry for the same file: return that upload.
     if (insertError.code === "23505") {
       const { data: winner } = await findLive();
@@ -169,7 +181,7 @@ async function fromText(
     })
     .select("id, status")
     .single();
-  if (error) throw error;
+  if (error) throw planError(error) ?? error;
   log.info("syllabus text submitted", { upload_id: upload.id, chars: text.length });
   return start(upload, log);
 }
@@ -199,7 +211,7 @@ async function fromUrl(
     })
     .select("id, status")
     .single();
-  if (error) throw error;
+  if (error) throw planError(error) ?? error;
   log.info("syllabus url submitted", { upload_id: upload.id, host: url.hostname });
   return start(upload, log);
 }

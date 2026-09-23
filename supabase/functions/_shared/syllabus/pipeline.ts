@@ -69,15 +69,19 @@ async function ensureText(
   if (upload.extracted_text) return { text: upload.extracted_text, usage: [] };
 
   const db = adminClient();
+  const { data: entitlements } = await db
+    .rpc("parse_entitlements", { p_user_id: upload.user_id })
+    .single();
+  const options = { ocrAllowed: entitlements?.ocr_allowed ?? false };
   let extracted: ExtractedText;
   if (upload.source === "url" && upload.source_url) {
-    extracted = await fetchSyllabusUrl(upload.source_url, log);
+    extracted = await fetchSyllabusUrl(upload.source_url, log, options);
   } else if (upload.file_path) {
     const { data: blob, error } = await db.storage.from("syllabi").download(upload.file_path);
     if (error || !blob) {
       throw new ParseFailure("The uploaded file is missing. Upload it again.", "file_missing");
     }
-    extracted = await extractSyllabusText(new Uint8Array(await blob.arrayBuffer()), log);
+    extracted = await extractSyllabusText(new Uint8Array(await blob.arrayBuffer()), log, options);
   } else {
     throw new ParseFailure(GENERIC_FAILURE, "missing_source");
   }

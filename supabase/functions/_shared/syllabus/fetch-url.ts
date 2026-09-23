@@ -8,7 +8,7 @@ import {
 import type { Logger } from "@studypulse/core/observability/index.ts";
 
 import { ParseFailure } from "./errors.ts";
-import { extractSyllabusText, type ExtractedText } from "./extract.ts";
+import { extractSyllabusText, type ExtractedText, type ExtractOptions } from "./extract.ts";
 
 /** Resolves A and AAAA records; a missing record type is not an error. */
 async function resolveHost(hostname: string): Promise<string[]> {
@@ -20,7 +20,11 @@ async function resolveHost(hostname: string): Promise<string[]> {
 }
 
 /** Fetches a syllabus URL (with SSRF protection) and converts it to page-marked text. */
-export async function fetchSyllabusUrl(url: string, log: Logger): Promise<ExtractedText> {
+export async function fetchSyllabusUrl(
+  url: string,
+  log: Logger,
+  options: ExtractOptions,
+): Promise<ExtractedText> {
   let page;
   try {
     page = await safeFetch(url, { resolve: resolveHost });
@@ -36,7 +40,7 @@ export async function fetchSyllabusUrl(url: string, log: Logger): Promise<Extrac
 
   // Many syllabus links point straight at a PDF.
   if (detectSyllabusFileType(page.bytes.subarray(0, 1024)) === "pdf") {
-    return await extractSyllabusText(page.bytes, log);
+    return await extractSyllabusText(page.bytes, log, options);
   }
 
   const type = page.contentType.toLowerCase();

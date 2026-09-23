@@ -708,7 +708,25 @@ export type Database = {
         Args: { p_payload?: Json; p_upload_id: string };
         Returns: string;
       };
+      get_parse_quota: {
+        Args: never;
+        Returns: {
+          allowed_sources: Database["public"]["Enums"]["syllabus_source"][];
+          daily_limit: number;
+          ocr_allowed: boolean;
+          plan_tier: Database["public"]["Enums"]["plan_tier"];
+          remaining: number;
+          used_today: number;
+        }[];
+      };
       is_valid_timezone: { Args: { tz: string }; Returns: boolean };
+      parse_entitlements: {
+        Args: { p_user_id: string };
+        Returns: {
+          ocr_allowed: boolean;
+          plan_tier: Database["public"]["Enums"]["plan_tier"];
+        }[];
+      };
     };
     Enums: {
       assignment_kind:

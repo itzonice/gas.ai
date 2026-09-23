@@ -5,3 +5,5 @@ export * from "./ai.ts";
 export * from "./ocr.ts";
 export * from "./pdf.ts";
 export * from "./text.ts";
+export * from "./html.ts";
+export * from "./ssrf.ts";

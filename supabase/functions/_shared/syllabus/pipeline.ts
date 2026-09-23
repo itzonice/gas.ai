@@ -3,7 +3,8 @@ import type { Logger } from "@studypulse/core/observability/index.ts";
 import { Sentry } from "../sentry.ts";
 import { adminClient } from "../supabase.ts";
 import { ParseFailure } from "./errors.ts";
-import { extractSyllabusText } from "./extract.ts";
+import { extractSyllabusText, type ExtractedText } from "./extract.ts";
+import { fetchSyllabusUrl } from "./fetch-url.ts";
 
 export { ParseFailure };
 
@@ -15,20 +16,28 @@ type UploadRow = {
   user_id: string;
   source: "pdf" | "image" | "text" | "url";
   file_path: string | null;
+  source_url: string | null;
   extracted_text: string | null;
 };
 
 /** Gets normalized text for an upload, extracting (and saving) it if needed. */
 async function ensureText(upload: UploadRow, log: Logger): Promise<string> {
+  // Pasted text (and uploads extracted on an earlier attempt) already have text.
   if (upload.extracted_text) return upload.extracted_text;
-  if (!upload.file_path) throw new ParseFailure(GENERIC_FAILURE, "missing_source");
 
   const db = adminClient();
-  const { data: blob, error } = await db.storage.from("syllabi").download(upload.file_path);
-  if (error || !blob)
-    throw new ParseFailure("The uploaded file is missing. Upload it again.", "file_missing");
-
-  const extracted = await extractSyllabusText(new Uint8Array(await blob.arrayBuffer()), log);
+  let extracted: ExtractedText;
+  if (upload.source === "url" && upload.source_url) {
+    extracted = await fetchSyllabusUrl(upload.source_url, log);
+  } else if (upload.file_path) {
+    const { data: blob, error } = await db.storage.from("syllabi").download(upload.file_path);
+    if (error || !blob) {
+      throw new ParseFailure("The uploaded file is missing. Upload it again.", "file_missing");
+    }
+    extracted = await extractSyllabusText(new Uint8Array(await blob.arrayBuffer()), log);
+  } else {
+    throw new ParseFailure(GENERIC_FAILURE, "missing_source");
+  }
   if (extracted.text.replace(/--- Page \d+ ---/g, "").trim().length < 50) {
     throw new ParseFailure("We couldn't find any text in this file.", "no_text");
   }
@@ -63,7 +72,7 @@ export async function processSyllabusUpload(uploadId: string, log: Logger): Prom
     .update({ status: "processing", error: null })
     .eq("id", uploadId)
     .eq("status", "pending")
-    .select("id, user_id, source, file_path, extracted_text")
+    .select("id, user_id, source, file_path, source_url, extracted_text")
     .maybeSingle();
   if (claimError) {
     plog.error("could not claim upload", { error: claimError.message });

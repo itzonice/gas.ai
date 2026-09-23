@@ -18,7 +18,7 @@ import { ParseFailure } from "./errors.ts";
 export interface ExtractedText {
   text: string;
   pageCount: number;
-  method: "text_layer" | "ocr";
+  method: "text_layer" | "ocr" | "url";
 }
 
 const IMAGE_MEDIA_TYPES = { png: "image/png", jpeg: "image/jpeg", webp: "image/webp" } as const;

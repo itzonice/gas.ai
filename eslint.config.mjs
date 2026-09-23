@@ -33,6 +33,11 @@ export default defineConfig([
     },
   },
   {
+    // Tests index into fixtures they just built; non-null assertions are fine there.
+    files: ["**/*.test.ts"],
+    rules: { "@typescript-eslint/no-non-null-assertion": "off" },
+  },
+  {
     files: ["**/*.{js,mjs,cjs}"],
     extends: [tseslint.configs.disableTypeChecked],
   },

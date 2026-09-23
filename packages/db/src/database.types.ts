@@ -626,6 +626,8 @@ export type Database = {
           source: Database["public"]["Enums"]["syllabus_source"];
           source_url: string | null;
           status: Database["public"]["Enums"]["syllabus_upload_status"];
+          term_end_hint: string | null;
+          term_start_hint: string | null;
           updated_at: string;
           user_id: string;
         };
@@ -648,6 +650,8 @@ export type Database = {
           source: Database["public"]["Enums"]["syllabus_source"];
           source_url?: string | null;
           status?: Database["public"]["Enums"]["syllabus_upload_status"];
+          term_end_hint?: string | null;
+          term_start_hint?: string | null;
           updated_at?: string;
           user_id?: string;
         };
@@ -670,6 +674,8 @@ export type Database = {
           source?: Database["public"]["Enums"]["syllabus_source"];
           source_url?: string | null;
           status?: Database["public"]["Enums"]["syllabus_upload_status"];
+          term_end_hint?: string | null;
+          term_start_hint?: string | null;
           updated_at?: string;
           user_id?: string;
         };

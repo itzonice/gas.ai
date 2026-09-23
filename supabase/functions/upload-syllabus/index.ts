@@ -27,25 +27,41 @@ const BUCKET = "syllabi";
 export const MIN_PASTED_CHARS = 200;
 export const MAX_PASTED_CHARS = 200_000;
 
-const bodySchema = z.discriminatedUnion("source", [
-  z.object({
-    source: z.literal("file"),
-    file_path: z.string().min(3).max(300),
-    original_filename: z.string().trim().min(1).max(255).optional(),
-  }),
-  z.object({
-    source: z.literal("text"),
-    text: z
-      .string()
-      .trim()
-      .min(MIN_PASTED_CHARS, "Paste the whole syllabus (at least a few paragraphs)")
-      .max(MAX_PASTED_CHARS, "That's too long for one syllabus"),
-  }),
-  z.object({
-    source: z.literal("url"),
-    url: z.string().trim().max(2048),
-  }),
-]);
+const isoDate = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Expected YYYY-MM-DD");
+
+// Optional term dates the student entered; the parser prefers them over the syllabus.
+const termHints = {
+  term_start: isoDate.optional(),
+  term_end: isoDate.optional(),
+};
+
+const bodySchema = z
+  .discriminatedUnion("source", [
+    z.object({
+      source: z.literal("file"),
+      file_path: z.string().min(3).max(300),
+      original_filename: z.string().trim().min(1).max(255).optional(),
+      ...termHints,
+    }),
+    z.object({
+      source: z.literal("text"),
+      text: z
+        .string()
+        .trim()
+        .min(MIN_PASTED_CHARS, "Paste the whole syllabus (at least a few paragraphs)")
+        .max(MAX_PASTED_CHARS, "That's too long for one syllabus"),
+      ...termHints,
+    }),
+    z.object({
+      source: z.literal("url"),
+      url: z.string().trim().max(2048),
+      ...termHints,
+    }),
+  ])
+  .refine((b) => !b.term_start || !b.term_end || b.term_end >= b.term_start, {
+    message: "term_end must be on or after term_start",
+    path: ["term_end"],
+  });
 
 type Body = z.infer<typeof bodySchema>;
 type Created = { id: string; status: string };
@@ -112,6 +128,8 @@ async function fromFile(
       original_filename: body.original_filename ?? body.file_path.split("/")[1] ?? null,
       mime_type: SYLLABUS_MIME_TYPES[fileType],
       size_bytes: blob.size,
+      term_start_hint: body.term_start ?? null,
+      term_end_hint: body.term_end ?? null,
     })
     .select("id, status")
     .single();
@@ -146,6 +164,8 @@ async function fromText(
       extracted_text: text,
       extraction_method: "pasted",
       page_count: 1,
+      term_start_hint: body.term_start ?? null,
+      term_end_hint: body.term_end ?? null,
     })
     .select("id, status")
     .single();
@@ -170,7 +190,13 @@ async function fromUrl(
   }
   const { data: upload, error } = await adminClient()
     .from("syllabus_uploads")
-    .insert({ user_id: user.id, source: "url", source_url: url.toString() })
+    .insert({
+      user_id: user.id,
+      source: "url",
+      source_url: url.toString(),
+      term_start_hint: body.term_start ?? null,
+      term_end_hint: body.term_end ?? null,
+    })
     .select("id, status")
     .single();
   if (error) throw error;

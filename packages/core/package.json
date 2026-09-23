@@ -14,7 +14,8 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:coverage": "vitest run --coverage"
+    "test:coverage": "vitest run --coverage",
+    "parser:schema": "node scripts/gen-parser-schema.ts && prettier --write src/parser/prompts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "0.128.0",

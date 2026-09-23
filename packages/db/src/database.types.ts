@@ -611,11 +611,14 @@ export type Database = {
           course_id: string | null;
           created_at: string;
           error: string | null;
+          extracted_text: string | null;
+          extraction_method: Database["public"]["Enums"]["syllabus_extraction_method"] | null;
           file_path: string | null;
           id: string;
           mime_type: string | null;
           model: string | null;
           original_filename: string | null;
+          page_count: number | null;
           parse_result: Json | null;
           parsed_at: string | null;
           prompt_version: string | null;
@@ -630,11 +633,14 @@ export type Database = {
           course_id?: string | null;
           created_at?: string;
           error?: string | null;
+          extracted_text?: string | null;
+          extraction_method?: Database["public"]["Enums"]["syllabus_extraction_method"] | null;
           file_path?: string | null;
           id?: string;
           mime_type?: string | null;
           model?: string | null;
           original_filename?: string | null;
+          page_count?: number | null;
           parse_result?: Json | null;
           parsed_at?: string | null;
           prompt_version?: string | null;
@@ -649,11 +655,14 @@ export type Database = {
           course_id?: string | null;
           created_at?: string;
           error?: string | null;
+          extracted_text?: string | null;
+          extraction_method?: Database["public"]["Enums"]["syllabus_extraction_method"] | null;
           file_path?: string | null;
           id?: string;
           mime_type?: string | null;
           model?: string | null;
           original_filename?: string | null;
+          page_count?: number | null;
           parse_result?: Json | null;
           parsed_at?: string | null;
           prompt_version?: string | null;
@@ -715,6 +724,7 @@ export type Database = {
         | "canceled"
         | "expired"
         | "refunded";
+      syllabus_extraction_method: "text_layer" | "ocr" | "pasted" | "url";
       syllabus_source: "pdf" | "image" | "text" | "url";
       syllabus_upload_status: "pending" | "processing" | "parsed" | "committed" | "failed";
     };
@@ -877,6 +887,7 @@ export const Constants = {
         "expired",
         "refunded",
       ],
+      syllabus_extraction_method: ["text_layer", "ocr", "pasted", "url"],
       syllabus_source: ["pdf", "image", "text", "url"],
       syllabus_upload_status: ["pending", "processing", "parsed", "committed", "failed"],
     },

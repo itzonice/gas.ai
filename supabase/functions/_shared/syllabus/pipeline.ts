@@ -2,16 +2,50 @@ import type { Logger } from "@studypulse/core/observability/index.ts";
 
 import { Sentry } from "../sentry.ts";
 import { adminClient } from "../supabase.ts";
+import { ParseFailure } from "./errors.ts";
+import { extractSyllabusText } from "./extract.ts";
+
+export { ParseFailure };
 
 /** Message shown to the user when parsing fails for a reason we don't want to expose. */
 const GENERIC_FAILURE = "We couldn't read this syllabus. Try another file or paste the text.";
 
-/** A failure whose message is safe to show the user. */
-export class ParseFailure extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = "ParseFailure";
+type UploadRow = {
+  id: string;
+  user_id: string;
+  source: "pdf" | "image" | "text" | "url";
+  file_path: string | null;
+  extracted_text: string | null;
+};
+
+/** Gets normalized text for an upload, extracting (and saving) it if needed. */
+async function ensureText(upload: UploadRow, log: Logger): Promise<string> {
+  if (upload.extracted_text) return upload.extracted_text;
+  if (!upload.file_path) throw new ParseFailure(GENERIC_FAILURE, "missing_source");
+
+  const db = adminClient();
+  const { data: blob, error } = await db.storage.from("syllabi").download(upload.file_path);
+  if (error || !blob)
+    throw new ParseFailure("The uploaded file is missing. Upload it again.", "file_missing");
+
+  const extracted = await extractSyllabusText(new Uint8Array(await blob.arrayBuffer()), log);
+  if (extracted.text.replace(/--- Page \d+ ---/g, "").trim().length < 50) {
+    throw new ParseFailure("We couldn't find any text in this file.", "no_text");
   }
+  await db
+    .from("syllabus_uploads")
+    .update({
+      extracted_text: extracted.text,
+      extraction_method: extracted.method,
+      page_count: extracted.pageCount,
+    })
+    .eq("id", upload.id);
+  log.info("text extracted", {
+    method: extracted.method,
+    pages: extracted.pageCount,
+    chars: extracted.text.length,
+  });
+  return extracted.text;
 }
 
 /**
@@ -29,7 +63,7 @@ export async function processSyllabusUpload(uploadId: string, log: Logger): Prom
     .update({ status: "processing", error: null })
     .eq("id", uploadId)
     .eq("status", "pending")
-    .select("*")
+    .select("id, user_id, source, file_path, extracted_text")
     .maybeSingle();
   if (claimError) {
     plog.error("could not claim upload", { error: claimError.message });
@@ -41,14 +75,15 @@ export async function processSyllabusUpload(uploadId: string, log: Logger): Prom
   }
 
   try {
-    throw new ParseFailure("Syllabus parsing is not available yet.");
+    await ensureText(upload, plog);
+    throw new ParseFailure("Syllabus parsing is not available yet.", "not_implemented");
   } catch (error) {
     const message = error instanceof ParseFailure ? error.message : GENERIC_FAILURE;
-    if (!(error instanceof ParseFailure)) {
+    if (error instanceof ParseFailure) {
+      plog.warn("parse failed", { code: error.code, reason: message });
+    } else {
       plog.error("parse crashed", { error });
       Sentry.captureException(error, { tags: { upload_id: uploadId } });
-    } else {
-      plog.warn("parse failed", { reason: message });
     }
     await db
       .from("syllabus_uploads")

@@ -58,12 +58,15 @@ Deno.serve(
     }
     const head = new Uint8Array(await blob.slice(0, 1024).arrayBuffer());
     const fileType = detectSyllabusFileType(head);
-    if (!fileType) {
+    // HEIC is recognized so we can give a useful message, but the OCR model can't read it.
+    if (!fileType || fileType === "heic") {
       await db.storage.from(BUCKET).remove([body.file_path]);
       throw new HttpError(
         415,
         "unsupported_file_type",
-        "Upload a PDF or a photo (PNG, JPEG, HEIC, WebP)",
+        fileType === "heic"
+          ? "HEIC photos aren't supported yet. Export the photo as JPEG and try again."
+          : "Upload a PDF or a photo (PNG, JPEG, WebP)",
       );
     }
 

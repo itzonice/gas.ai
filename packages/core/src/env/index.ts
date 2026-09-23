@@ -50,6 +50,8 @@ export const edgeEnvSchema = z.object({
   SUPABASE_ANON_KEY: nonEmpty,
   SUPABASE_SERVICE_ROLE_KEY: nonEmpty,
   ANTHROPIC_API_KEY: optionalNonEmpty,
+  // Model used for syllabus parsing and OCR; defaults to the parser's default model.
+  PARSER_MODEL: optionalNonEmpty,
   SENTRY_DSN: optionalUrl,
 });
 export type EdgeEnv = z.infer<typeof edgeEnvSchema>;

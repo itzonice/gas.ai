@@ -704,6 +704,10 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
+      commit_parsed_syllabus: {
+        Args: { p_payload?: Json; p_upload_id: string };
+        Returns: string;
+      };
       is_valid_timezone: { Args: { tz: string }; Returns: boolean };
     };
     Enums: {

@@ -14,3 +14,4 @@ export * from "./postprocess.ts";
 export * from "./result.ts";
 export * from "./categories.ts";
 export * from "./confidence.ts";
+export * from "./commit.ts";

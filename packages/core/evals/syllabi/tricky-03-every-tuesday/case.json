@@ -1,0 +1,144 @@
+{
+  "description": "A recurring 'every Tuesday' deliverable that must be expanded, skipping spring break.",
+  "tags": ["tricky", "recurring", "holidays"],
+  "input": {
+    "timezone": "America/Los_Angeles",
+    "today": "2027-01-15",
+    "term_start": null,
+    "term_end": null
+  },
+  "expected": {
+    "course": {
+      "name": "Introduction to Literary Analysis",
+      "code": "ENGL 205"
+    },
+    "categories": [
+      {
+        "name": "Reading responses",
+        "weight": 25
+      },
+      {
+        "name": "Essays",
+        "weight": 45
+      },
+      {
+        "name": "Final portfolio",
+        "weight": 30
+      }
+    ],
+    "assignments": [
+      {
+        "title": "Reading Response 1",
+        "kind": "discussion",
+        "due_date": "2027-01-26",
+        "due_time": "23:59",
+        "category": "Reading responses"
+      },
+      {
+        "title": "Reading Response 2",
+        "kind": "discussion",
+        "due_date": "2027-02-02",
+        "due_time": "23:59",
+        "category": "Reading responses"
+      },
+      {
+        "title": "Reading Response 3",
+        "kind": "discussion",
+        "due_date": "2027-02-09",
+        "due_time": "23:59",
+        "category": "Reading responses"
+      },
+      {
+        "title": "Reading Response 4",
+        "kind": "discussion",
+        "due_date": "2027-02-16",
+        "due_time": "23:59",
+        "category": "Reading responses"
+      },
+      {
+        "title": "Reading Response 5",
+        "kind": "discussion",
+        "due_date": "2027-02-23",
+        "due_time": "23:59",
+        "category": "Reading responses"
+      },
+      {
+        "title": "Reading Response 6",
+        "kind": "discussion",
+        "due_date": "2027-03-02",
+        "due_time": "23:59",
+        "category": "Reading responses"
+      },
+      {
+        "title": "Reading Response 7",
+        "kind": "discussion",
+        "due_date": "2027-03-09",
+        "due_time": "23:59",
+        "category": "Reading responses"
+      },
+      {
+        "title": "Reading Response 8",
+        "kind": "discussion",
+        "due_date": "2027-03-23",
+        "due_time": "23:59",
+        "category": "Reading responses"
+      },
+      {
+        "title": "Reading Response 9",
+        "kind": "discussion",
+        "due_date": "2027-03-30",
+        "due_time": "23:59",
+        "category": "Reading responses"
+      },
+      {
+        "title": "Reading Response 10",
+        "kind": "discussion",
+        "due_date": "2027-04-06",
+        "due_time": "23:59",
+        "category": "Reading responses"
+      },
+      {
+        "title": "Reading Response 11",
+        "kind": "discussion",
+        "due_date": "2027-04-13",
+        "due_time": "23:59",
+        "category": "Reading responses"
+      },
+      {
+        "title": "Reading Response 12",
+        "kind": "discussion",
+        "due_date": "2027-04-20",
+        "due_time": "23:59",
+        "category": "Reading responses"
+      },
+      {
+        "title": "Reading Response 13",
+        "kind": "discussion",
+        "due_date": "2027-04-27",
+        "due_time": "23:59",
+        "category": "Reading responses"
+      },
+      {
+        "title": "Essay 1",
+        "kind": "project",
+        "due_date": "2027-02-19",
+        "due_time": "17:00",
+        "category": "Essays"
+      },
+      {
+        "title": "Essay 2",
+        "kind": "project",
+        "due_date": "2027-04-02",
+        "due_time": "17:00",
+        "category": "Essays"
+      },
+      {
+        "title": "Final portfolio",
+        "kind": "project",
+        "due_date": "2027-05-04",
+        "due_time": "12:00",
+        "category": "Final portfolio"
+      }
+    ]
+  }
+}

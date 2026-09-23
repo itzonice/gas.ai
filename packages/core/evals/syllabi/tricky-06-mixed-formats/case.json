@@ -1,0 +1,83 @@
+{
+  "description": "Day-first dates (14/8), ordinals, and month abbreviations mixed together, no years, Indian timezone.",
+  "tags": ["tricky", "date-formats", "year-inference"],
+  "input": {
+    "timezone": "Asia/Kolkata",
+    "today": "2026-07-30",
+    "term_start": null,
+    "term_end": null
+  },
+  "expected": {
+    "course": {
+      "name": "Probability",
+      "code": "MATH 204"
+    },
+    "categories": [
+      {
+        "name": "Assignments",
+        "weight": 30
+      },
+      {
+        "name": "Quizzes",
+        "weight": 20
+      },
+      {
+        "name": "Mid-semester exam",
+        "weight": 20
+      },
+      {
+        "name": "End-semester exam",
+        "weight": 30
+      }
+    ],
+    "assignments": [
+      {
+        "title": "Assignment 1",
+        "kind": "assignment",
+        "due_date": "2026-08-14",
+        "due_time": "23:59",
+        "category": "Assignments"
+      },
+      {
+        "title": "Quiz 1",
+        "kind": "quiz",
+        "due_date": "2026-08-25",
+        "due_time": "14:00",
+        "category": "Quizzes"
+      },
+      {
+        "title": "Assignment 2",
+        "kind": "assignment",
+        "due_date": "2026-09-04",
+        "category": "Assignments"
+      },
+      {
+        "title": "Mid-semester exam",
+        "kind": "exam",
+        "due_date": "2026-09-29",
+        "due_time": "14:00",
+        "category": "Mid-semester exam"
+      },
+      {
+        "title": "Assignment 3",
+        "kind": "assignment",
+        "due_date": "2026-10-16",
+        "category": "Assignments"
+      },
+      {
+        "title": "Quiz 2",
+        "kind": "quiz",
+        "due_date": "2026-10-27",
+        "due_time": "14:00",
+        "category": "Quizzes"
+      },
+      {
+        "title": "End-semester exam",
+        "kind": "exam",
+        "due_date": "2026-11-24",
+        "due_time": "10:00",
+        "category": "End-semester exam"
+      }
+    ]
+  }
+}

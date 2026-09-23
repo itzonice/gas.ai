@@ -386,28 +386,34 @@ export type Database = {
       profiles: {
         Row: {
           created_at: string;
+          daily_study_minutes: number;
           display_name: string | null;
           id: string;
           plan_tier: Database["public"]["Enums"]["plan_tier"];
           school: string | null;
+          study_minutes_by_weekday: number[] | null;
           timezone: string;
           updated_at: string;
         };
         Insert: {
           created_at?: string;
+          daily_study_minutes?: number;
           display_name?: string | null;
           id: string;
           plan_tier?: Database["public"]["Enums"]["plan_tier"];
           school?: string | null;
+          study_minutes_by_weekday?: number[] | null;
           timezone?: string;
           updated_at?: string;
         };
         Update: {
           created_at?: string;
+          daily_study_minutes?: number;
           display_name?: string | null;
           id?: string;
           plan_tier?: Database["public"]["Enums"]["plan_tier"];
           school?: string | null;
+          study_minutes_by_weekday?: number[] | null;
           timezone?: string;
           updated_at?: string;
         };
@@ -750,6 +756,10 @@ export type Database = {
         Args: { p_payload?: Json; p_upload_id: string };
         Returns: string;
       };
+      default_task_minutes: {
+        Args: { p_kind: Database["public"]["Enums"]["assignment_kind"] };
+        Returns: number;
+      };
       get_parse_quota: {
         Args: never;
         Returns: {
@@ -761,6 +771,26 @@ export type Database = {
           used_today: number;
         }[];
       };
+      get_today_feed: {
+        Args: { p_date?: string };
+        Returns: {
+          assignment_id: string;
+          capacity_minutes: number;
+          course_id: string;
+          course_name: string;
+          due_at: string;
+          grade_share: number;
+          kind: Database["public"]["Enums"]["assignment_kind"];
+          minutes_remaining: number;
+          overdue: boolean;
+          planned_minutes: number;
+          priority: number;
+          rank: number;
+          status: Database["public"]["Enums"]["assignment_status"];
+          studied_minutes: number;
+          title: string;
+        }[];
+      };
       is_valid_letter_scale: { Args: { scale: Json }; Returns: boolean };
       is_valid_timezone: { Args: { tz: string }; Returns: boolean };
       parse_entitlements: {
@@ -769,6 +799,10 @@ export type Database = {
           ocr_allowed: boolean;
           plan_tier: Database["public"]["Enums"]["plan_tier"];
         }[];
+      };
+      study_capacity: {
+        Args: { p_date: string; p_user_id: string };
+        Returns: number;
       };
       task_priority: {
         Args: {

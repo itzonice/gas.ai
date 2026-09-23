@@ -3,6 +3,7 @@
 // before the round trip. The database remains the authority.
 import { z } from "zod";
 
+import { letterScaleSchema } from "../grades/letters.ts";
 import { ASSIGNMENT_KINDS } from "./prompts/v1/schema.ts";
 import type { ParseResult } from "./result.ts";
 
@@ -22,12 +23,14 @@ export const commitPayloadSchema = z
         .regex(/^#[0-9A-Fa-f]{6}$/)
         .nullable()
         .optional(),
+      letter_scale: letterScaleSchema.nullable().optional(),
     }),
     categories: z
       .array(
         z.object({
           name: z.string().trim().min(1).max(100),
           weight: z.number().min(0).max(100).nullable(),
+          drop_lowest: z.number().int().min(0).max(20).nullable().optional(),
         }),
       )
       .max(30),
@@ -76,6 +79,18 @@ export const commitPayloadSchema = z
 
 export type CommitPayload = z.infer<typeof commitPayloadSchema>;
 
+/** The parsed grading scale as a valid letter scale (highest first), or null if unusable. */
+function toLetterScale(
+  scale: ParseResult["grading_scale"],
+): CommitPayload["course"]["letter_scale"] {
+  if (scale.length === 0) return null;
+  const sorted = [...scale]
+    .sort((a, b) => b.min_percent - a.min_percent)
+    .map((e) => ({ letter: e.letter.trim(), min: e.min_percent }));
+  const parsed = letterScaleSchema.safeParse(sorted);
+  return parsed.success ? parsed.data : null;
+}
+
 /** The payload the review screen starts from: the parse result minus review-only fields. */
 export function toCommitPayload(result: ParseResult): CommitPayload {
   return {
@@ -85,8 +100,13 @@ export function toCommitPayload(result: ParseResult): CommitPayload {
       instructor: result.course.instructor,
       term_start: result.course.term_start,
       term_end: result.course.term_end,
+      letter_scale: toLetterScale(result.grading_scale),
     },
-    categories: result.categories.map((c) => ({ name: c.name, weight: c.weight })),
+    categories: result.categories.map((c) => ({
+      name: c.name,
+      weight: c.weight,
+      drop_lowest: c.drop_lowest,
+    })),
     assignments: result.assignments.map((a) => ({
       title: a.title,
       kind: a.kind,

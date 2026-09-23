@@ -29,7 +29,11 @@ describe("commit payload", () => {
           source_quote: "",
         },
       ],
-      grading_scale: [],
+      grading_scale: [
+        { letter: "B", min_percent: 80 },
+        { letter: "A", min_percent: 90 },
+        { letter: "F", min_percent: 0 },
+      ],
       warnings: [],
     },
     { timezone: "UTC", promptVersion: "syllabus-v1", model: "m" },
@@ -44,6 +48,11 @@ describe("commit payload", () => {
       due_at: "2027-02-01T23:59:00.000Z",
       points_possible: 20,
     });
+    expect(payload.course.letter_scale).toEqual([
+      { letter: "A", min: 90 },
+      { letter: "B", min: 80 },
+      { letter: "F", min: 0 },
+    ]);
     expect(commitPayloadSchema.safeParse(payload).success).toBe(true);
   });
 

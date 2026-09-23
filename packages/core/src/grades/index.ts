@@ -5,3 +5,5 @@ export * from "./types.ts";
 export * from "./needed.ts";
 export * from "./projection.ts";
 export * from "./what-if.ts";
+export * from "./drop-lowest.ts";
+export * from "./letters.ts";

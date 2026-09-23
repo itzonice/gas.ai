@@ -5,6 +5,8 @@ export interface GradeCategory {
   name: string;
   /** Share of the final grade, 0-100. Weights need not total 100; they're renormalized. */
   weight: number;
+  /** Drop this many lowest graded items (at least one graded item is always kept). */
+  dropLowest?: number;
 }
 
 export interface GradedItem {
@@ -28,6 +30,8 @@ export interface CategoryGrade {
   possible: number;
   gradedCount: number;
   weight: number;
+  /** Ids of graded items dropped by the drop-lowest rule. */
+  droppedIds: string[];
 }
 
 export interface CourseGrade {

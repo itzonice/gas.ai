@@ -2,6 +2,7 @@
 // item. Categories with no scores yet are left out and the remaining weights are
 // renormalized, so a student with only homework graded sees their homework percent
 // rather than an artificially low number.
+import { chooseDrops } from "./drop-lowest.ts";
 import type { CategoryGrade, CourseGrade, GradeInput, GradedItem } from "./types.ts";
 
 /** An item counts once it has both a score and a positive points possible. */
@@ -15,10 +16,15 @@ function categoryGrade(
   items: readonly GradedItem[],
   categoryId: string | null,
   weight: number,
+  dropLowest = 0,
 ): CategoryGrade {
-  const graded = items.filter(isGraded);
-  const earned = graded.reduce((s, a) => s + a.pointsEarned, 0);
-  const possible = graded.reduce((s, a) => s + a.pointsPossible, 0);
+  const graded = items
+    .filter(isGraded)
+    .map((a) => ({ id: a.id, earned: a.pointsEarned, possible: a.pointsPossible }));
+  const droppedIds = chooseDrops(graded, dropLowest);
+  const kept = graded.filter((a) => !droppedIds.includes(a.id));
+  const earned = kept.reduce((s, a) => s + a.earned, 0);
+  const possible = kept.reduce((s, a) => s + a.possible, 0);
   return {
     categoryId,
     percent: possible > 0 ? (earned / possible) * 100 : null,
@@ -26,6 +32,7 @@ function categoryGrade(
     possible,
     gradedCount: graded.length,
     weight,
+    droppedIds,
   };
 }
 
@@ -46,6 +53,7 @@ export function currentGrade(input: GradeInput): CourseGrade {
       input.assignments.filter((a) => a.categoryId === c.id),
       c.id,
       c.weight,
+      c.dropLowest ?? 0,
     ),
   );
   const counted = categories.filter((c) => c.percent !== null && c.weight > 0);

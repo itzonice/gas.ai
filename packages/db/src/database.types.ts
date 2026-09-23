@@ -105,6 +105,7 @@ export type Database = {
           created_at: string;
           id: string;
           instructor: string | null;
+          letter_scale: Json | null;
           name: string;
           target_grade: number | null;
           term_end: string | null;
@@ -119,6 +120,7 @@ export type Database = {
           created_at?: string;
           id?: string;
           instructor?: string | null;
+          letter_scale?: Json | null;
           name: string;
           target_grade?: number | null;
           term_end?: string | null;
@@ -133,6 +135,7 @@ export type Database = {
           created_at?: string;
           id?: string;
           instructor?: string | null;
+          letter_scale?: Json | null;
           name?: string;
           target_grade?: number | null;
           term_end?: string | null;
@@ -154,6 +157,7 @@ export type Database = {
         Row: {
           course_id: string;
           created_at: string;
+          drop_lowest: number;
           id: string;
           name: string;
           position: number;
@@ -163,6 +167,7 @@ export type Database = {
         Insert: {
           course_id: string;
           created_at?: string;
+          drop_lowest?: number;
           id?: string;
           name: string;
           position?: number;
@@ -172,6 +177,7 @@ export type Database = {
         Update: {
           course_id?: string;
           created_at?: string;
+          drop_lowest?: number;
           id?: string;
           name?: string;
           position?: number;
@@ -719,6 +725,7 @@ export type Database = {
           used_today: number;
         }[];
       };
+      is_valid_letter_scale: { Args: { scale: Json }; Returns: boolean };
       is_valid_timezone: { Args: { tz: string }; Returns: boolean };
       parse_entitlements: {
         Args: { p_user_id: string };

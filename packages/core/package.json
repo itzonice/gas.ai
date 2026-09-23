@@ -14,7 +14,8 @@
     "./priority": "./src/priority/index.ts",
     "./scheduler": "./src/scheduler/index.ts",
     "./review": "./src/review/index.ts",
-    "./cards": "./src/cards/index.ts"
+    "./cards": "./src/cards/index.ts",
+    "./api": "./src/api/index.ts"
   },
   "scripts": {
     "lint": "eslint .",
@@ -31,6 +32,7 @@
   "dependencies": {
     "@anthropic-ai/sdk": "0.128.0",
     "@studypulse/db": "workspace:*",
+    "@supabase/supabase-js": "^2.117.1",
     "unpdf": "1.8.1",
     "zod": "^4.6.5"
   },

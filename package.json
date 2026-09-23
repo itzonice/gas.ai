@@ -9,17 +9,27 @@
   "scripts": {
     "build": "turbo run build",
     "dev": "turbo run dev",
-    "lint": "turbo run lint",
-    "typecheck": "turbo run typecheck",
+    "lint": "turbo run lint && pnpm functions:lint",
+    "typecheck": "turbo run typecheck && pnpm functions:check",
     "test": "turbo run test",
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "db:start": "supabase start",
+    "db:stop": "supabase stop",
+    "db:reset": "supabase db reset",
+    "db:migrate": "supabase migration up",
+    "db:new": "supabase migration new",
+    "db:types": "supabase gen types typescript --local > packages/db/src/database.types.ts && prettier --write packages/db/src/database.types.ts",
+    "functions:lint": "cd supabase/functions && deno lint",
+    "functions:check": "cd supabase/functions && deno check ."
   },
   "devDependencies": {
     "@eslint/js": "^9.39.0",
+    "deno": "2.9.6",
     "eslint": "^9.39.0",
     "eslint-config-prettier": "^10.1.8",
     "prettier": "^3.9.9",
+    "supabase": "2.117.0",
     "turbo": "^2.11.3",
     "typescript": "~6.0.3",
     "typescript-eslint": "^8.70.1"

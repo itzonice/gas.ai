@@ -1,0 +1,19 @@
+{
+  "compilerOptions": {
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitOverride": true
+  },
+  "imports": {
+    "@studypulse/core": "../../packages/core/src/index.ts",
+    "@studypulse/core/": "../../packages/core/src/",
+    "@studypulse/db": "../../packages/db/src/index.ts",
+    "@supabase/supabase-js": "npm:@supabase/supabase-js@2",
+    "zod": "npm:zod@^4.6.5"
+  },
+  "lint": {
+    "rules": {
+      "tags": ["recommended"]
+    }
+  }
+}

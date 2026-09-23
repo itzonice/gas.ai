@@ -9,7 +9,8 @@
     "./observability": "./src/observability/index.ts",
     "./parser": "./src/parser/index.ts",
     "./time": "./src/time/index.ts",
-    "./plans": "./src/plans/index.ts"
+    "./plans": "./src/plans/index.ts",
+    "./grades": "./src/grades/index.ts"
   },
   "scripts": {
     "lint": "eslint .",

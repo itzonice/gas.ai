@@ -1,0 +1,4 @@
+// Grade math. Pure functions over plain data; the database mirrors the current-grade
+// calculation in SQL for views.
+export * from "./current.ts";
+export * from "./types.ts";

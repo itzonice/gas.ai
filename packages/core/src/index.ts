@@ -4,6 +4,7 @@ export type { Database } from "@studypulse/db";
 
 export * from "./env/index.ts";
 export * from "./observability/index.ts";
+export * from "./grades/index.ts";
 export * from "./plans/index.ts";
 export * from "./time/index.ts";
 

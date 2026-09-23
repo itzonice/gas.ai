@@ -1,0 +1,113 @@
+{
+  "description": "PHYS 211 Physics I: Mechanics, Fall 2026, table layout, America/Chicago",
+  "tags": ["standard", "table"],
+  "input": {
+    "timezone": "America/Chicago",
+    "today": "2026-08-20",
+    "term_start": null,
+    "term_end": null
+  },
+  "expected": {
+    "course": {
+      "name": "Physics I: Mechanics",
+      "code": "PHYS 211"
+    },
+    "categories": [
+      {
+        "name": "Labs",
+        "weight": 30
+      },
+      {
+        "name": "Exams",
+        "weight": 45
+      },
+      {
+        "name": "Quizzes",
+        "weight": 15
+      },
+      {
+        "name": "Participation",
+        "weight": 10
+      }
+    ],
+    "assignments": [
+      {
+        "title": "Lab 1",
+        "kind": "lab",
+        "due_date": "2026-09-12",
+        "due_time": null,
+        "category": "Labs"
+      },
+      {
+        "title": "Exam 1",
+        "kind": "exam",
+        "due_date": "2026-09-23",
+        "due_time": "10:30",
+        "category": "Exams"
+      },
+      {
+        "title": "Quiz 1",
+        "kind": "quiz",
+        "due_date": "2026-09-23",
+        "due_time": "23:59",
+        "category": "Quizzes"
+      },
+      {
+        "title": "Lab 2",
+        "kind": "lab",
+        "due_date": "2026-09-30",
+        "due_time": "23:59",
+        "category": "Labs"
+      },
+      {
+        "title": "Lab 3",
+        "kind": "lab",
+        "due_date": "2026-10-19",
+        "due_time": "23:59",
+        "category": "Labs"
+      },
+      {
+        "title": "Exam 2",
+        "kind": "exam",
+        "due_date": "2026-10-21",
+        "due_time": "13:00",
+        "category": "Exams"
+      },
+      {
+        "title": "Quiz 2",
+        "kind": "quiz",
+        "due_date": "2026-10-21",
+        "due_time": null,
+        "category": "Quizzes"
+      },
+      {
+        "title": "Lab 4",
+        "kind": "lab",
+        "due_date": "2026-11-06",
+        "due_time": "23:59",
+        "category": "Labs"
+      },
+      {
+        "title": "Exam 3",
+        "kind": "exam",
+        "due_date": "2026-11-20",
+        "due_time": "14:00",
+        "category": "Exams"
+      },
+      {
+        "title": "Quiz 3",
+        "kind": "quiz",
+        "due_date": "2026-11-20",
+        "due_time": null,
+        "category": "Quizzes"
+      },
+      {
+        "title": "Lab 5",
+        "kind": "lab",
+        "due_date": "2026-11-25",
+        "due_time": "23:59",
+        "category": "Labs"
+      }
+    ]
+  }
+}

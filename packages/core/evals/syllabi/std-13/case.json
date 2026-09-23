@@ -1,0 +1,99 @@
+{
+  "description": "BIOL 230 Human Anatomy, Fall 2026, table layout, Asia/Kolkata",
+  "tags": ["standard", "table"],
+  "input": {
+    "timezone": "Asia/Kolkata",
+    "today": "2026-08-20",
+    "term_start": null,
+    "term_end": null
+  },
+  "expected": {
+    "course": {
+      "name": "Human Anatomy",
+      "code": "BIOL 230"
+    },
+    "categories": [
+      {
+        "name": "Essays",
+        "weight": 40
+      },
+      {
+        "name": "Midterm",
+        "weight": 20
+      },
+      {
+        "name": "Final Exam",
+        "weight": 25
+      },
+      {
+        "name": "Reading Responses",
+        "weight": 15
+      }
+    ],
+    "assignments": [
+      {
+        "title": "Essay 1",
+        "kind": "project",
+        "due_date": "2026-09-16",
+        "due_time": null,
+        "category": "Essays"
+      },
+      {
+        "title": "Reading Response 1",
+        "kind": "discussion",
+        "due_date": "2026-09-22",
+        "due_time": "23:59",
+        "category": "Reading Responses"
+      },
+      {
+        "title": "Essay 2",
+        "kind": "project",
+        "due_date": "2026-10-08",
+        "due_time": null,
+        "category": "Essays"
+      },
+      {
+        "title": "Midterm Exam",
+        "kind": "exam",
+        "due_date": "2026-10-20",
+        "due_time": "09:00",
+        "category": "Midterm"
+      },
+      {
+        "title": "Reading Response 2",
+        "kind": "discussion",
+        "due_date": "2026-10-21",
+        "due_time": null,
+        "category": "Reading Responses"
+      },
+      {
+        "title": "Essay 3",
+        "kind": "project",
+        "due_date": "2026-10-31",
+        "due_time": "23:59",
+        "category": "Essays"
+      },
+      {
+        "title": "Reading Response 3",
+        "kind": "discussion",
+        "due_date": "2026-11-19",
+        "due_time": "23:59",
+        "category": "Reading Responses"
+      },
+      {
+        "title": "Essay 4",
+        "kind": "project",
+        "due_date": "2026-11-23",
+        "due_time": "23:59",
+        "category": "Essays"
+      },
+      {
+        "title": "Final Exam",
+        "kind": "exam",
+        "due_date": "2026-12-11",
+        "due_time": "14:00",
+        "category": "Final Exam"
+      }
+    ]
+  }
+}

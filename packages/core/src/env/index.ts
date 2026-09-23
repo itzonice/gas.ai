@@ -57,12 +57,14 @@ export const edgeEnvSchema = z.object({
 export type EdgeEnv = z.infer<typeof edgeEnvSchema>;
 
 export class EnvError extends Error {
-  constructor(
-    readonly runtime: string,
-    readonly issues: readonly string[],
-  ) {
+  readonly runtime: string;
+  readonly issues: readonly string[];
+
+  constructor(runtime: string, issues: readonly string[]) {
     super(`Invalid ${runtime} environment:\n${issues.map((i) => `  - ${i}`).join("\n")}`);
     this.name = "EnvError";
+    this.runtime = runtime;
+    this.issues = issues;
   }
 }
 

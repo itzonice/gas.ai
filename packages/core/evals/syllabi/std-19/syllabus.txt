@@ -1,0 +1,27 @@
+CS 173: Discrete Mathematics
+Summer 2027
+Instructor: Dr. Aisha Rahman
+Class meets Monday/Wednesday/Friday.
+First day of classes: June 1, 2027. Last day (including finals): July 30, 2027.
+
+GRADING
+Labs count for 30% of your grade.
+Exams count for 45% of your grade.
+Quizzes count for 15% of your grade.
+Participation count for 10% of your grade.
+
+Late work loses 10% per day. Contact the instructor in advance for accommodations.
+
+ASSIGNMENTS AND EXAMS
+Quiz 1 is due Friday, Jun 11 at 11:59 PM; it counts toward Quizzes.
+Lab 1 is due June 13, 2027 at 11:59 PM; it counts toward Labs.
+The Exam 1 will be held on June 16 at 10:30 AM.
+Quiz 2 is due 6/21; it counts toward Quizzes.
+Lab 2 is due Thu 6/24; it counts toward Labs.
+Quiz 3 is due Wednesday, Jun 30; it counts toward Quizzes.
+The Exam 2 will be held on July 2, 2027 at 1 PM.
+Lab 3 is due July 6 at 11:59 PM; it counts toward Labs.
+Quiz 4 is due 7/9; it counts toward Quizzes.
+The Exam 3 will be held on Fri 7/16 at 10:30 AM.
+Lab 4 is due Saturday, Jul 17 at 11:59 PM; it counts toward Labs.
+Quiz 5 is due July 19, 2027; it counts toward Quizzes.

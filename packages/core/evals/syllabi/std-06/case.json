@@ -1,0 +1,116 @@
+{
+  "description": "ECON 201 Principles of Microeconomics, Spring 2027, list layout, Asia/Kolkata",
+  "tags": ["standard", "list"],
+  "input": {
+    "timezone": "Asia/Kolkata",
+    "today": "2027-01-08",
+    "term_start": null,
+    "term_end": null
+  },
+  "expected": {
+    "course": {
+      "name": "Principles of Microeconomics",
+      "code": "ECON 201"
+    },
+    "categories": [
+      {
+        "name": "Exams",
+        "weight": 50
+      },
+      {
+        "name": "Homework",
+        "weight": 30
+      },
+      {
+        "name": "Quizzes",
+        "weight": 20
+      }
+    ],
+    "assignments": [
+      {
+        "title": "Quiz 1",
+        "kind": "quiz",
+        "due_date": "2027-01-29",
+        "due_time": "23:59",
+        "category": "Quizzes"
+      },
+      {
+        "title": "Exam 1",
+        "kind": "exam",
+        "due_date": "2027-02-12",
+        "due_time": "13:00",
+        "category": "Exams"
+      },
+      {
+        "title": "Homework 1",
+        "kind": "assignment",
+        "due_date": "2027-02-12",
+        "due_time": "23:59",
+        "category": "Homework"
+      },
+      {
+        "title": "Quiz 2",
+        "kind": "quiz",
+        "due_date": "2027-02-15",
+        "due_time": null,
+        "category": "Quizzes"
+      },
+      {
+        "title": "Quiz 3",
+        "kind": "quiz",
+        "due_date": "2027-03-03",
+        "due_time": "23:59",
+        "category": "Quizzes"
+      },
+      {
+        "title": "Exam 2",
+        "kind": "exam",
+        "due_date": "2027-03-15",
+        "due_time": "13:00",
+        "category": "Exams"
+      },
+      {
+        "title": "Homework 2",
+        "kind": "assignment",
+        "due_date": "2027-03-15",
+        "due_time": null,
+        "category": "Homework"
+      },
+      {
+        "title": "Quiz 4",
+        "kind": "quiz",
+        "due_date": "2027-03-19",
+        "due_time": null,
+        "category": "Quizzes"
+      },
+      {
+        "title": "Quiz 5",
+        "kind": "quiz",
+        "due_date": "2027-04-05",
+        "due_time": "23:59",
+        "category": "Quizzes"
+      },
+      {
+        "title": "Homework 3",
+        "kind": "assignment",
+        "due_date": "2027-04-15",
+        "due_time": "23:59",
+        "category": "Homework"
+      },
+      {
+        "title": "Exam 3",
+        "kind": "exam",
+        "due_date": "2027-04-16",
+        "due_time": "10:30",
+        "category": "Exams"
+      },
+      {
+        "title": "Quiz 6",
+        "kind": "quiz",
+        "due_date": "2027-04-23",
+        "due_time": "23:59",
+        "category": "Quizzes"
+      }
+    ]
+  }
+}

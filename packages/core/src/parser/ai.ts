@@ -15,13 +15,12 @@ export type Effort = "low" | "medium" | "high";
 export type AiFailureKind = "refusal" | "truncated" | "invalid_output" | "timeout" | "api";
 
 export class AiCallError extends Error {
-  constructor(
-    readonly kind: AiFailureKind,
-    message: string,
-    options?: { cause?: unknown },
-  ) {
+  readonly kind: AiFailureKind;
+
+  constructor(kind: AiFailureKind, message: string, options?: { cause?: unknown }) {
     super(message, options);
     this.name = "AiCallError";
+    this.kind = kind;
   }
 }
 

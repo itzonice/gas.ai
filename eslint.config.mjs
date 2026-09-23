@@ -26,6 +26,9 @@ export default defineConfig([
     },
     rules: {
       "@typescript-eslint/consistent-type-imports": "error",
+      // Node's built-in TypeScript stripping (used by scripts) can't run these.
+      "@typescript-eslint/parameter-properties": "error",
+      "@typescript-eslint/no-namespace": "error",
       "@typescript-eslint/no-unused-vars": [
         "error",
         { argsIgnorePattern: "^_", varsIgnorePattern: "^_" },

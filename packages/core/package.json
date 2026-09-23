@@ -16,7 +16,9 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
-    "parser:schema": "node scripts/gen-parser-schema.ts && prettier --write src/parser/prompts"
+    "parser:schema": "node scripts/gen-parser-schema.ts && prettier --write src/parser/prompts",
+    "eval:generate": "node scripts/gen-eval-cases.ts && prettier --write evals/syllabi",
+    "eval": "node scripts/eval-parser.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "0.128.0",

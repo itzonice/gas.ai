@@ -1,0 +1,116 @@
+{
+  "description": "COMM 110 Public Speaking, Fall 2027, weekly layout, Asia/Kolkata",
+  "tags": ["standard", "weekly"],
+  "input": {
+    "timezone": "Asia/Kolkata",
+    "today": "2027-08-19",
+    "term_start": null,
+    "term_end": null
+  },
+  "expected": {
+    "course": {
+      "name": "Public Speaking",
+      "code": "COMM 110"
+    },
+    "categories": [
+      {
+        "name": "Projects",
+        "weight": 40
+      },
+      {
+        "name": "Exams",
+        "weight": 40
+      },
+      {
+        "name": "Homework",
+        "weight": 20
+      }
+    ],
+    "assignments": [
+      {
+        "title": "Project 1",
+        "kind": "project",
+        "due_date": "2027-09-08",
+        "due_time": "23:59",
+        "category": "Projects"
+      },
+      {
+        "title": "Homework 1",
+        "kind": "assignment",
+        "due_date": "2027-09-21",
+        "due_time": "23:59",
+        "category": "Homework"
+      },
+      {
+        "title": "Exam 1",
+        "kind": "exam",
+        "due_date": "2027-09-22",
+        "due_time": "13:00",
+        "category": "Exams"
+      },
+      {
+        "title": "Project 2",
+        "kind": "project",
+        "due_date": "2027-09-23",
+        "due_time": "23:59",
+        "category": "Projects"
+      },
+      {
+        "title": "Project 3",
+        "kind": "project",
+        "due_date": "2027-10-09",
+        "due_time": null,
+        "category": "Projects"
+      },
+      {
+        "title": "Exam 2",
+        "kind": "exam",
+        "due_date": "2027-10-20",
+        "due_time": "10:30",
+        "category": "Exams"
+      },
+      {
+        "title": "Homework 2",
+        "kind": "assignment",
+        "due_date": "2027-10-20",
+        "due_time": null,
+        "category": "Homework"
+      },
+      {
+        "title": "Project 4",
+        "kind": "project",
+        "due_date": "2027-10-25",
+        "due_time": "23:59",
+        "category": "Projects"
+      },
+      {
+        "title": "Project 5",
+        "kind": "project",
+        "due_date": "2027-11-09",
+        "due_time": null,
+        "category": "Projects"
+      },
+      {
+        "title": "Homework 3",
+        "kind": "assignment",
+        "due_date": "2027-11-18",
+        "due_time": "23:59",
+        "category": "Homework"
+      },
+      {
+        "title": "Exam 3",
+        "kind": "exam",
+        "due_date": "2027-11-19",
+        "due_time": "09:00",
+        "category": "Exams"
+      },
+      {
+        "title": "Project 6",
+        "kind": "project",
+        "due_date": "2027-11-25",
+        "due_time": "23:59",
+        "category": "Projects"
+      }
+    ]
+  }
+}

@@ -9,7 +9,8 @@
     "@studypulse/core/": "../../packages/core/src/",
     "@studypulse/db": "../../packages/db/src/index.ts",
     "@supabase/supabase-js": "npm:@supabase/supabase-js@2",
-    "zod": "npm:zod@^4.6.5"
+    "zod": "npm:zod@^4.6.5",
+    "@sentry/deno": "npm:@sentry/deno@^10.75.2"
   },
   "lint": {
     "rules": {

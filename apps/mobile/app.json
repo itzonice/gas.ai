@@ -20,6 +20,16 @@
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "plugins": [
+      [
+        "@sentry/react-native/expo",
+        {
+          "organization": "studypulse",
+          "project": "studypulse-mobile",
+          "url": "https://sentry.io/"
+        }
+      ]
+    ]
   }
 }

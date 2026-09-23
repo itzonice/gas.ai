@@ -1,4 +1,9 @@
-import { AiCallError, parseSyllabusText, type AiUsage } from "@studypulse/core/parser/index.ts";
+import {
+  AiCallError,
+  parseSyllabusText,
+  postProcess,
+  type AiUsage,
+} from "@studypulse/core/parser/index.ts";
 import type { Logger } from "@studypulse/core/observability/index.ts";
 import { localDate } from "@studypulse/core/time/index.ts";
 
@@ -150,15 +155,19 @@ export async function processSyllabusUpload(uploadId: string, log: Logger): Prom
       throw error instanceof AiCallError ? aiFailure(error) : error;
     }
 
+    const result = postProcess(parsed.output, {
+      timezone,
+      promptVersion: parsed.promptVersion,
+      model: parsed.usage.model,
+      termStartHint: upload.term_start_hint,
+      termEndHint: upload.term_end_hint,
+    });
+
     const { error: saveError } = await db
       .from("syllabus_uploads")
       .update({
         status: "parsed",
-        parse_result: {
-          prompt_version: parsed.promptVersion,
-          model: parsed.usage.model,
-          output: parsed.output,
-        },
+        parse_result: result,
         prompt_version: parsed.promptVersion,
         model: parsed.usage.model,
         parsed_at: new Date().toISOString(),
@@ -170,7 +179,8 @@ export async function processSyllabusUpload(uploadId: string, log: Logger): Prom
       .eq("id", upload.id);
     if (saveError) throw saveError;
     plog.info("syllabus parsed", {
-      assignments: parsed.output.assignments.length,
+      assignments: result.assignments.length,
+      dropped: result.dropped.length,
       categories: parsed.output.categories.length,
       ...parsed.usage,
     });

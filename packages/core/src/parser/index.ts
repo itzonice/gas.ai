@@ -9,3 +9,6 @@ export * from "./html.ts";
 export * from "./ssrf.ts";
 export * from "./prompts/index.ts";
 export * from "./parse.ts";
+export * from "./dates.ts";
+export * from "./postprocess.ts";
+export * from "./result.ts";

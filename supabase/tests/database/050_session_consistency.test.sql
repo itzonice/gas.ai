@@ -1,4 +1,6 @@
 begin;
+-- Start from an empty database (seed data included); rolled back with the test.
+delete from auth.users;
 select plan(7);
 
 select tests.create_user('ada@example.com') as ada \gset

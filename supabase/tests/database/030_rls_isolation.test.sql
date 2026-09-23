@@ -1,6 +1,8 @@
 -- User B must not be able to read, update, delete, or write into user A's rows in
 -- any table. Every new user-owned table should get a block here.
 begin;
+-- Start from an empty database (seed data included); rolled back with the test.
+delete from auth.users;
 select plan(34);
 
 select tests.create_user('alice@example.com') as alice \gset

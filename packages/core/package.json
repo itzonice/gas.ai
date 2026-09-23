@@ -13,7 +13,8 @@
     "./grades": "./src/grades/index.ts",
     "./priority": "./src/priority/index.ts",
     "./scheduler": "./src/scheduler/index.ts",
-    "./review": "./src/review/index.ts"
+    "./review": "./src/review/index.ts",
+    "./cards": "./src/cards/index.ts"
   },
   "scripts": {
     "lint": "eslint .",

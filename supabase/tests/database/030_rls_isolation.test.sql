@@ -3,7 +3,7 @@
 begin;
 -- Start from an empty database (seed data included); rolled back with the test.
 delete from auth.users;
-select plan(34);
+select plan(38);
 
 select tests.create_user('alice@example.com') as alice \gset
 select tests.create_user('bob@example.com') as bob \gset
@@ -19,6 +19,9 @@ values ('a0000000-0000-0000-0000-00000000000a', 'c0000000-0000-0000-0000-0000000
 insert into public.study_sessions (id, user_id, course_id, started_at, ended_at)
 values ('50000000-0000-0000-0000-00000000000a', :'alice', 'c0000000-0000-0000-0000-00000000000a',
         '2027-02-01 15:00Z', '2027-02-01 16:00Z');
+
+insert into public.flashcards (id, course_id, front, back)
+values ('fc000000-0000-0000-0000-00000000000a', 'c0000000-0000-0000-0000-00000000000a', 'Mitochondria', 'Powerhouse');
 
 -- Bob's own course, used for "move into / out of" attempts.
 insert into public.courses (id, user_id, name)
@@ -96,6 +99,17 @@ select throws_ok($$ insert into public.study_sessions (course_id, started_at)
 select throws_ok(format($$ insert into public.study_sessions (user_id, course_id, started_at)
                            values (%L, 'c0000000-0000-0000-0000-00000000000b', now()) $$, :'alice'),
   null::char(5), null, 'study_sessions: B cannot log a session as A');
+
+-- flashcards ---------------------------------------------------------------------
+select is_empty($$ select 1 from public.flashcards where id = 'fc000000-0000-0000-0000-00000000000a' $$,
+  'flashcards: B cannot read A');
+select is_empty($$ update public.flashcards set back = 'pwned' where id = 'fc000000-0000-0000-0000-00000000000a' returning 1 $$,
+  'flashcards: B cannot update A');
+select is_empty($$ delete from public.flashcards where id = 'fc000000-0000-0000-0000-00000000000a' returning 1 $$,
+  'flashcards: B cannot delete A');
+select throws_ok($$ insert into public.flashcards (course_id, front, back)
+                    values ('c0000000-0000-0000-0000-00000000000a', 'x', 'y') $$,
+  '42501', null, 'flashcards: B cannot insert into A''s course');
 
 -- B still has full access to their own data.
 select lives_ok($$ insert into public.study_sessions (course_id, started_at)

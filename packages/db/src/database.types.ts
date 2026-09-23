@@ -153,6 +153,61 @@ export type Database = {
           },
         ];
       };
+      flashcards: {
+        Row: {
+          assignment_id: string | null;
+          back: string;
+          course_id: string;
+          created_at: string;
+          front: string;
+          id: string;
+          tags: string[];
+          updated_at: string;
+        };
+        Insert: {
+          assignment_id?: string | null;
+          back: string;
+          course_id: string;
+          created_at?: string;
+          front: string;
+          id?: string;
+          tags?: string[];
+          updated_at?: string;
+        };
+        Update: {
+          assignment_id?: string | null;
+          back?: string;
+          course_id?: string;
+          created_at?: string;
+          front?: string;
+          id?: string;
+          tags?: string[];
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "flashcards_assignment_id_fkey";
+            columns: ["assignment_id"];
+            isOneToOne: false;
+            referencedRelation: "assignment_grade_shares";
+            referencedColumns: ["assignment_id"];
+          },
+          {
+            foreignKeyName: "flashcards_assignment_id_fkey";
+            columns: ["assignment_id"];
+            isOneToOne: false;
+            referencedRelation: "assignments";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "flashcards_course_id_fkey";
+            columns: ["course_id"];
+            isOneToOne: false;
+            referencedRelation: "courses";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       grade_categories: {
         Row: {
           course_id: string;

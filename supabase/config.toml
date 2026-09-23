@@ -432,3 +432,9 @@ enabled = true
 verify_jwt = false
 import_map = "./functions/deno.json"
 entrypoint = "./functions/nightly-replan/index.ts"
+
+[functions.export-cards]
+enabled = true
+verify_jwt = true
+import_map = "./functions/deno.json"
+entrypoint = "./functions/export-cards/index.ts"

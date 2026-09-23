@@ -2,6 +2,7 @@
 // Consumed as TypeScript source by apps/web, apps/mobile, and edge functions.
 export type { Database } from "@studypulse/db";
 
+export * from "./cards/index.ts";
 export * from "./env/index.ts";
 export * from "./observability/index.ts";
 export * from "./grades/index.ts";

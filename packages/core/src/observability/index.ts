@@ -2,6 +2,8 @@
 // No Sentry import here: each runtime uses its own SDK and passes these through.
 import type { AppEnv } from "../env/index.ts";
 
+export * from "./logger.ts";
+
 const SENSITIVE_KEY = /authorization|cookie|token|secret|password|api[-_]?key|service[-_]?role/i;
 const REDACTED = "[redacted]";
 

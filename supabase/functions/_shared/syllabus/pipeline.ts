@@ -1,6 +1,6 @@
 import {
   AiCallError,
-  parseSyllabusText,
+  parseSyllabus,
   postProcess,
   type AiUsage,
 } from "@studypulse/core/parser/index.ts";
@@ -140,7 +140,7 @@ export async function processSyllabusUpload(uploadId: string, log: Logger): Prom
 
     let parsed;
     try {
-      parsed = await parseSyllabusText(
+      parsed = await parseSyllabus(
         anthropic(),
         text,
         {
@@ -158,7 +158,7 @@ export async function processSyllabusUpload(uploadId: string, log: Logger): Prom
     const result = postProcess(parsed.output, {
       timezone,
       promptVersion: parsed.promptVersion,
-      model: parsed.usage.model,
+      model: parsed.usage[0]?.model ?? env().PARSER_MODEL ?? "unknown",
       termStartHint: upload.term_start_hint,
       termEndHint: upload.term_end_hint,
     });
@@ -169,11 +169,11 @@ export async function processSyllabusUpload(uploadId: string, log: Logger): Prom
         status: "parsed",
         parse_result: result,
         prompt_version: parsed.promptVersion,
-        model: parsed.usage.model,
+        model: parsed.usage[0]?.model ?? env().PARSER_MODEL ?? "unknown",
         parsed_at: new Date().toISOString(),
         ai_usage: [
           ...extractionUsage.map((u) => ({ step: "ocr", ...u })),
-          { step: "parse", ...parsed.usage },
+          ...parsed.usage.map((u) => ({ step: "parse", ...u })),
         ],
       })
       .eq("id", upload.id);
@@ -182,7 +182,8 @@ export async function processSyllabusUpload(uploadId: string, log: Logger): Prom
       assignments: result.assignments.length,
       dropped: result.dropped.length,
       categories: parsed.output.categories.length,
-      ...parsed.usage,
+      chunks: parsed.chunks,
+      output_tokens: parsed.usage.reduce((sum, u) => sum + u.outputTokens, 0),
     });
   } catch (error) {
     const message = error instanceof ParseFailure ? error.message : GENERIC_FAILURE;

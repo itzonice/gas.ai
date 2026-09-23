@@ -49,6 +49,8 @@ export interface PromptContext {
   termEnd?: string | null;
   /** When the syllabus is split into chunks: which chunk this is. */
   chunk?: { index: number; total: number; heading?: string | null } | null;
+  /** For chunks after the first: the start of the syllabus, for context only. */
+  preamble?: string | null;
 }
 
 /** The per-request user message: context first, then the syllabus text. */
@@ -71,6 +73,16 @@ export function buildUserMessage(syllabusText: string, ctx: PromptContext): stri
         "Still report categories and course details if they appear here.",
     );
   }
-  lines.push("</context>", "", "<syllabus>", syllabusText, "</syllabus>");
+  lines.push("</context>", "");
+  if (ctx.preamble && ctx.chunk && ctx.chunk.index > 0) {
+    lines.push(
+      "<syllabus_start>",
+      "The beginning of the syllabus, for context only (term dates, meeting days and times, category names). Do not extract items from it.",
+      ctx.preamble,
+      "</syllabus_start>",
+      "",
+    );
+  }
+  lines.push("<syllabus>", syllabusText, "</syllabus>");
   return lines.join("\n");
 }

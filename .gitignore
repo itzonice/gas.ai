@@ -1,0 +1,25 @@
+# dependencies
+node_modules/
+
+# build output
+.next/
+out/
+dist/
+build/
+.expo/
+web-build/
+expo-env.d.ts
+*.tsbuildinfo
+
+# turborepo
+.turbo/
+
+# env
+.env
+.env*.local
+
+# misc
+.DS_Store
+*.pem
+coverage/
+npm-debug.log*

@@ -392,6 +392,7 @@ export type Database = {
           plan_tier: Database["public"]["Enums"]["plan_tier"];
           school: string | null;
           study_minutes_by_weekday: number[] | null;
+          study_start_time: string;
           timezone: string;
           updated_at: string;
         };
@@ -403,6 +404,7 @@ export type Database = {
           plan_tier?: Database["public"]["Enums"]["plan_tier"];
           school?: string | null;
           study_minutes_by_weekday?: number[] | null;
+          study_start_time?: string;
           timezone?: string;
           updated_at?: string;
         };
@@ -414,6 +416,7 @@ export type Database = {
           plan_tier?: Database["public"]["Enums"]["plan_tier"];
           school?: string | null;
           study_minutes_by_weekday?: number[] | null;
+          study_start_time?: string;
           timezone?: string;
           updated_at?: string;
         };
@@ -799,6 +802,10 @@ export type Database = {
           ocr_allowed: boolean;
           plan_tier: Database["public"]["Enums"]["plan_tier"];
         }[];
+      };
+      replace_study_plan: {
+        Args: { p_blocks: Json; p_from: string; p_user_id: string };
+        Returns: number;
       };
       study_capacity: {
         Args: { p_date: string; p_user_id: string };

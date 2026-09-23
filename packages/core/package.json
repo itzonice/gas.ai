@@ -11,7 +11,8 @@
     "./time": "./src/time/index.ts",
     "./plans": "./src/plans/index.ts",
     "./grades": "./src/grades/index.ts",
-    "./priority": "./src/priority/index.ts"
+    "./priority": "./src/priority/index.ts",
+    "./scheduler": "./src/scheduler/index.ts"
   },
   "scripts": {
     "lint": "eslint .",

@@ -54,3 +54,10 @@ jobs:
         run: pnpm exec supabase db lint --level warning --fail-on error
       - name: Run SQL tests
         run: pnpm exec supabase test db
+      - name: Check generated database types are up to date
+        run: |
+          pnpm db:types
+          if ! git diff --exit-code -- packages/db/src/database.types.ts; then
+            echo "::error::packages/db types are stale. Run 'pnpm db:types' and commit the result."
+            exit 1
+          fi

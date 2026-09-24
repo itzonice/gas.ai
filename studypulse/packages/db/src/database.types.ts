@@ -130,6 +130,44 @@ export type Database = {
           },
         ];
       };
+      billing_events: {
+        Row: {
+          event_created_at: string;
+          event_id: string;
+          event_type: string;
+          provider: Database["public"]["Enums"]["billing_provider"];
+          received_at: string;
+          result: string | null;
+          user_id: string | null;
+        };
+        Insert: {
+          event_created_at: string;
+          event_id: string;
+          event_type: string;
+          provider: Database["public"]["Enums"]["billing_provider"];
+          received_at?: string;
+          result?: string | null;
+          user_id?: string | null;
+        };
+        Update: {
+          event_created_at?: string;
+          event_id?: string;
+          event_type?: string;
+          provider?: Database["public"]["Enums"]["billing_provider"];
+          received_at?: string;
+          result?: string | null;
+          user_id?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "billing_events_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       courses: {
         Row: {
           archived_at: string | null;
@@ -1009,6 +1047,16 @@ export type Database = {
       };
     };
     Functions: {
+      apply_billing_event: {
+        Args: {
+          p_event_created_at: string;
+          p_event_id: string;
+          p_event_type: string;
+          p_provider: Database["public"]["Enums"]["billing_provider"];
+          p_subscription?: Json;
+        };
+        Returns: string;
+      };
       claim_reminders: {
         Args: {
           p_daily_cap: number;

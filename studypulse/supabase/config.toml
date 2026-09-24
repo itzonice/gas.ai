@@ -490,3 +490,10 @@ enabled = true
 verify_jwt = true
 import_map = "./functions/deno.json"
 entrypoint = "./functions/stripe-portal/index.ts"
+
+[functions.stripe-webhook]
+enabled = true
+# Stripe can't send a Supabase JWT; the Stripe-Signature header is verified instead.
+verify_jwt = false
+import_map = "./functions/deno.json"
+entrypoint = "./functions/stripe-webhook/index.ts"

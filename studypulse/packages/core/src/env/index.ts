@@ -83,6 +83,8 @@ export const edgeEnvSchema = z.object({
   STRIPE_SECRET_KEY: optionalNonEmpty,
   STRIPE_PRICE_MONTHLY: optionalNonEmpty,
   STRIPE_PRICE_YEARLY: optionalNonEmpty,
+  // Signing secret of the Stripe webhook endpoint (whsec_...).
+  STRIPE_WEBHOOK_SECRET: optionalNonEmpty,
   // Optional Stripe-Version pin; unset uses the account default.
   STRIPE_API_VERSION: optionalNonEmpty,
   // Stripe API base URL override (tests, e.g. stripe-mock).

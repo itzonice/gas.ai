@@ -5,10 +5,11 @@ select plan(3);
 
 -- Guard: every public table is the profile itself or reaches it by a cascading FK
 -- (user_id -> profiles or course_id -> courses). A new table without one fails here.
+-- Exceptions hold no user data: lms_institutions (the schools list).
 select is_empty($$
   select c.relname
   from pg_class c join pg_namespace n on n.oid = c.relnamespace
-  where n.nspname = 'public' and c.relkind = 'r' and c.relname <> 'profiles'
+  where n.nspname = 'public' and c.relkind = 'r' and c.relname not in ('profiles', 'lms_institutions')
     and not exists (
       select 1 from pg_constraint k
       where k.conrelid = c.oid and k.contype = 'f' and k.confdeltype = 'c'

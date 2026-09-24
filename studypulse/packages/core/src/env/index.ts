@@ -98,6 +98,8 @@ export const edgeEnvSchema = z.object({
   STRIPE_API_VERSION: optionalNonEmpty,
   // Stripe API base URL override (tests, e.g. stripe-mock).
   STRIPE_API_URL: optionalUrl,
+  // Canvas OAuth redirect URI override; defaults to <SUPABASE_URL>/functions/v1/canvas-oauth/callback.
+  CANVAS_REDIRECT_URI: optionalUrl,
   // Shared secret pg_cron sends (x-cron-secret) to scheduled functions. Unset = cron endpoints refuse all calls.
   CRON_SECRET: optionalNonEmpty,
 });

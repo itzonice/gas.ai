@@ -504,3 +504,11 @@ enabled = true
 verify_jwt = false
 import_map = "./functions/deno.json"
 entrypoint = "./functions/revenuecat-webhook/index.ts"
+
+[functions.canvas-oauth]
+enabled = true
+# The callback is a browser redirect from Canvas with no Supabase session (the one-time
+# state identifies the user); /start and /disconnect verify the user's JWT themselves.
+verify_jwt = false
+import_map = "./functions/deno.json"
+entrypoint = "./functions/canvas-oauth/index.ts"

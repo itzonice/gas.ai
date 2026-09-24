@@ -334,6 +334,138 @@ export type Database = {
           },
         ];
       };
+      lms_connections: {
+        Row: {
+          access_token_expires_at: string | null;
+          access_token_secret_id: string;
+          connected_at: string;
+          external_user_id: string | null;
+          external_user_name: string | null;
+          id: string;
+          institution_id: string;
+          last_error: string | null;
+          last_synced_at: string | null;
+          refresh_token_secret_id: string | null;
+          status: Database["public"]["Enums"]["lms_connection_status"];
+          updated_at: string;
+          user_id: string;
+        };
+        Insert: {
+          access_token_expires_at?: string | null;
+          access_token_secret_id: string;
+          connected_at?: string;
+          external_user_id?: string | null;
+          external_user_name?: string | null;
+          id?: string;
+          institution_id: string;
+          last_error?: string | null;
+          last_synced_at?: string | null;
+          refresh_token_secret_id?: string | null;
+          status?: Database["public"]["Enums"]["lms_connection_status"];
+          updated_at?: string;
+          user_id: string;
+        };
+        Update: {
+          access_token_expires_at?: string | null;
+          access_token_secret_id?: string;
+          connected_at?: string;
+          external_user_id?: string | null;
+          external_user_name?: string | null;
+          id?: string;
+          institution_id?: string;
+          last_error?: string | null;
+          last_synced_at?: string | null;
+          refresh_token_secret_id?: string | null;
+          status?: Database["public"]["Enums"]["lms_connection_status"];
+          updated_at?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "lms_connections_institution_id_fkey";
+            columns: ["institution_id"];
+            isOneToOne: false;
+            referencedRelation: "lms_institutions";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "lms_connections_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      lms_institutions: {
+        Row: {
+          base_url: string;
+          client_id: string;
+          client_secret_id: string;
+          created_at: string;
+          enabled: boolean;
+          id: string;
+          name: string;
+          provider: Database["public"]["Enums"]["lms_provider"];
+        };
+        Insert: {
+          base_url: string;
+          client_id: string;
+          client_secret_id: string;
+          created_at?: string;
+          enabled?: boolean;
+          id?: string;
+          name: string;
+          provider?: Database["public"]["Enums"]["lms_provider"];
+        };
+        Update: {
+          base_url?: string;
+          client_id?: string;
+          client_secret_id?: string;
+          created_at?: string;
+          enabled?: boolean;
+          id?: string;
+          name?: string;
+          provider?: Database["public"]["Enums"]["lms_provider"];
+        };
+        Relationships: [];
+      };
+      lms_oauth_states: {
+        Row: {
+          expires_at: string;
+          institution_id: string;
+          state_hash: string;
+          user_id: string;
+        };
+        Insert: {
+          expires_at?: string;
+          institution_id: string;
+          state_hash: string;
+          user_id: string;
+        };
+        Update: {
+          expires_at?: string;
+          institution_id?: string;
+          state_hash?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "lms_oauth_states_institution_id_fkey";
+            columns: ["institution_id"];
+            isOneToOne: false;
+            referencedRelation: "lms_institutions";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "lms_oauth_states_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       notification_dedupe: {
         Row: {
           assignment_id: string | null;
@@ -1132,6 +1264,80 @@ export type Database = {
         Args: { p_percent: number; p_scale?: Json };
         Returns: string;
       };
+      lms_begin_oauth: {
+        Args: {
+          p_institution_id: string;
+          p_state_hash: string;
+          p_user_id: string;
+        };
+        Returns: undefined;
+      };
+      lms_connection_credentials: {
+        Args: { p_connection_id: string };
+        Returns: {
+          access_token: string;
+          access_token_expires_at: string;
+          base_url: string;
+          client_id: string;
+          client_secret: string;
+          connection_id: string;
+          refresh_token: string;
+          status: Database["public"]["Enums"]["lms_connection_status"];
+          user_id: string;
+        }[];
+      };
+      lms_consume_oauth_state: {
+        Args: { p_state_hash: string };
+        Returns: {
+          institution_id: string;
+          user_id: string;
+        }[];
+      };
+      lms_disconnect: { Args: { p_connection_id: string }; Returns: boolean };
+      lms_institution_client: {
+        Args: { p_institution_id: string };
+        Returns: {
+          base_url: string;
+          client_id: string;
+          client_secret: string;
+          id: string;
+          name: string;
+        }[];
+      };
+      lms_mark_needs_reauth: {
+        Args: { p_connection_id: string; p_error: string };
+        Returns: undefined;
+      };
+      lms_register_institution: {
+        Args: {
+          p_base_url: string;
+          p_client_id: string;
+          p_client_secret: string;
+          p_name: string;
+        };
+        Returns: string;
+      };
+      lms_save_connection: {
+        Args: {
+          p_access_token: string;
+          p_expires_at?: string;
+          p_external_user_id?: string;
+          p_external_user_name?: string;
+          p_institution_id: string;
+          p_refresh_token?: string;
+          p_user_id: string;
+        };
+        Returns: string;
+      };
+      lms_update_tokens: {
+        Args: {
+          p_access_token: string;
+          p_connection_id: string;
+          p_expires_at?: string;
+          p_refresh_token?: string;
+        };
+        Returns: undefined;
+      };
       mark_missed_blocks: {
         Args: { p_before?: string };
         Returns: {
@@ -1274,6 +1480,8 @@ export type Database = {
         "assignment" | "quiz" | "exam" | "project" | "reading" | "lab" | "discussion" | "other";
       assignment_status: "todo" | "in_progress" | "done" | "skipped";
       billing_provider: "stripe" | "revenuecat";
+      lms_connection_status: "active" | "needs_reauth" | "revoked";
+      lms_provider: "canvas";
       notification_channel: "expo" | "web_push" | "email";
       notification_kind:
         | "due_24h"
@@ -1435,6 +1643,8 @@ export const Constants = {
       ],
       assignment_status: ["todo", "in_progress", "done", "skipped"],
       billing_provider: ["stripe", "revenuecat"],
+      lms_connection_status: ["active", "needs_reauth", "revoked"],
+      lms_provider: ["canvas"],
       notification_channel: ["expo", "web_push", "email"],
       notification_kind: [
         "due_24h",

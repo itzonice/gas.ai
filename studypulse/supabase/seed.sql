@@ -42,6 +42,12 @@ begin
   );
 
   -- Courses ------------------------------------------------------------------
+  -- The demo account is a Pro subscriber (web, renews in 30 days), so it can hold more
+  -- than the free plan's 3 courses and try every import source.
+  insert into public.subscriptions (user_id, provider, provider_subscription_id, provider_customer_id, product_id, status, current_period_end, provider_updated_at)
+  values (demo_id, 'stripe', 'sub_demo', 'cus_demo', 'price_demo_monthly', 'active', now() + interval '30 days', now());
+  perform private.refresh_plan_tier(demo_id);
+
   insert into public.courses (id, user_id, name, code, instructor, term_start, term_end, target_grade, color) values
     (bio,  demo_id, 'Cell Biology',                'BIO 201',  'Dr. Okafor',    term_start, term_end, 90, '#2E7D32'),
     (calc, demo_id, 'Calculus II',                 'MATH 221', 'Prof. Lindqvist', term_start, term_end, 85, '#1565C0'),

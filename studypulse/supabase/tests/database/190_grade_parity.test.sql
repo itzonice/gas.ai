@@ -4,6 +4,8 @@ begin;
 delete from auth.users;
 select plan(6);
 select tests.create_user('parity@example.com') as uid \gset
+-- Pro, so the free plan's 3-course limit doesn't cap the number of fixtures.
+insert into public.subscriptions (user_id, provider, provider_subscription_id, status) values (:'uid', 'stripe', 'sub_parity', 'active');
 
 insert into public.courses (id, user_id, name) values ('c0000000-0000-4000-8000-000000000000', :'uid', 'fixture 0');
 insert into public.grade_categories (id, course_id, name, weight, drop_lowest) values ('ca000000-0000-4000-8000-000000000001', 'c0000000-0000-4000-8000-000000000000', 'Exams', 50, 0);

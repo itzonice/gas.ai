@@ -1121,6 +1121,7 @@ export type Database = {
         Args: { p_token_ids: string[] };
         Returns: number;
       };
+      is_pro: { Args: { p_user_id: string }; Returns: boolean };
       is_valid_letter_scale: { Args: { scale: Json }; Returns: boolean };
       is_valid_timezone: { Args: { tz: string }; Returns: boolean };
       letter_for: {

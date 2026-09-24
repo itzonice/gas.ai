@@ -363,6 +363,12 @@ export function createApiClient(db: Db) {
         const { url } = await invoke<{ url: string }>("stripe-portal");
         return url;
       },
+      /** Whether the signed-in user has Pro right now (subscriptions on any platform). */
+      async isPro(): Promise<boolean> {
+        const { data: auth, error: authError } = await db.auth.getUser();
+        if (authError) throw new ApiError(401, "unauthorized", authError.message);
+        return unwrap(await db.rpc("is_pro", { p_user_id: auth.user.id }));
+      },
       /** The user's subscriptions on every platform (read through RLS). */
       async subscriptions() {
         const { data, error } = await db

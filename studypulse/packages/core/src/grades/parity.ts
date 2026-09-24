@@ -13,6 +13,8 @@ export function renderGradeParitySql(): string {
     "delete from auth.users;",
     `select plan(${String(GRADE_FIXTURES.length)});`,
     "select tests.create_user('parity@example.com') as uid \\gset",
+    "-- Pro, so the free plan's 3-course limit doesn't cap the number of fixtures.",
+    "insert into public.subscriptions (user_id, provider, provider_subscription_id, status) values (:'uid', 'stripe', 'sub_parity', 'active');",
     "",
   ];
   GRADE_FIXTURES.forEach((f, fi) => {

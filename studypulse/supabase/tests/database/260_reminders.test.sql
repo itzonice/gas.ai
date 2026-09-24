@@ -22,14 +22,14 @@ select results_eq($$ select user_id, timezone, jsonb_array_length(assignments) f
 select is((select assignments -> 0 ->> 'course' from public.reminder_batch(now())), 'BIO 201', 'course label included');
 select is((select prefs ->> 'daily_cap' from public.reminder_batch(now())), '6', 'prefs included');
 
-select is(public.claim_reminders(:'ada', array['due_24h:x', 'due_24h:y']), array['due_24h:x', 'due_24h:y'], 'first claim wins both');
-select is(public.claim_reminders(:'ada', array['due_24h:x', 'due_24h:z']), array['due_24h:z'], 'already-claimed keys are not claimed again');
+select is(public.claim_reminders(:'ada', 'America/Chicago', 6, '[{"key": "due_24h:x"}, {"key": "due_24h:y"}]'), array['due_24h:x', 'due_24h:y'], 'first claim wins both');
+select is(public.claim_reminders(:'ada', 'America/Chicago', 6, '[{"key": "due_24h:x"}, {"key": "due_24h:z"}]'), array['due_24h:z'], 'already-claimed keys are not claimed again');
 
 update public.notification_prefs set push_enabled = false where user_id = :'ada';
 select is_empty('select 1 from public.reminder_batch(now())', 'users who turned push off are skipped');
 
 select tests.authenticate_as(:'ada');
-select throws_ok($$ select public.claim_reminders(auth.uid(), array['k']) $$, '42501', null, 'clients cannot claim reminders');
+select throws_ok($$ select public.claim_reminders(auth.uid(), 'UTC', 6, '[]') $$, '42501', null, 'clients cannot claim reminders');
 
 select * from finish();
 rollback;

@@ -2,8 +2,9 @@
 // timezone, and logs every send:
 // 1. checks Expo receipts from earlier runs (dead tokens are invalidated)
 // 2. pages through users with active push tokens (reminder_batch)
-// 3. plans reminders with the core rules, claims them (no double sends even if two
-//    runs overlap), sends to each active Expo device, and logs one row per device
+// 3. plans reminders with the core rules, claims them (dedupe, daily cap, and a
+//    per-assignment cooldown, atomically, so overlapping runs can't double-send or
+//    exceed the cap), sends to each active Expo device, and logs one row per device
 import {
   isDeadToken,
   planReminders,
@@ -115,7 +116,13 @@ Deno.serve(
 
         const { data: won, error: claimError } = await db.rpc("claim_reminders", {
           p_user_id: user.user_id,
-          p_keys: planned.map((p) => p.dedupeKey),
+          p_timezone: user.timezone,
+          p_daily_cap: prefs.data.daily_cap,
+          p_reminders: planned.map((p) => ({
+            key: p.dedupeKey,
+            kind: p.kind,
+            assignmentId: p.assignmentId,
+          })),
         });
         if (claimError) throw claimError;
         const claimed = new Set(won);

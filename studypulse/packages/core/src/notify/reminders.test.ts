@@ -3,7 +3,9 @@ import { describe, expect, it } from "vitest";
 import { formatDue } from "./format.ts";
 import {
   inQuietHours,
+  onePerAssignment,
   planReminders,
+  type PlannedReminder,
   type ReminderAssignment,
   type ReminderPrefs,
 } from "./reminders.ts";
@@ -105,7 +107,7 @@ describe("quiet hours", () => {
     const due = local("2027-03-02", "01:00"); // 2-hour mark is 23:00, inside quiet hours
     expect(kinds(plan(local("2027-03-01", "21:30"), [item("lab", due)]))).toEqual(["due_24h:lab"]);
     const lastRun = plan(local("2027-03-01", "21:45"), [item("lab", due)]);
-    expect(kinds(lastRun)).toEqual(["due_2h:lab", "due_24h:lab"]);
+    expect(kinds(lastRun)).toEqual(["due_2h:lab"]); // replaces the 24-hour one
     expect(lastRun[0]?.title).toBe("Due tomorrow at 1:00 AM: lab");
   });
 
@@ -175,5 +177,35 @@ describe("morning digest", () => {
     const early = { morning_digest_time: "06:00:00" };
     expect(plan(local("2027-03-01", "06:00"), items, early)).toEqual([]);
     expect(kinds(plan(local("2027-03-01", "07:00"), items, early))).toContain("morning_digest:-");
+  });
+});
+
+describe("one reminder per assignment", () => {
+  it("keeps only the most urgent reminder for an assignment in a run", () => {
+    // Exam tomorrow at 07:00: at 07:30 today it is both 1 day out and inside 24 hours.
+    const exam = item("final", local("2027-03-02", "07:00"), { kind: "exam" });
+    expect(kinds(plan(local("2027-03-01", "07:30"), [exam]))).toEqual([
+      "due_24h:final",
+      "morning_digest:-",
+    ]);
+  });
+
+  it("never drops the digest or other assignments", () => {
+    const r = (kind: PlannedReminder["kind"], assignmentId: string | null) => ({
+      kind,
+      assignmentId,
+      dedupeKey: `${kind}:${assignmentId ?? "-"}`,
+      title: "",
+      body: "",
+    });
+    expect(
+      onePerAssignment([
+        r("due_2h", "a"),
+        r("due_24h", "a"),
+        r("due_24h", "b"),
+        r("exam_countdown", "b"),
+        r("morning_digest", null),
+      ]).map((x) => x.dedupeKey),
+    ).toEqual(["due_2h:a", "due_24h:b", "morning_digest:-"]);
   });
 });

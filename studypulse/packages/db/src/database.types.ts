@@ -272,18 +272,27 @@ export type Database = {
       };
       notification_dedupe: {
         Row: {
+          assignment_id: string | null;
           created_at: string;
           dedupe_key: string;
+          kind: string | null;
+          suppressed: boolean;
           user_id: string;
         };
         Insert: {
+          assignment_id?: string | null;
           created_at?: string;
           dedupe_key: string;
+          kind?: string | null;
+          suppressed?: boolean;
           user_id: string;
         };
         Update: {
+          assignment_id?: string | null;
           created_at?: string;
           dedupe_key?: string;
+          kind?: string | null;
+          suppressed?: boolean;
           user_id?: string;
         };
         Relationships: [
@@ -975,7 +984,12 @@ export type Database = {
     };
     Functions: {
       claim_reminders: {
-        Args: { p_keys: string[]; p_user_id: string };
+        Args: {
+          p_daily_cap: number;
+          p_reminders: Json;
+          p_timezone: string;
+          p_user_id: string;
+        };
         Returns: string[];
       };
       commit_parsed_syllabus: {

@@ -218,15 +218,32 @@ const PRIORITY: Record<ReminderKind, number> = {
   morning_digest: 3,
 };
 
-/** Reminders to send now, most urgent first. Callers dedupe (claim) before sending. */
+/** Keeps the most urgent reminder per assignment (input sorted most urgent first). */
+export function onePerAssignment(reminders: readonly PlannedReminder[]): PlannedReminder[] {
+  const seen = new Set<string>();
+  return reminders.filter((r) => {
+    if (r.assignmentId === null) return true;
+    if (seen.has(r.assignmentId)) return false;
+    seen.add(r.assignmentId);
+    return true;
+  });
+}
+
+/**
+ * Reminders to send now, most urgent first, at most one per assignment. Callers claim
+ * them with claim_reminders, which dedupes across runs and enforces the daily cap and
+ * per-assignment cooldown, so this list can be longer than what is finally sent.
+ */
 export function planReminders(input: ReminderInput): PlannedReminder[] {
   if (!input.prefs.push_enabled) return [];
   const nowMinutes = localMinutes(input.now, input.timezone);
   if (inQuietHours(nowMinutes, input.prefs)) return [];
   const today = localDate(input.now, input.timezone);
-  return [
-    ...dueReminders(input, nowMinutes),
-    ...examCountdowns(input, today, nowMinutes),
-    ...morningDigest(input, today, nowMinutes),
-  ].sort((a, b) => PRIORITY[a.kind] - PRIORITY[b.kind]);
+  return onePerAssignment(
+    [
+      ...dueReminders(input, nowMinutes),
+      ...examCountdowns(input, today, nowMinutes),
+      ...morningDigest(input, today, nowMinutes),
+    ].sort((a, b) => PRIORITY[a.kind] - PRIORITY[b.kind]),
+  );
 }

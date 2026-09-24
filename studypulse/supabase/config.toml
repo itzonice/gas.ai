@@ -464,3 +464,17 @@ enabled = true
 verify_jwt = false
 import_map = "./functions/deno.json"
 entrypoint = "./functions/send-reminders/index.ts"
+
+[functions.send-email-digests]
+enabled = true
+# Called by pg_cron with x-cron-secret.
+verify_jwt = false
+import_map = "./functions/deno.json"
+entrypoint = "./functions/send-email-digests/index.ts"
+
+[functions.email-unsubscribe]
+enabled = true
+# Opened from email links; the signed token in the URL is the credential.
+verify_jwt = false
+import_map = "./functions/deno.json"
+entrypoint = "./functions/email-unsubscribe/index.ts"

@@ -69,6 +69,16 @@ export const edgeEnvSchema = z.object({
       .regex(/^(mailto:|https:\/\/)/, "must be a mailto: or https: URL")
       .optional(),
   ),
+  // Email digest (Resend) for users push doesn't reach. Unset = no emails are sent.
+  RESEND_API_KEY: optionalNonEmpty,
+  // Resend API base URL override (tests/staging); defaults to https://api.resend.com.
+  RESEND_API_URL: optionalUrl,
+  // Verified Resend sender, e.g. "StudyPulse <reminders@mail.studypulse.app>".
+  EMAIL_FROM: optionalNonEmpty,
+  // Signs email unsubscribe links (at least 32 characters). Rotating it breaks old links.
+  EMAIL_UNSUBSCRIBE_SECRET: optionalNonEmpty.pipe(z.string().min(32).optional()),
+  // Web app origin for links in emails, e.g. https://app.studypulse.app.
+  APP_URL: optionalUrl,
   // Shared secret pg_cron sends (x-cron-secret) to scheduled functions. Unset = cron endpoints refuse all calls.
   CRON_SECRET: optionalNonEmpty,
 });

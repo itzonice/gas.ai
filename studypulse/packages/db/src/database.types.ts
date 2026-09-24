@@ -1001,6 +1001,17 @@ export type Database = {
         Args: { p_kind: Database["public"]["Enums"]["assignment_kind"] };
         Returns: number;
       };
+      email_digest_batch: {
+        Args: { p_after?: string; p_limit?: number; p_now: string };
+        Returns: {
+          assignments: Json;
+          digest_time: string;
+          display_name: string;
+          email: string;
+          timezone: string;
+          user_id: string;
+        }[];
+      };
       get_parse_quota: {
         Args: never;
         Returns: {
@@ -1166,6 +1177,10 @@ export type Database = {
           p_token: string;
         };
         Returns: undefined;
+      };
+      unsubscribe_email_digest: {
+        Args: { p_user_id: string };
+        Returns: boolean;
       };
       users_due_for_replan: {
         Args: { p_local_hour?: number; p_now?: string };

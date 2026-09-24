@@ -258,6 +258,26 @@ export function createApiClient(db: Db) {
       },
     },
 
+    account: {
+      /** Everything stored about the user, as a JSON file (the privacy export). */
+      async exportData(): Promise<Blob> {
+        const res = await db.functions.invoke("export-data", { method: "GET" });
+        const error: unknown = res.error;
+        if (error) throw await functionError(error);
+        const data: unknown = res.data;
+        return data instanceof Blob
+          ? data
+          : new Blob([JSON.stringify(data)], { type: "application/json" });
+      },
+      /**
+       * Permanently deletes the account, its files, and all its data. The UI must get an
+       * explicit confirmation first; the server also requires `confirm: "DELETE"`.
+       */
+      async delete(confirm: "DELETE") {
+        return await invoke<{ deleted: true }>("delete-account", { body: { confirm } });
+      },
+    },
+
     cards: {
       /** Downloads a course's flashcards as an Anki CSV or Quizlet TSV. */
       async export(input: ExportCardsInput): Promise<Blob> {

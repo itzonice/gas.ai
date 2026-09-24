@@ -8,13 +8,17 @@ import type { z } from "zod";
 import { commitPayloadSchema, type CommitPayload } from "../parser/commit.ts";
 import { ApiError, fromPostgrestError } from "./errors.ts";
 import {
+  createAssignmentInputSchema,
   exportCardsInputSchema,
+  updateAssignmentInputSchema,
   startSessionInputSchema,
   stopSessionInputSchema,
   todayFeedInputSchema,
   uploadSyllabusInputSchema,
   uuidSchema,
+  type CreateAssignmentInput,
   type ExportCardsInput,
+  type UpdateAssignmentInput,
   type StartSessionInput,
   type StopSessionInput,
   type TodayFeedInput,
@@ -72,6 +76,29 @@ async function functionError(error: unknown): Promise<ApiError> {
   });
 }
 
+type AssignmentInsert = Database["public"]["Tables"]["assignments"]["Insert"];
+
+/** camelCase API fields -> snake_case columns (only the fields that are present). */
+function toAssignmentColumns(input: Partial<Record<string, unknown>>): Partial<AssignmentInsert> {
+  const map: Record<string, keyof AssignmentInsert> = {
+    courseId: "course_id",
+    title: "title",
+    kind: "kind",
+    categoryId: "category_id",
+    description: "description",
+    dueAt: "due_at",
+    pointsPossible: "points_possible",
+    pointsEarned: "points_earned",
+    estimatedMinutes: "estimated_minutes",
+    status: "status",
+  };
+  const out: Record<string, unknown> = {};
+  for (const [key, column] of Object.entries(map)) {
+    if (input[key] !== undefined) out[column] = input[key];
+  }
+  return out;
+}
+
 export function createApiClient(db: Db) {
   async function invoke<T>(
     name: string,
@@ -123,6 +150,48 @@ export function createApiClient(db: Db) {
       async feed(input: TodayFeedInput = {}): Promise<TodayFeedRow[]> {
         const { date } = validate(todayFeedInputSchema, input);
         return unwrap(await db.rpc("get_today_feed", date ? { p_date: date } : {}));
+      },
+    },
+
+    assignments: {
+      /** Assignments in a course (or all courses), soonest due first, undated last. */
+      async list(courseId?: string) {
+        let query = db
+          .from("assignments")
+          .select("*")
+          .order("due_at", { ascending: true, nullsFirst: false });
+        if (courseId) query = query.eq("course_id", validate(uuidSchema, courseId));
+        return unwrap(await query);
+      },
+      async create(input: CreateAssignmentInput) {
+        const valid = validate(createAssignmentInputSchema, input);
+        const row = {
+          ...toAssignmentColumns(valid),
+          course_id: valid.courseId,
+          title: valid.title,
+        };
+        return unwrap(await db.from("assignments").insert(row).select("*").single());
+      },
+      /**
+       * Updates fields. Changing the due date, status, estimate, or grading fields
+       * recomputes the study plan server-side: blocks past a new due date are removed
+       * immediately and the plan is rebuilt within about a minute.
+       */
+      async update(input: UpdateAssignmentInput) {
+        const { id, ...fields } = validate(updateAssignmentInputSchema, input);
+        return unwrap(
+          await db
+            .from("assignments")
+            .update(toAssignmentColumns(fields))
+            .eq("id", id)
+            .select("*")
+            .single(),
+        );
+      },
+      async remove(id: string) {
+        const valid = validate(uuidSchema, id);
+        const { error } = await db.from("assignments").delete().eq("id", valid);
+        if (error) throw fromPostgrestError(error);
       },
     },
 

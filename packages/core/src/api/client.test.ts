@@ -183,3 +183,21 @@ describe("sessions", () => {
     });
   });
 });
+
+describe("assignments", () => {
+  it("rejects a score without points possible and empty updates before calling", async () => {
+    const { api, calls } = fakeDb({});
+    await expect(
+      api.assignments.create({ courseId: uploadId, title: "Quiz", pointsEarned: 5 }),
+    ).rejects.toMatchObject({
+      issues: [{ path: "pointsEarned", message: "Add points possible before entering a score" }],
+    });
+    await expect(api.assignments.update({ id: uploadId })).rejects.toMatchObject({
+      code: "invalid_input",
+    });
+    await expect(api.assignments.update({ id: uploadId, dueAt: "tomorrow" })).rejects.toMatchObject(
+      { code: "invalid_input" },
+    );
+    expect(calls).toEqual([]);
+  });
+});

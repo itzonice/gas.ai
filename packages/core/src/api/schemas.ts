@@ -95,3 +95,28 @@ export const updateAssignmentInputSchema = z
   .required({ id: true })
   .refine((a) => Object.keys(a).length > 1, { message: "Nothing to update" });
 export type UpdateAssignmentInput = z.input<typeof updateAssignmentInputSchema>;
+
+export const registerPushTokenInputSchema = z
+  .object({
+    provider: z.enum(["expo", "web_push"]),
+    token: z.string().min(1).max(2048),
+    platform: z.enum(["ios", "android", "web"]),
+    deviceId: z.string().max(200).optional(),
+    appVersion: z.string().max(50).optional(),
+    webPushKeys: z.object({ p256dh: z.string().min(1), auth: z.string().min(1) }).optional(),
+  })
+  .refine(
+    (t) => t.provider !== "expo" || /^(Exponent|Expo)PushToken\[[A-Za-z0-9_-]+\]$/.test(t.token),
+    {
+      message: "Not an Expo push token",
+      path: ["token"],
+    },
+  )
+  .refine(
+    (t) =>
+      t.provider !== "web_push" || (t.webPushKeys !== undefined && t.token.startsWith("https://")),
+    {
+      message: "Web push needs the subscription endpoint and keys",
+      path: ["webPushKeys"],
+    },
+  );

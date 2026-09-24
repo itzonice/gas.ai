@@ -10,6 +10,7 @@ import { ApiError, fromPostgrestError } from "./errors.ts";
 import {
   createAssignmentInputSchema,
   exportCardsInputSchema,
+  registerPushTokenInputSchema,
   updateAssignmentInputSchema,
   startSessionInputSchema,
   stopSessionInputSchema,
@@ -275,6 +276,41 @@ export function createApiClient(db: Db) {
        */
       async delete(confirm: "DELETE") {
         return await invoke<{ deleted: true }>("delete-account", { body: { confirm } });
+      },
+    },
+
+    notifications: {
+      /**
+       * Registers this device's push token (call on every app start and whenever the
+       * token changes). Pass a stable deviceId so rotated tokens replace old ones.
+       */
+      async registerPushToken(input: {
+        provider: "expo" | "web_push";
+        token: string;
+        platform: "ios" | "android" | "web";
+        deviceId?: string;
+        appVersion?: string;
+        webPushKeys?: { p256dh: string; auth: string };
+      }): Promise<string> {
+        const valid = validate(registerPushTokenInputSchema, input);
+        return unwrap(
+          await db.rpc("register_push_token", {
+            p_provider: valid.provider,
+            p_token: valid.token,
+            p_platform: valid.platform,
+            ...(valid.deviceId ? { p_device_id: valid.deviceId } : {}),
+            ...(valid.appVersion ? { p_app_version: valid.appVersion } : {}),
+            ...(valid.webPushKeys ? { p_web_push_keys: valid.webPushKeys } : {}),
+          }),
+        );
+      },
+      /** Removes this device's token (call on sign-out). */
+      async unregisterPushToken(provider: "expo" | "web_push", token: string): Promise<void> {
+        const { error } = await db.rpc("unregister_push_token", {
+          p_provider: provider,
+          p_token: token,
+        });
+        if (error) throw fromPostgrestError(error);
       },
     },
 

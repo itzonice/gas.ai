@@ -16,7 +16,8 @@
     "./review": "./src/review/index.ts",
     "./cards": "./src/cards/index.ts",
     "./api": "./src/api/index.ts",
-    "./ics": "./src/ics/index.ts"
+    "./ics": "./src/ics/index.ts",
+    "./notify": "./src/notify/index.ts"
   },
   "scripts": {
     "lint": "eslint .",

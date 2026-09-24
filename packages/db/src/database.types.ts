@@ -281,6 +281,7 @@ export type Database = {
           id: number;
           kind: Database["public"]["Enums"]["notification_kind"];
           provider_message_id: string | null;
+          receipt_checked_at: string | null;
           status: Database["public"]["Enums"]["notification_status"];
           title: string | null;
           token_id: string | null;
@@ -296,6 +297,7 @@ export type Database = {
           id?: never;
           kind: Database["public"]["Enums"]["notification_kind"];
           provider_message_id?: string | null;
+          receipt_checked_at?: string | null;
           status: Database["public"]["Enums"]["notification_status"];
           title?: string | null;
           token_id?: string | null;
@@ -311,6 +313,7 @@ export type Database = {
           id?: never;
           kind?: Database["public"]["Enums"]["notification_kind"];
           provider_message_id?: string | null;
+          receipt_checked_at?: string | null;
           status?: Database["public"]["Enums"]["notification_status"];
           title?: string | null;
           token_id?: string | null;
@@ -985,6 +988,10 @@ export type Database = {
           title: string;
         }[];
       };
+      invalidate_push_tokens: {
+        Args: { p_token_ids: string[] };
+        Returns: number;
+      };
       is_valid_letter_scale: { Args: { scale: Json }; Returns: boolean };
       is_valid_timezone: { Args: { tz: string }; Returns: boolean };
       letter_for: {
@@ -1005,6 +1012,17 @@ export type Database = {
           ocr_allowed: boolean;
           plan_tier: Database["public"]["Enums"]["plan_tier"];
         }[];
+      };
+      register_push_token: {
+        Args: {
+          p_app_version?: string;
+          p_device_id?: string;
+          p_platform: string;
+          p_provider: Database["public"]["Enums"]["push_provider"];
+          p_token: string;
+          p_web_push_keys?: Json;
+        };
+        Returns: string;
       };
       replace_review_plan: {
         Args: {
@@ -1088,6 +1106,13 @@ export type Database = {
           p_status: Database["public"]["Enums"]["assignment_status"];
         };
         Returns: number;
+      };
+      unregister_push_token: {
+        Args: {
+          p_provider: Database["public"]["Enums"]["push_provider"];
+          p_token: string;
+        };
+        Returns: undefined;
       };
       users_due_for_replan: {
         Args: { p_local_hour?: number; p_now?: string };

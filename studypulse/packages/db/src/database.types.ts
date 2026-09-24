@@ -270,6 +270,32 @@ export type Database = {
           },
         ];
       };
+      notification_dedupe: {
+        Row: {
+          created_at: string;
+          dedupe_key: string;
+          user_id: string;
+        };
+        Insert: {
+          created_at?: string;
+          dedupe_key: string;
+          user_id: string;
+        };
+        Update: {
+          created_at?: string;
+          dedupe_key?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "notification_dedupe_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       notification_log: {
         Row: {
           assignment_id: string | null;
@@ -948,6 +974,10 @@ export type Database = {
       };
     };
     Functions: {
+      claim_reminders: {
+        Args: { p_keys: string[]; p_user_id: string };
+        Returns: string[];
+      };
       commit_parsed_syllabus: {
         Args: { p_payload?: Json; p_upload_id: string };
         Returns: string;
@@ -1023,6 +1053,15 @@ export type Database = {
           p_web_push_keys?: Json;
         };
         Returns: string;
+      };
+      reminder_batch: {
+        Args: { p_after?: string; p_limit?: number; p_now: string };
+        Returns: {
+          assignments: Json;
+          prefs: Json;
+          timezone: string;
+          user_id: string;
+        }[];
       };
       replace_review_plan: {
         Args: {

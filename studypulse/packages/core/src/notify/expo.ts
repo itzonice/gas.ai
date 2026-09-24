@@ -2,8 +2,9 @@
 // Uses the HTTP API with an injectable fetch so it runs in edge functions and tests.
 import { z } from "zod";
 
-export const EXPO_PUSH_URL = "https://exp.host/--/api/v2/push/send";
-export const EXPO_RECEIPTS_URL = "https://exp.host/--/api/v2/push/getReceipts";
+export const EXPO_API_URL = "https://exp.host";
+export const EXPO_PUSH_URL = `${EXPO_API_URL}/--/api/v2/push/send`;
+export const EXPO_RECEIPTS_URL = `${EXPO_API_URL}/--/api/v2/push/getReceipts`;
 /** Expo accepts at most 100 messages per request and 1000 receipt ids. */
 export const EXPO_BATCH_SIZE = 100;
 export const EXPO_RECEIPT_BATCH_SIZE = 1000;
@@ -41,7 +42,14 @@ export interface ExpoClientOptions {
   fetch?: typeof fetch;
   /** Expo access token, if push security is enabled for the project. */
   accessToken?: string;
+  /** Override for tests and staging (default https://exp.host). */
+  baseUrl?: string;
 }
+
+const urls = (options: ExpoClientOptions) => {
+  const base = (options.baseUrl ?? EXPO_API_URL).replace(/\/+$/, "");
+  return { push: `${base}/--/api/v2/push/send`, receipts: `${base}/--/api/v2/push/getReceipts` };
+};
 
 function headers(options: ExpoClientOptions): Record<string, string> {
   return {
@@ -65,7 +73,7 @@ export async function sendExpoPush(
   const doFetch = options.fetch ?? fetch;
   const tickets: ExpoTicket[] = [];
   for (const batch of chunks(messages, EXPO_BATCH_SIZE)) {
-    const res = await doFetch(EXPO_PUSH_URL, {
+    const res = await doFetch(urls(options).push, {
       method: "POST",
       headers: headers(options),
       body: JSON.stringify(batch),
@@ -87,7 +95,7 @@ export async function getExpoReceipts(
   const doFetch = options.fetch ?? fetch;
   const out: Record<string, ExpoReceipt> = {};
   for (const batch of chunks(ids, EXPO_RECEIPT_BATCH_SIZE)) {
-    const res = await doFetch(EXPO_RECEIPTS_URL, {
+    const res = await doFetch(urls(options).receipts, {
       method: "POST",
       headers: headers(options),
       body: JSON.stringify({ ids: batch }),

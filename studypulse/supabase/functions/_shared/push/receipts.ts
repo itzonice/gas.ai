@@ -3,7 +3,7 @@
 import { getExpoReceipts, isDeadToken } from "@studypulse/core/notify/index.ts";
 import type { Logger } from "@studypulse/core/observability/index.ts";
 
-import { env } from "../env.ts";
+import { expoOptions } from "./options.ts";
 import type { AdminClient } from "../supabase.ts";
 
 export async function checkExpoReceipts(
@@ -27,10 +27,7 @@ export async function checkExpoReceipts(
 
   const receipts = await getExpoReceipts(
     rows.map((r) => r.provider_message_id ?? ""),
-    {
-      ...(fetchImpl ? { fetch: fetchImpl } : {}),
-      ...(env().EXPO_ACCESS_TOKEN ? { accessToken: env().EXPO_ACCESS_TOKEN } : {}),
-    },
+    { ...expoOptions(), ...(fetchImpl ? { fetch: fetchImpl } : {}) },
   );
   const dead = rows.filter((r) => {
     const receipt = receipts[r.provider_message_id ?? ""];

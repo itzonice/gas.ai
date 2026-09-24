@@ -55,6 +55,8 @@ export const edgeEnvSchema = z.object({
   SENTRY_DSN: optionalUrl,
   // Expo access token, only if push security is enabled for the Expo project.
   EXPO_ACCESS_TOKEN: optionalNonEmpty,
+  // Expo push API base URL override (tests/staging); defaults to https://exp.host.
+  EXPO_API_URL: optionalUrl,
   // Shared secret pg_cron sends (x-cron-secret) to scheduled functions. Unset = cron endpoints refuse all calls.
   CRON_SECRET: optionalNonEmpty,
 });

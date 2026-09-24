@@ -147,6 +147,8 @@ export interface SubscriptionUpdate {
   canceled_at: string | null;
   /** End of the store's billing-retry grace period, while access continues. */
   grace_period_ends_at?: string | null;
+  /** Where it was bought, so clients can say where to manage it. */
+  store?: "stripe" | "app_store" | "play_store" | "amazon" | "promotional" | "other";
 }
 
 export const STRIPE_SUBSCRIPTION_EVENTS = [
@@ -191,11 +193,26 @@ export function mapStripeSubscription(object: unknown): SubscriptionUpdate | nul
     current_period_end: iso(sub.current_period_end ?? item?.current_period_end),
     cancel_at_period_end: sub.cancel_at_period_end,
     canceled_at: iso(sub.canceled_at ?? sub.ended_at),
+    store: "stripe",
   };
 }
 
+const chargeSchema = z.looseObject({
+  id: z.string(),
+  object: z.literal("charge"),
+  amount: z.number().int(),
+  amount_refunded: z.number().int(),
+  refunded: z.boolean().optional(),
+  invoice: z.union([z.string(), z.looseObject({ id: z.string() })]).nullish(),
+  payment_intent: z.union([z.string(), z.looseObject({ id: z.string() })]).nullish(),
+});
+export type StripeRefundedCharge = z.infer<typeof chargeSchema>;
+
 export type StripeEventAction =
-  { kind: "subscription"; update: SubscriptionUpdate } | { kind: "ignore"; reason: string };
+  | { kind: "subscription"; update: SubscriptionUpdate }
+  /** A full refund: revoke the subscription it paid for and stop billing. */
+  | { kind: "refund"; charge: StripeRefundedCharge }
+  | { kind: "ignore"; reason: string };
 
 /** What to do with a verified event. */
 export function stripeEventAction(event: StripeEvent): StripeEventAction {
@@ -204,6 +221,13 @@ export function stripeEventAction(event: StripeEvent): StripeEventAction {
     return update
       ? { kind: "subscription", update }
       : { kind: "ignore", reason: "incomplete subscription" };
+  }
+  if (event.type === "charge.refunded") {
+    const charge = chargeSchema.parse(event.data.object);
+    // Partial refunds (goodwill credits) don't end access.
+    return charge.amount > 0 && charge.amount_refunded >= charge.amount
+      ? { kind: "refund", charge }
+      : { kind: "ignore", reason: "partial refund" };
   }
   return { kind: "ignore", reason: `unhandled event type ${event.type}` };
 }

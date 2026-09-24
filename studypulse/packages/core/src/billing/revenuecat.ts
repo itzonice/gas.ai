@@ -98,6 +98,21 @@ export function revenueCatEventAction(
     return { kind: "ignore", reason: "Stripe purchases come from Stripe" };
 
   const trial = event.period_type === "TRIAL";
+  const store = ((): SubscriptionUpdate["store"] => {
+    switch (event.store) {
+      case "APP_STORE":
+      case "MAC_APP_STORE":
+        return "app_store";
+      case "PLAY_STORE":
+        return "play_store";
+      case "AMAZON":
+        return "amazon";
+      case "PROMOTIONAL":
+        return "promotional";
+      default:
+        return "other";
+    }
+  })();
   const base = {
     provider_subscription_id: event.original_transaction_id,
     provider_customer_id: event.original_app_user_id ?? event.app_user_id ?? null,
@@ -106,6 +121,7 @@ export function revenueCatEventAction(
     current_period_end: iso(event.expiration_at_ms),
     cancel_at_period_end: false,
     canceled_at: null,
+    store,
   };
   const make = (
     status: SubscriptionUpdate["status"],

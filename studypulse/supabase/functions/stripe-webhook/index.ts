@@ -1,16 +1,21 @@
 // POST /stripe-webhook   (Stripe calls this; configure the endpoint in the Stripe dashboard)
-// Verifies the Stripe-Signature header against the raw body, maps subscription events,
-// and applies them with apply_billing_event, which is idempotent on the event id and
+// Verifies the Stripe-Signature header against the raw body, maps subscription events
+// (and full refunds, which cancel the subscription and end access), and applies them
+// with apply_billing_event, which is idempotent on the event id and
 // ignores events older than the stored state.
 // Responses: 2xx = done (including duplicates and ignored types); 400 = bad signature or
 // body (Stripe won't fix it by retrying); 5xx = our failure, so Stripe retries.
 import {
+  cancelStripeSubscription,
   stripeEventAction,
   stripeEventSchema,
   StripeSignatureError,
+  subscriptionForCharge,
   verifyStripeSignature,
+  type SubscriptionUpdate,
 } from "@studypulse/core/billing/index.ts";
 
+import { stripeOptions } from "../_shared/billing.ts";
 import { env } from "../_shared/env.ts";
 import { createHandler } from "../_shared/handler.ts";
 import { HttpError, json, requireMethod } from "../_shared/http.ts";
@@ -46,12 +51,26 @@ Deno.serve(
     const event = parsed.data;
 
     const action = stripeEventAction(event);
+    const at = new Date(event.created * 1000).toISOString();
+    let update: Partial<SubscriptionUpdate> | null = null;
+    if (action.kind === "subscription") {
+      update = action.update;
+    } else if (action.kind === "refund") {
+      // A full refund ends access and billing. Cancel at Stripe first: if recording then
+      // fails, Stripe retries this event and the cancel is a no-op.
+      const options = stripeOptions();
+      const subscriptionId = await subscriptionForCharge(action.charge, options);
+      if (subscriptionId) {
+        await cancelStripeSubscription(subscriptionId, options);
+        update = { provider_subscription_id: subscriptionId, status: "refunded", canceled_at: at };
+      }
+    }
     const { data: result, error } = await adminClient().rpc("apply_billing_event", {
       p_provider: "stripe",
       p_event_id: event.id,
       p_event_type: event.type,
-      p_event_created_at: new Date(event.created * 1000).toISOString(),
-      ...(action.kind === "subscription" ? { p_subscription: { ...action.update } } : {}),
+      p_event_created_at: at,
+      ...(update ? { p_subscription: { ...update } } : {}),
     });
     if (error) throw error;
 

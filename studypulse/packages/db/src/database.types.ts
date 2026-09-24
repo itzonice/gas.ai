@@ -853,6 +853,7 @@ export type Database = {
           provider_subscription_id: string;
           provider_updated_at: string | null;
           status: Database["public"]["Enums"]["subscription_status"];
+          store: string | null;
           updated_at: string;
           user_id: string;
         };
@@ -869,6 +870,7 @@ export type Database = {
           provider_subscription_id: string;
           provider_updated_at?: string | null;
           status: Database["public"]["Enums"]["subscription_status"];
+          store?: string | null;
           updated_at?: string;
           user_id: string;
         };
@@ -885,6 +887,7 @@ export type Database = {
           provider_subscription_id?: string;
           provider_updated_at?: string | null;
           status?: Database["public"]["Enums"]["subscription_status"];
+          store?: string | null;
           updated_at?: string;
           user_id?: string;
         };
@@ -1057,6 +1060,7 @@ export type Database = {
         };
         Returns: string;
       };
+      billing_status: { Args: never; Returns: Json };
       claim_reminders: {
         Args: {
           p_daily_cap: number;

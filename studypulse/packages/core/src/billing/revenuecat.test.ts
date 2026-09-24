@@ -45,6 +45,7 @@ describe("revenueCatEventAction", () => {
       current_period_end: "2027-04-01T12:00:00.000Z",
       cancel_at_period_end: false,
       canceled_at: null,
+      store: "app_store",
     });
   });
 
@@ -85,6 +86,12 @@ describe("revenueCatEventAction", () => {
       update(event("BILLING_ISSUE", { grace_period_expiration_at_ms: now.getTime() - 1 })).status,
     ).toBe("past_due");
     expect(update(event("BILLING_ISSUE")).status).toBe("past_due");
+  });
+
+  it("records the store so clients know where to manage it", () => {
+    expect(update(event("RENEWAL", { store: "PLAY_STORE" })).store).toBe("play_store");
+    expect(update(event("RENEWAL", { store: "PROMOTIONAL" })).store).toBe("promotional");
+    expect(update(event("RENEWAL", { store: "SOMETHING_NEW" })).store).toBe("other");
   });
 
   it("maps pauses and expirations", () => {

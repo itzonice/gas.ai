@@ -5,7 +5,12 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@studypulse/db";
 import type { z } from "zod";
 
-import { checkoutInputSchema, type BillingInterval } from "../billing/plans.ts";
+import {
+  billingStatusSchema,
+  checkoutInputSchema,
+  type BillingInterval,
+  type BillingStatus,
+} from "../billing/plans.ts";
 import { commitPayloadSchema, type CommitPayload } from "../parser/commit.ts";
 import { ApiError, fromPostgrestError } from "./errors.ts";
 import {
@@ -362,6 +367,18 @@ export function createApiClient(db: Db) {
       async openPortal(): Promise<string> {
         const { url } = await invoke<{ url: string }>("stripe-portal");
         return url;
+      },
+      /**
+       * Plan summary for settings and paywalls. Pro bought on any platform counts
+       * everywhere; `manage_in` says where to change it (store purchases can only be
+       * managed in that store).
+       */
+      async status(): Promise<BillingStatus> {
+        const data: unknown = unwrap(await db.rpc("billing_status"));
+        const parsed = billingStatusSchema.safeParse(data);
+        if (!parsed.success)
+          throw new ApiError(500, "invalid_response", "Unexpected billing status");
+        return parsed.data;
       },
       /** Whether the signed-in user has Pro right now (subscriptions on any platform). */
       async isPro(): Promise<boolean> {

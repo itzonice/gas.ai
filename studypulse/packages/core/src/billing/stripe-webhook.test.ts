@@ -90,6 +90,7 @@ describe("mapStripeSubscription", () => {
       current_period_end: new Date(1_806_000_000 * 1000).toISOString(),
       cancel_at_period_end: false,
       canceled_at: null,
+      store: "stripe",
     });
   });
 
@@ -157,6 +158,24 @@ describe("stripeEventAction", () => {
     expect(stripeEventAction(event("invoice.created", { id: "in_1" }))).toEqual({
       kind: "ignore",
       reason: "unhandled event type invoice.created",
+    });
+  });
+
+  it("revokes on a full refund, not a partial one", () => {
+    const charge = (amount_refunded: number) => ({
+      id: "ch_1",
+      object: "charge",
+      amount: 999,
+      amount_refunded,
+      invoice: "in_1",
+    });
+    expect(stripeEventAction(event("charge.refunded", charge(999)))).toMatchObject({
+      kind: "refund",
+      charge: { id: "ch_1", invoice: "in_1" },
+    });
+    expect(stripeEventAction(event("charge.refunded", charge(300)))).toEqual({
+      kind: "ignore",
+      reason: "partial refund",
     });
   });
 });

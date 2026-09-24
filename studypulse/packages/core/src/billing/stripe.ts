@@ -65,14 +65,14 @@ const errorSchema = z.object({
 
 async function stripeRequest<S extends z.ZodType>(
   schema: S,
-  method: "GET" | "POST",
+  method: "GET" | "POST" | "DELETE",
   path: string,
   params: FormObject,
   options: StripeOptions & { idempotencyKey?: string },
 ): Promise<z.infer<S>> {
   const base = (options.baseUrl ?? STRIPE_API_URL).replace(/\/+$/, "");
   const form = encodeStripeForm(params);
-  const url = method === "GET" && form ? `${base}${path}?${form}` : `${base}${path}`;
+  const url = method !== "POST" && form ? `${base}${path}?${form}` : `${base}${path}`;
   const res = await (options.fetch ?? fetch)(url, {
     method,
     headers: {
@@ -182,4 +182,74 @@ export async function createPortalSession(
     options,
   );
   return session.url;
+}
+
+// ------------------------------------------------------------------ refunds
+
+const idOf = (v: string | { id: string } | null | undefined) =>
+  v == null ? null : typeof v === "string" ? v : v.id;
+const ref = z.union([z.string(), z.looseObject({ id: z.string() })]).nullish();
+
+const invoiceSchema = z.looseObject({
+  id: z.string(),
+  // Older API versions.
+  subscription: ref,
+  // Newer API versions (2025-03-31.basil and later).
+  parent: z
+    .looseObject({
+      subscription_details: z.looseObject({ subscription: ref }).nullish(),
+    })
+    .nullish(),
+});
+
+const invoicePaymentsSchema = z.looseObject({
+  data: z.array(z.looseObject({ invoice: ref })),
+});
+
+/**
+ * The subscription a charge paid for, or null (one-off charge). Works across API
+ * versions: older charges name their invoice directly; newer ones are looked up through
+ * invoice payments by payment intent.
+ */
+export async function subscriptionForCharge(
+  charge: {
+    invoice?: string | { id: string } | null;
+    payment_intent?: string | { id: string } | null;
+  },
+  options: StripeOptions,
+): Promise<string | null> {
+  let invoiceId = idOf(charge.invoice);
+  const paymentIntent = idOf(charge.payment_intent);
+  if (!invoiceId && paymentIntent) {
+    const payments = await stripeRequest(
+      invoicePaymentsSchema,
+      "GET",
+      "/v1/invoice_payments",
+      { payment: { type: "payment_intent", payment_intent: paymentIntent }, limit: 1 },
+      options,
+    );
+    invoiceId = idOf(payments.data[0]?.invoice);
+  }
+  if (!invoiceId) return null;
+  const invoice = await stripeRequest(
+    invoiceSchema,
+    "GET",
+    `/v1/invoices/${encodeURIComponent(invoiceId)}`,
+    {},
+    options,
+  );
+  return idOf(invoice.subscription) ?? idOf(invoice.parent?.subscription_details?.subscription);
+}
+
+const subscriptionRefSchema = z.looseObject({ id: z.string(), status: z.string() });
+
+/** Cancels a subscription now (no further invoices). No-op if it has already ended. */
+export async function cancelStripeSubscription(
+  subscriptionId: string,
+  options: StripeOptions,
+): Promise<void> {
+  const path = `/v1/subscriptions/${encodeURIComponent(subscriptionId)}`;
+  const current = await stripeRequest(subscriptionRefSchema, "GET", path, {}, options);
+  if (current.status === "canceled" || current.status === "incomplete_expired") return;
+  await stripeRequest(subscriptionRefSchema, "DELETE", path, {}, options);
 }

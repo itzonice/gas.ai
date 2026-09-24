@@ -1,11 +1,13 @@
 import { describe, expect, it, vi } from "vitest";
 
 import {
+  cancelStripeSubscription,
   createCheckoutSession,
   createPortalSession,
   createStripeCustomer,
   encodeStripeForm,
   StripeError,
+  subscriptionForCharge,
 } from "./stripe.ts";
 
 const user = "3f0c6a1e-8a4b-4c1d-9e2f-0123456789ab";
@@ -151,5 +153,64 @@ describe("createPortalSession", () => {
       ),
     ).toBe("https://billing.stripe.com/p/session/x");
     expect(fetchMock.mock.calls[0]![0]).toBe("http://127.0.0.1:12111/v1/billing_portal/sessions");
+  });
+});
+
+describe("refund helpers", () => {
+  function router(routes: Record<string, unknown>) {
+    return vi.fn((url: string | URL | Request, init?: RequestInit) => {
+      const u = new URL(typeof url === "string" ? url : url instanceof URL ? url.href : url.url);
+      const key = `${init?.method ?? "GET"} ${u.pathname}`;
+      const body = routes[key];
+      return Promise.resolve(
+        body === undefined
+          ? Response.json({ error: { message: `no route ${key}` } }, { status: 404 })
+          : Response.json(body),
+      );
+    });
+  }
+
+  it("finds the subscription through the charge's invoice (older API versions)", async () => {
+    const fetchMock = router({ "GET /v1/invoices/in_1": { id: "in_1", subscription: "sub_1" } });
+    expect(
+      await subscriptionForCharge({ invoice: "in_1" }, { apiKey: "k", fetch: fetchMock }),
+    ).toBe("sub_1");
+  });
+
+  it("finds it through invoice payments on newer API versions", async () => {
+    const fetchMock = router({
+      "GET /v1/invoice_payments": { data: [{ invoice: "in_2" }] },
+      "GET /v1/invoices/in_2": {
+        id: "in_2",
+        parent: { subscription_details: { subscription: "sub_2" } },
+      },
+    });
+    expect(
+      await subscriptionForCharge({ payment_intent: "pi_2" }, { apiKey: "k", fetch: fetchMock }),
+    ).toBe("sub_2");
+    const listUrl = new URL(fetchMock.mock.calls[0]![0]);
+    expect(listUrl.searchParams.get("payment[payment_intent]")).toBe("pi_2");
+    expect(listUrl.searchParams.get("payment[type]")).toBe("payment_intent");
+  });
+
+  it("returns null for one-off charges", async () => {
+    const fetchMock = router({ "GET /v1/invoice_payments": { data: [] } });
+    expect(
+      await subscriptionForCharge({ payment_intent: "pi_3" }, { apiKey: "k", fetch: fetchMock }),
+    ).toBeNull();
+    expect(await subscriptionForCharge({}, { apiKey: "k", fetch: fetchMock })).toBeNull();
+  });
+
+  it("cancels an active subscription and leaves an ended one alone", async () => {
+    const active = router({
+      "GET /v1/subscriptions/sub_1": { id: "sub_1", status: "active" },
+      "DELETE /v1/subscriptions/sub_1": { id: "sub_1", status: "canceled" },
+    });
+    await cancelStripeSubscription("sub_1", { apiKey: "k", fetch: active });
+    expect(active.mock.calls.map((c) => c[1]?.method)).toEqual(["GET", "DELETE"]);
+
+    const ended = router({ "GET /v1/subscriptions/sub_1": { id: "sub_1", status: "canceled" } });
+    await cancelStripeSubscription("sub_1", { apiKey: "k", fetch: ended });
+    expect(ended).toHaveBeenCalledTimes(1);
   });
 });

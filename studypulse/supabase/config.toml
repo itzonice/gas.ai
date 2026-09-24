@@ -497,3 +497,10 @@ enabled = true
 verify_jwt = false
 import_map = "./functions/deno.json"
 entrypoint = "./functions/stripe-webhook/index.ts"
+
+[functions.revenuecat-webhook]
+enabled = true
+# RevenueCat sends a fixed Authorization header, not a Supabase JWT; it's checked instead.
+verify_jwt = false
+import_map = "./functions/deno.json"
+entrypoint = "./functions/revenuecat-webhook/index.ts"

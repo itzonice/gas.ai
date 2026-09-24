@@ -2,7 +2,7 @@ import { env } from "./env.ts";
 import { HttpError } from "./http.ts";
 
 /** Constant-time string comparison. */
-function safeEqual(a: string, b: string): boolean {
+export function safeEqual(a: string, b: string): boolean {
   const ea = new TextEncoder().encode(a);
   const eb = new TextEncoder().encode(b);
   let diff = ea.length ^ eb.length;

@@ -129,7 +129,7 @@ const stripeSubscriptionSchema = z.looseObject({
 /** Our subscription row, as apply_billing_event expects it. */
 export interface SubscriptionUpdate {
   provider_subscription_id: string;
-  provider_customer_id: string;
+  provider_customer_id: string | null;
   /** From subscription metadata (set at checkout); the SQL falls back to the customer. */
   user_id: string | null;
   product_id: string | null;
@@ -145,6 +145,8 @@ export interface SubscriptionUpdate {
   current_period_end: string | null;
   cancel_at_period_end: boolean;
   canceled_at: string | null;
+  /** End of the store's billing-retry grace period, while access continues. */
+  grace_period_ends_at?: string | null;
 }
 
 export const STRIPE_SUBSCRIPTION_EVENTS = [

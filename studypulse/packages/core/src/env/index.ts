@@ -38,6 +38,9 @@ export const mobileEnvSchema = z.object({
   EXPO_PUBLIC_SUPABASE_URL: url,
   EXPO_PUBLIC_SUPABASE_ANON_KEY: nonEmpty,
   EXPO_PUBLIC_SENTRY_DSN: optionalUrl,
+  // RevenueCat public SDK keys (appl_... / goog_...). Public by design, safe to ship.
+  EXPO_PUBLIC_REVENUECAT_IOS_KEY: optionalNonEmpty,
+  EXPO_PUBLIC_REVENUECAT_ANDROID_KEY: optionalNonEmpty,
 });
 export type MobileEnv = z.infer<typeof mobileEnvSchema>;
 
@@ -85,6 +88,8 @@ export const edgeEnvSchema = z.object({
   STRIPE_PRICE_YEARLY: optionalNonEmpty,
   // Signing secret of the Stripe webhook endpoint (whsec_...).
   STRIPE_WEBHOOK_SECRET: optionalNonEmpty,
+  // Authorization header value RevenueCat sends to revenuecat-webhook (set in its dashboard).
+  REVENUECAT_WEBHOOK_AUTH: optionalNonEmpty.pipe(z.string().min(24).optional()),
   // Optional Stripe-Version pin; unset uses the account default.
   STRIPE_API_VERSION: optionalNonEmpty,
   // Stripe API base URL override (tests, e.g. stripe-mock).

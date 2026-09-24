@@ -1,4 +1,5 @@
-// Billing: Stripe (web) client and plan definitions.
+// Billing: Stripe (web) and RevenueCat (mobile) clients, webhooks, and plans.
 export * from "./plans.ts";
 export * from "./stripe.ts";
 export * from "./stripe-webhook.ts";
+export * from "./revenuecat.ts";

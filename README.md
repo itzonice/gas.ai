@@ -1,4 +1,4 @@
-# gas.ai
+# studytool.DO
 
 The StudyPulse app lives in [`studypulse/`](studypulse/). See
 [`studypulse/README.md`](studypulse/README.md) to get started and

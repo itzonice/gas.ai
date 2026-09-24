@@ -5,6 +5,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@studypulse/db";
 import type { z } from "zod";
 
+import { checkoutInputSchema, type BillingInterval } from "../billing/plans.ts";
 import { commitPayloadSchema, type CommitPayload } from "../parser/commit.ts";
 import { ApiError, fromPostgrestError } from "./errors.ts";
 import {
@@ -344,6 +345,34 @@ export function createApiClient(db: Db) {
         return new Blob([typeof data === "string" ? data : JSON.stringify(data)], {
           type: "text/plain",
         });
+      },
+    },
+
+    billing: {
+      /**
+       * Starts a Stripe Checkout for Pro (web); redirect to the returned URL. Throws
+       * ApiError "already_subscribed" (409) if the user already has Pro anywhere.
+       */
+      async startCheckout(interval: BillingInterval): Promise<string> {
+        const body = validate(checkoutInputSchema, { interval });
+        const { url } = await invoke<{ url: string }>("stripe-checkout", { body });
+        return url;
+      },
+      /** The Stripe customer-portal URL for web subscribers (ApiError 404 otherwise). */
+      async openPortal(): Promise<string> {
+        const { url } = await invoke<{ url: string }>("stripe-portal");
+        return url;
+      },
+      /** The user's subscriptions on every platform (read through RLS). */
+      async subscriptions() {
+        const { data, error } = await db
+          .from("subscriptions")
+          .select(
+            "provider, product_id, status, current_period_end, cancel_at_period_end, grace_period_ends_at",
+          )
+          .order("created_at", { ascending: false });
+        if (error) throw fromPostgrestError(error);
+        return data;
       },
     },
   };

@@ -104,6 +104,32 @@ export type Database = {
           },
         ];
       };
+      billing_customers: {
+        Row: {
+          created_at: string;
+          stripe_customer_id: string;
+          user_id: string;
+        };
+        Insert: {
+          created_at?: string;
+          stripe_customer_id: string;
+          user_id: string;
+        };
+        Update: {
+          created_at?: string;
+          stripe_customer_id?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "billing_customers_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: true;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       courses: {
         Row: {
           archived_at: string | null;

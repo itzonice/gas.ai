@@ -79,6 +79,14 @@ export const edgeEnvSchema = z.object({
   EMAIL_UNSUBSCRIBE_SECRET: optionalNonEmpty.pipe(z.string().min(32).optional()),
   // Web app origin for links in emails, e.g. https://app.studypulse.app.
   APP_URL: optionalUrl,
+  // Stripe (web billing). Unset = checkout and portal endpoints return 503.
+  STRIPE_SECRET_KEY: optionalNonEmpty,
+  STRIPE_PRICE_MONTHLY: optionalNonEmpty,
+  STRIPE_PRICE_YEARLY: optionalNonEmpty,
+  // Optional Stripe-Version pin; unset uses the account default.
+  STRIPE_API_VERSION: optionalNonEmpty,
+  // Stripe API base URL override (tests, e.g. stripe-mock).
+  STRIPE_API_URL: optionalUrl,
   // Shared secret pg_cron sends (x-cron-secret) to scheduled functions. Unset = cron endpoints refuse all calls.
   CRON_SECRET: optionalNonEmpty,
 });

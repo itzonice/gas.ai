@@ -278,6 +278,21 @@ export function createApiClient(db: Db) {
       },
     },
 
+    calendar: {
+      /**
+       * Creates a new secret feed token (the old feed URL stops working) and returns it.
+       * Build the subscribe link with calendarFeedUrl() from @studypulse/core/ics.
+       * The token is shown once; only its hash is stored.
+       */
+      async rotateFeedToken(): Promise<string> {
+        return unwrap(await db.rpc("rotate_calendar_token"));
+      },
+      async disableFeed(): Promise<void> {
+        const { error } = await db.rpc("revoke_calendar_token");
+        if (error) throw fromPostgrestError(error);
+      },
+    },
+
     cards: {
       /** Downloads a course's flashcards as an Anki CSV or Quizlet TSV. */
       async export(input: ExportCardsInput): Promise<Blob> {

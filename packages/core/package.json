@@ -15,7 +15,8 @@
     "./scheduler": "./src/scheduler/index.ts",
     "./review": "./src/review/index.ts",
     "./cards": "./src/cards/index.ts",
-    "./api": "./src/api/index.ts"
+    "./api": "./src/api/index.ts",
+    "./ics": "./src/ics/index.ts"
   },
   "scripts": {
     "lint": "eslint .",

@@ -461,6 +461,7 @@ export type Database = {
       };
       profiles: {
         Row: {
+          calendar_token_hash: string | null;
           created_at: string;
           daily_study_minutes: number;
           display_name: string | null;
@@ -473,6 +474,7 @@ export type Database = {
           updated_at: string;
         };
         Insert: {
+          calendar_token_hash?: string | null;
           created_at?: string;
           daily_study_minutes?: number;
           display_name?: string | null;
@@ -485,6 +487,7 @@ export type Database = {
           updated_at?: string;
         };
         Update: {
+          calendar_token_hash?: string | null;
           created_at?: string;
           daily_study_minutes?: number;
           display_name?: string | null;
@@ -497,6 +500,32 @@ export type Database = {
           updated_at?: string;
         };
         Relationships: [];
+      };
+      replan_requests: {
+        Row: {
+          reason: string | null;
+          requested_at: string;
+          user_id: string;
+        };
+        Insert: {
+          reason?: string | null;
+          requested_at?: string;
+          user_id: string;
+        };
+        Update: {
+          reason?: string | null;
+          requested_at?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "replan_requests_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: true;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       study_blocks: {
         Row: {
@@ -990,6 +1019,8 @@ export type Database = {
         Args: { p_blocks: Json; p_from: string; p_user_id: string };
         Returns: number;
       };
+      revoke_calendar_token: { Args: never; Returns: undefined };
+      rotate_calendar_token: { Args: never; Returns: string };
       set_plan_alerts: {
         Args: { p_alerts: Json; p_from: string; p_user_id: string };
         Returns: undefined;

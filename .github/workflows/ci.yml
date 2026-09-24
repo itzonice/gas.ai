@@ -12,6 +12,11 @@ concurrency:
 permissions:
   contents: read
 
+# The project lives in studypulse/; every step runs there.
+defaults:
+  run:
+    working-directory: studypulse
+
 env:
   TURBO_TELEMETRY_DISABLED: 1
 
@@ -23,10 +28,13 @@ jobs:
     steps:
       - uses: actions/checkout@v5
       - uses: pnpm/action-setup@v4
+        with:
+          package_json_file: studypulse/package.json
       - uses: actions/setup-node@v5
         with:
-          node-version-file: .nvmrc
+          node-version-file: studypulse/.nvmrc
           cache: pnpm
+          cache-dependency-path: studypulse/pnpm-lock.yaml
       - run: pnpm install --frozen-lockfile
       - run: pnpm format:check
       - run: pnpm lint
@@ -40,10 +48,13 @@ jobs:
     steps:
       - uses: actions/checkout@v5
       - uses: pnpm/action-setup@v4
+        with:
+          package_json_file: studypulse/package.json
       - uses: actions/setup-node@v5
         with:
-          node-version-file: .nvmrc
+          node-version-file: studypulse/.nvmrc
           cache: pnpm
+          cache-dependency-path: studypulse/pnpm-lock.yaml
       - run: pnpm install --frozen-lockfile
       # Only the database is needed to apply migrations and run SQL tests.
       - name: Start Postgres

@@ -1,23 +1,7 @@
-# StudyPulse
+# gas.ai
 
-Turborepo + pnpm monorepo.
+The StudyPulse app lives in [`studypulse/`](studypulse/). See
+[`studypulse/README.md`](studypulse/README.md) to get started and
+[`studypulse/CLAUDE.md`](studypulse/CLAUDE.md) for the project's context and rules.
 
-| Path            | What                                          |
-| --------------- | --------------------------------------------- |
-| `apps/web`      | Next.js (App Router, TypeScript)              |
-| `apps/mobile`   | Expo (React Native, TypeScript)               |
-| `packages/core` | Shared business logic, used by web and mobile |
-| `packages/db`   | Database types                                |
-
-## Getting started
-
-```sh
-pnpm install
-pnpm dev          # run all apps
-pnpm lint         # ESLint in every workspace
-pnpm typecheck    # tsc --noEmit in every workspace
-pnpm test
-pnpm format       # Prettier
-```
-
-Requires Node 22+ and pnpm 10.
+CI (`.github/workflows/ci.yml`) runs from `studypulse/`.

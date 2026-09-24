@@ -5,9 +5,22 @@ import { z } from "zod";
 export const billingIntervalSchema = z.enum(["monthly", "yearly"]);
 export type BillingInterval = z.infer<typeof billingIntervalSchema>;
 
-export const checkoutInputSchema = z.object({
-  interval: billingIntervalSchema,
-});
+export const checkoutInputSchema = z
+  .object({
+    interval: billingIntervalSchema,
+    /** Apply the student discount (requires a confirmed academic email). */
+    student: z.boolean().optional(),
+    /** A promotion code the user typed. */
+    promoCode: z
+      .string()
+      .trim()
+      .regex(/^[A-Za-z0-9_-]{1,64}$/, "Promo codes use letters, digits, - and _")
+      .optional(),
+  })
+  .refine((v) => !(v.student && v.promoCode), {
+    message: "Use the student discount or a promo code, not both",
+    path: ["promoCode"],
+  });
 export type CheckoutRequest = z.infer<typeof checkoutInputSchema>;
 
 /** Subscription states that grant Pro (grace: a renewal failed but access continues). */

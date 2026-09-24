@@ -27,6 +27,8 @@ export function userClient(req: Request): SupabaseClient<Database> {
 export interface AuthedUser {
   id: string;
   email: string | undefined;
+  /** The user proved they own `email` (clicked the confirmation link). */
+  emailConfirmed: boolean;
 }
 
 /** Verifies the bearer token with Supabase Auth and returns the user, or throws 401. */
@@ -37,5 +39,9 @@ export async function requireUser(req: Request): Promise<AuthedUser> {
 
   const { data, error } = await adminClient().auth.getUser(token);
   if (error || !data.user) throw new HttpError(401, "unauthorized", "Invalid or expired token");
-  return { id: data.user.id, email: data.user.email };
+  return {
+    id: data.user.id,
+    email: data.user.email,
+    emailConfirmed: Boolean(data.user.email_confirmed_at),
+  };
 }

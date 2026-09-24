@@ -356,10 +356,15 @@ export function createApiClient(db: Db) {
     billing: {
       /**
        * Starts a Stripe Checkout for Pro (web); redirect to the returned URL. Throws
-       * ApiError "already_subscribed" (409) if the user already has Pro anywhere.
+       * ApiError "already_subscribed" (409) if the user already has Pro anywhere,
+       * "student_email_required" (403) for the student discount without a confirmed
+       * school email, and "invalid_promo_code" (400).
        */
-      async startCheckout(interval: BillingInterval): Promise<string> {
-        const body = validate(checkoutInputSchema, { interval });
+      async startCheckout(
+        interval: BillingInterval,
+        discount: { student?: boolean; promoCode?: string } = {},
+      ): Promise<string> {
+        const body = validate(checkoutInputSchema, { interval, ...discount });
         const { url } = await invoke<{ url: string }>("stripe-checkout", { body });
         return url;
       },

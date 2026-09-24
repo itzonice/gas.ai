@@ -253,3 +253,107 @@ export async function cancelStripeSubscription(
   if (current.status === "canceled" || current.status === "incomplete_expired") return;
   await stripeRequest(subscriptionRefSchema, "DELETE", path, {}, options);
 }
+
+// ------------------------------------------------------------------ promotion codes
+
+const promotionCodeSchema = z.looseObject({
+  id: z.string().startsWith("promo_"),
+  code: z.string(),
+  active: z.boolean(),
+  customer: ref,
+  // Newer API versions: { type: "coupon", coupon }; older ones: coupon on the code.
+  promotion: z.looseObject({ coupon: ref }).nullish(),
+  coupon: ref,
+  metadata: z.record(z.string(), z.string()).nullish(),
+  expires_at: z.number().int().nullish(),
+  max_redemptions: z.number().int().nullish(),
+  times_redeemed: z.number().int().nullish(),
+});
+
+export interface PromotionCode {
+  id: string;
+  code: string;
+  active: boolean;
+  couponId: string | null;
+  /** Restricted to one customer (codes we mint per student), else null. */
+  customerId: string | null;
+  metadata: Record<string, string>;
+}
+
+function toPromotionCode(p: z.infer<typeof promotionCodeSchema>): PromotionCode {
+  return {
+    id: p.id,
+    code: p.code,
+    active: p.active,
+    couponId: idOf(p.promotion?.coupon) ?? idOf(p.coupon),
+    customerId: idOf(p.customer),
+    metadata: p.metadata ?? {},
+  };
+}
+
+/** An active promotion code by the code customers type (case-insensitive), or null. */
+export async function findPromotionCode(
+  code: string,
+  options: StripeOptions,
+): Promise<PromotionCode | null> {
+  const list = await stripeRequest(
+    z.looseObject({ data: z.array(promotionCodeSchema) }),
+    "GET",
+    "/v1/promotion_codes",
+    { code, active: true, limit: 1 },
+    options,
+  );
+  const found = list.data[0];
+  return found ? toPromotionCode(found) : null;
+}
+
+/**
+ * Mints a single-use promotion code for `couponId`, usable only by `customerId`.
+ * Sends the current API shape (promotion[coupon]) and falls back to the pre-2025 shape
+ * (coupon) if the account's API version doesn't know it.
+ */
+export async function createCustomerPromotionCode(
+  input: {
+    couponId: string;
+    customerId: string;
+    expiresAt: Date;
+    metadata?: Record<string, string>;
+    idempotencyKey: string;
+  },
+  options: StripeOptions,
+): Promise<PromotionCode> {
+  const common = {
+    customer: input.customerId,
+    max_redemptions: 1,
+    expires_at: Math.floor(input.expiresAt.getTime() / 1000),
+    metadata: input.metadata,
+  };
+  try {
+    return toPromotionCode(
+      await stripeRequest(
+        promotionCodeSchema,
+        "POST",
+        "/v1/promotion_codes",
+        { ...common, promotion: { type: "coupon", coupon: input.couponId } },
+        { ...options, idempotencyKey: input.idempotencyKey },
+      ),
+    );
+  } catch (error) {
+    if (!(
+      error instanceof StripeError &&
+      error.status === 400 &&
+      error.message.includes("promotion")
+    )) {
+      throw error;
+    }
+    return toPromotionCode(
+      await stripeRequest(
+        promotionCodeSchema,
+        "POST",
+        "/v1/promotion_codes",
+        { ...common, coupon: input.couponId },
+        { ...options, idempotencyKey: `${input.idempotencyKey}-legacy` },
+      ),
+    );
+  }
+}

@@ -90,6 +90,10 @@ export const edgeEnvSchema = z.object({
   STRIPE_WEBHOOK_SECRET: optionalNonEmpty,
   // Authorization header value RevenueCat sends to revenuecat-webhook (set in its dashboard).
   REVENUECAT_WEBHOOK_AUTH: optionalNonEmpty.pipe(z.string().min(24).optional()),
+  // Stripe coupon for the student discount (no public code; codes are minted per student).
+  STRIPE_STUDENT_COUPON_ID: optionalNonEmpty,
+  // Extra academic email domains beyond *.edu / *.ac.xx / *.edu.xx, comma-separated.
+  STUDENT_EMAIL_DOMAINS: optionalNonEmpty,
   // Optional Stripe-Version pin; unset uses the account default.
   STRIPE_API_VERSION: optionalNonEmpty,
   // Stripe API base URL override (tests, e.g. stripe-mock).

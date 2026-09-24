@@ -3,3 +3,4 @@ export * from "./plans.ts";
 export * from "./stripe.ts";
 export * from "./stripe-webhook.ts";
 export * from "./revenuecat.ts";
+export * from "./students.ts";

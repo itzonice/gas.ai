@@ -21,6 +21,8 @@ export const webPublicEnvSchema = z.object({
   NEXT_PUBLIC_SUPABASE_URL: url,
   NEXT_PUBLIC_SUPABASE_ANON_KEY: nonEmpty,
   NEXT_PUBLIC_SENTRY_DSN: optionalUrl,
+  // VAPID public key for web push subscriptions (same value as the edge VAPID_PUBLIC_KEY).
+  NEXT_PUBLIC_VAPID_PUBLIC_KEY: optionalNonEmpty,
 });
 export type WebPublicEnv = z.infer<typeof webPublicEnvSchema>;
 
@@ -57,6 +59,16 @@ export const edgeEnvSchema = z.object({
   EXPO_ACCESS_TOKEN: optionalNonEmpty,
   // Expo push API base URL override (tests/staging); defaults to https://exp.host.
   EXPO_API_URL: optionalUrl,
+  // Web push (VAPID). All three are needed; without them web users get no push.
+  // Generate with `pnpm --filter @studypulse/core vapid:keys`.
+  VAPID_PUBLIC_KEY: optionalNonEmpty,
+  VAPID_PRIVATE_KEY: optionalNonEmpty,
+  VAPID_SUBJECT: optionalNonEmpty.pipe(
+    z
+      .string()
+      .regex(/^(mailto:|https:\/\/)/, "must be a mailto: or https: URL")
+      .optional(),
+  ),
   // Shared secret pg_cron sends (x-cron-secret) to scheduled functions. Unset = cron endpoints refuse all calls.
   CRON_SECRET: optionalNonEmpty,
 });

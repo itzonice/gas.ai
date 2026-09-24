@@ -1,4 +1,4 @@
-import type { ExpoClientOptions } from "@studypulse/core/notify/index.ts";
+import type { ExpoClientOptions, VapidKeys } from "@studypulse/core/notify/index.ts";
 
 import { env } from "../env.ts";
 
@@ -8,5 +8,16 @@ export function expoOptions(): ExpoClientOptions {
   return {
     ...(e.EXPO_ACCESS_TOKEN ? { accessToken: e.EXPO_ACCESS_TOKEN } : {}),
     ...(e.EXPO_API_URL ? { baseUrl: e.EXPO_API_URL } : {}),
+  };
+}
+
+/** VAPID keys for web push, or null when web push isn't configured. */
+export function vapidKeys(): VapidKeys | null {
+  const e = env();
+  if (!e.VAPID_PUBLIC_KEY || !e.VAPID_PRIVATE_KEY || !e.VAPID_SUBJECT) return null;
+  return {
+    publicKey: e.VAPID_PUBLIC_KEY,
+    privateKey: e.VAPID_PRIVATE_KEY,
+    subject: e.VAPID_SUBJECT,
   };
 }

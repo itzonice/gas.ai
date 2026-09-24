@@ -29,7 +29,8 @@
     "eval:generate": "node scripts/gen-eval-cases.ts && prettier --write evals/syllabi",
     "eval": "node scripts/eval-parser.ts",
     "priority:parity": "node scripts/gen-priority-parity.ts",
-    "grades:parity": "node scripts/gen-grade-parity.ts"
+    "grades:parity": "node scripts/gen-grade-parity.ts",
+    "vapid:keys": "node scripts/gen-vapid-keys.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "0.128.0",

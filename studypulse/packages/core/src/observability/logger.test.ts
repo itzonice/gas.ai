@@ -80,3 +80,18 @@ describe("resolveRequestId", () => {
     );
   });
 });
+
+describe("createLogger text redaction", () => {
+  it("redacts tokens and emails in the message and in string fields", () => {
+    const { logger, lines } = capture();
+    logger.warn("unsubscribe for ada@example.com", {
+      url: "/email-unsubscribe?token=abc123&scope=marketing",
+      error: new Error("Bearer abc.def rejected"),
+    });
+    expect(lines[0]?.entry).toMatchObject({
+      msg: "unsubscribe for [email]",
+      url: "/email-unsubscribe?token=[redacted]&scope=marketing",
+      error: { message: "Bearer [redacted] rejected" },
+    });
+  });
+});

@@ -1,0 +1,18 @@
+# gitleaks configuration (launch safety S31). Used by the pre-commit hook and the CI
+# gitleaks job through studypulse/scripts/gitleaks.sh.
+title = "studypulse"
+
+[extend]
+useDefault = true
+
+# The RFC 8291 (Web Push encryption) test vectors are published example values, not
+# secrets. Only these exact values, and only in this one file, are allowed.
+[[allowlists]]
+description = "RFC 8291 test vectors in the web push tests"
+condition = "AND"
+paths = ['''^studypulse/packages/core/src/notify/webpush\.test\.ts$''']
+regexes = [
+  '''^BTBZMqHH6r4Tts7J_aSIgg$''',
+  '''^yfWPiYE-n46HLnH0KqZOF1fJJU3MYrct3AELtAQ-oRw$''',
+  '''^q1dXpw3UpT5VOmu_cf_v6ih07Aems3njxI-JWgLcM94$''',
+]

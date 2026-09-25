@@ -14,9 +14,12 @@ expo-env.d.ts
 # turborepo
 .turbo/
 
-# env
-.env
-.env*.local
+# env: never commit real values; only the documented example files
+.env*
+!.env.example
+
+# pinned tools downloaded by scripts (gitleaks)
+.tools/
 
 # misc
 .DS_Store

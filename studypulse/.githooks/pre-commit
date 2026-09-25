@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+# Blocks a commit that adds a secret (launch safety S31). Installed by `pnpm install`
+# (the `prepare` script sets core.hooksPath). If it flags a fake value in a test, build
+# the value at runtime ("sk_" + "live_" + ...) rather than skipping the hook.
+set -euo pipefail
+repo_root="$(git rev-parse --show-toplevel)"
+if ! bash "$repo_root/studypulse/scripts/gitleaks.sh" staged; then
+  echo "pre-commit: gitleaks found a secret in the staged changes; commit blocked." >&2
+  exit 1
+fi

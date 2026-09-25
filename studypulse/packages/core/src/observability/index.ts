@@ -2,7 +2,10 @@
 // No Sentry import here: each runtime uses its own SDK and passes these through.
 import type { AppEnv } from "../env/index.ts";
 
+import { redactText } from "./redact.ts";
+
 export * from "./logger.ts";
+export * from "./redact.ts";
 
 const SENSITIVE_KEY = /authorization|cookie|token|secret|password|api[-_]?key|service[-_]?role/i;
 const REDACTED = "[redacted]";
@@ -34,8 +37,12 @@ export function sentryBaseOptions(dsn: string | undefined, environment: AppEnv):
   };
 }
 
-/** Recursively replaces values whose key looks sensitive. Returns a new value. */
+/**
+ * Recursively replaces values whose key looks sensitive, and redacts credentials and
+ * email addresses inside every string (`redactText`). Returns a new value.
+ */
 export function redactSensitive<T>(value: T, depth = 0): T {
+  if (typeof value === "string") return redactText(value) as T;
   if (depth > 8 || value === null || typeof value !== "object") return value;
   if (Array.isArray(value)) return value.map((v: unknown) => redactSensitive(v, depth + 1)) as T;
   const out: Record<string, unknown> = {};
@@ -46,21 +53,43 @@ export function redactSensitive<T>(value: T, depth = 0): T {
 }
 
 interface ScrubbableEvent {
-  request?: { headers?: unknown; cookies?: unknown; data?: unknown; query_string?: unknown };
+  message?: string;
+  request?: {
+    url?: string;
+    headers?: unknown;
+    cookies?: unknown;
+    data?: unknown;
+    query_string?: unknown;
+  };
+  exception?: { values?: { value?: string }[] };
+  breadcrumbs?: unknown[];
+  tags?: unknown;
   extra?: unknown;
   contexts?: unknown;
 }
 
-/** `beforeSend` hook: drop cookies and redact credentials before an event leaves the process. */
+/**
+ * `beforeSend` hook: drop cookies and redact credentials, tokens, and email addresses
+ * before an event leaves the process. Stack frames are left alone so source maps still
+ * match; exception messages are redacted.
+ */
 export function scrubEvent<E extends ScrubbableEvent>(event: E): E {
+  if (event.message) event.message = redactText(event.message);
   if (event.request) {
     event.request = {
       ...event.request,
       cookies: undefined,
+      url: redactSensitive(event.request.url),
       headers: redactSensitive(event.request.headers),
       data: redactSensitive(event.request.data),
+      query_string: redactSensitive(event.request.query_string),
     };
   }
+  for (const exception of event.exception?.values ?? []) {
+    if (exception.value) exception.value = redactText(exception.value);
+  }
+  if (event.breadcrumbs) event.breadcrumbs = redactSensitive(event.breadcrumbs);
+  if (event.tags) event.tags = redactSensitive(event.tags);
   if (event.extra) event.extra = redactSensitive(event.extra);
   if (event.contexts) event.contexts = redactSensitive(event.contexts);
   return event;

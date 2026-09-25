@@ -558,3 +558,32 @@ Every call to Anthropic, Stripe, Expo, Resend, Google, and PostHog goes through
   helpers (`parseJsonBody` gained `allowEmpty` for optional bodies).
 - **Live:** the cross-user suite (420 attempts, 22 functions) passes, and probes of the
   changed functions return the expected 404 / 400 / 401 / expired responses.
+
+## S31: No secrets in the repo, logs, or error reports
+
+- **Pre-commit hook.** `pnpm install` runs `prepare`, which points `core.hooksPath` at
+  `studypulse/.githooks`. The `pre-commit` hook runs gitleaks over the staged changes
+  and blocks the commit on a hit. Fake keys in tests are assembled at runtime
+  (`"sk_" + "live_" + …`) so the hook never needs skipping.
+- **Pinned gitleaks.** `scripts/gitleaks.sh` downloads gitleaks 8.28.0 into
+  `studypulse/.tools/` (ignored) and checks the archive's SHA-256 against the value
+  pinned for each platform before running it; a mismatch stops the scan.
+- **Full history in CI.** The `gitleaks` job checks out every commit (`fetch-depth: 0`)
+  and scans all branches (`pnpm secrets:history` locally), then runs
+  `scripts/gitleaks-hook-test.sh`, which proves in a throwaway repo that the hook blocks
+  a staged fake Stripe key and honors the allowlist only where it applies.
+- **One allowlist entry.** The first history scan found one hit: the published RFC 8291
+  Web Push test vectors in `packages/core/src/notify/webpush.test.ts`. `/.gitleaks.toml`
+  allows those exact values only in that file (`condition = "AND"`); the same value
+  anywhere else still fails. The history is otherwise clean (127 commits).
+- **Env files.** Both `.gitignore` files ignore `.env*` except `.env.example`.
+- **Text redaction.** Key-based redaction missed secrets inside strings. `redactText`
+  now replaces JWTs, `Bearer`/`Basic` values, Stripe secret/restricted keys and webhook
+  secrets, Anthropic and Resend keys, `token`/`code`/`state`/… values in URLs and query
+  strings, `user:pass@` in URLs, email addresses, and opaque tokens of 40+ mixed
+  characters. The logger applies it to the message and every string field; Sentry's
+  `scrubEvent` applies it to the message, request URL, query string, headers and body,
+  exception messages, breadcrumbs, tags, extra, and contexts. Stack frames are left
+  untouched so source maps still resolve.
+- **Tests:** `observability/redact.test.ts`, `logger.test.ts`, `observability.test.ts`,
+  and `launch/secret-hygiene.test.ts` (config, pin, hook install, CI job, ignores).

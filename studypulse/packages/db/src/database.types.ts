@@ -753,6 +753,69 @@ export type Database = {
           },
         ];
       };
+      organization_memberships: {
+        Row: {
+          joined_at: string;
+          organization_id: string;
+          role: Database["public"]["Enums"]["organization_role"];
+          share_focus_hours: boolean;
+          sharing_changed_at: string | null;
+          user_id: string;
+        };
+        Insert: {
+          joined_at?: string;
+          organization_id: string;
+          role?: Database["public"]["Enums"]["organization_role"];
+          share_focus_hours?: boolean;
+          sharing_changed_at?: string | null;
+          user_id: string;
+        };
+        Update: {
+          joined_at?: string;
+          organization_id?: string;
+          role?: Database["public"]["Enums"]["organization_role"];
+          share_focus_hours?: boolean;
+          sharing_changed_at?: string | null;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "organization_memberships_organization_id_fkey";
+            columns: ["organization_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "organization_memberships_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      organizations: {
+        Row: {
+          created_at: string;
+          id: string;
+          join_code: string;
+          name: string;
+        };
+        Insert: {
+          created_at?: string;
+          id?: string;
+          join_code?: string;
+          name: string;
+        };
+        Update: {
+          created_at?: string;
+          id?: string;
+          join_code?: string;
+          name?: string;
+        };
+        Relationships: [];
+      };
       profiles: {
         Row: {
           calendar_token_hash: string | null;
@@ -1267,6 +1330,13 @@ export type Database = {
         Returns: string;
       };
       course_current_grade: { Args: { p_course_id: string }; Returns: number };
+      create_organization: {
+        Args: { p_name: string };
+        Returns: {
+          join_code: string;
+          organization_id: string;
+        }[];
+      };
       default_task_minutes: {
         Args: { p_kind: Database["public"]["Enums"]["assignment_kind"] };
         Returns: number;
@@ -1320,6 +1390,11 @@ export type Database = {
       is_pro: { Args: { p_user_id: string }; Returns: boolean };
       is_valid_letter_scale: { Args: { scale: Json }; Returns: boolean };
       is_valid_timezone: { Args: { tz: string }; Returns: boolean };
+      join_organization: { Args: { p_join_code: string }; Returns: string };
+      leave_organization: {
+        Args: { p_organization_id: string };
+        Returns: undefined;
+      };
       letter_for: {
         Args: { p_percent: number; p_scale?: Json };
         Returns: string;
@@ -1421,6 +1496,25 @@ export type Database = {
           user_id: string;
         }[];
       };
+      org_focus_summary: {
+        Args: { p_organization_id: string; p_weeks?: number };
+        Returns: {
+          focus_hours: number;
+          students_counted: number;
+          suppressed: boolean;
+          week_start: string;
+        }[];
+      };
+      organization_roster: {
+        Args: { p_organization_id: string };
+        Returns: {
+          display_name: string;
+          joined_at: string;
+          role: Database["public"]["Enums"]["organization_role"];
+          share_focus_hours: boolean;
+          user_id: string;
+        }[];
+      };
       parse_entitlements: {
         Args: { p_user_id: string };
         Returns: {
@@ -1463,6 +1557,11 @@ export type Database = {
       };
       revoke_calendar_token: { Args: never; Returns: undefined };
       rotate_calendar_token: { Args: never; Returns: string };
+      rotate_join_code: { Args: { p_organization_id: string }; Returns: string };
+      set_focus_sharing: {
+        Args: { p_organization_id: string; p_share: boolean };
+        Returns: undefined;
+      };
       set_plan_alerts: {
         Args: { p_alerts: Json; p_from: string; p_user_id: string };
         Returns: undefined;
@@ -1566,6 +1665,7 @@ export type Database = {
         | "email_digest"
         | "overload_warning";
       notification_status: "sent" | "failed" | "skipped";
+      organization_role: "admin" | "student";
       plan_tier: "free" | "pro";
       push_provider: "expo" | "web_push";
       study_block_kind: "study" | "exam_prep" | "review";
@@ -1730,6 +1830,7 @@ export const Constants = {
         "overload_warning",
       ],
       notification_status: ["sent", "failed", "skipped"],
+      organization_role: ["admin", "student"],
       plan_tier: ["free", "pro"],
       push_provider: ["expo", "web_push"],
       study_block_kind: ["study", "exam_prep", "review"],

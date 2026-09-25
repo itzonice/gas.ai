@@ -353,6 +353,71 @@ export function createApiClient(db: Db) {
       },
     },
 
+    organizations: {
+      /** Organizations the user belongs to, with their role and sharing choice. */
+      async mine() {
+        const { data, error } = await db
+          .from("organization_memberships")
+          .select("organization_id, role, share_focus_hours, joined_at, organizations(name)");
+        if (error) throw fromPostgrestError(error);
+        return data;
+      },
+      /** Creates an organization; the caller becomes its admin. Returns the join code. */
+      async create(name: string) {
+        const rows = unwrap(await db.rpc("create_organization", { p_name: name }));
+        const row = rows[0];
+        if (!row) throw new ApiError(500, "invalid_response", "Organization not created");
+        return row;
+      },
+      /** Joins as a student. Focus-hour sharing stays off until setSharing(true). */
+      async join(joinCode: string): Promise<string> {
+        return unwrap(await db.rpc("join_organization", { p_join_code: joinCode }));
+      },
+      async leave(organizationId: string): Promise<void> {
+        const { error } = await db.rpc("leave_organization", {
+          p_organization_id: validate(uuidSchema, organizationId),
+        });
+        if (error) throw fromPostgrestError(error);
+      },
+      /**
+       * The student's opt-in to share focus hours with an organization. Only weekly totals
+       * across at least 3 opted-in students are ever shown; turning it off removes the
+       * student from all reports, past weeks included.
+       */
+      async setSharing(organizationId: string, share: boolean): Promise<void> {
+        const { error } = await db.rpc("set_focus_sharing", {
+          p_organization_id: validate(uuidSchema, organizationId),
+          p_share: share,
+        });
+        if (error) throw fromPostgrestError(error);
+      },
+      /** Admins: weekly aggregate focus hours (null where fewer than 3 students). */
+      async focusSummary(organizationId: string, weeks = 12) {
+        return unwrap(
+          await db.rpc("org_focus_summary", {
+            p_organization_id: validate(uuidSchema, organizationId),
+            p_weeks: weeks,
+          }),
+        );
+      },
+      /** Admins: members, roles, and who shares. No study data. */
+      async roster(organizationId: string) {
+        return unwrap(
+          await db.rpc("organization_roster", {
+            p_organization_id: validate(uuidSchema, organizationId),
+          }),
+        );
+      },
+      /** Admins: a new join code (the old one stops working). */
+      async rotateJoinCode(organizationId: string): Promise<string> {
+        return unwrap(
+          await db.rpc("rotate_join_code", {
+            p_organization_id: validate(uuidSchema, organizationId),
+          }),
+        );
+      },
+    },
+
     integrations: {
       /** Schools with Canvas available (name and URL). */
       async canvasSchools() {

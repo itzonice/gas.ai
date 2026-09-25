@@ -88,7 +88,10 @@ describe("CalendarScreen", () => {
     selectedCell().focus();
     await user.keyboard("{ArrowRight}");
     expect(selectedCell()).toHaveAttribute("data-date", "2026-10-15");
-    expect(selectedCell()).toHaveFocus();
+    // Focus moves in an effect after the new selection renders; wait for it on slow runners.
+    await vi.waitFor(() => {
+      expect(selectedCell()).toHaveFocus();
+    });
     expect(
       within(screen.getByRole("complementary", { name: /Thursday, October 15/ })).getByText(
         /Exam prep 4:00\s?–\s?5:00\sPM/,

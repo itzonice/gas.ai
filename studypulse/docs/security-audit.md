@@ -511,3 +511,26 @@ Every call to Anthropic, Stripe, Expo, Resend, Google, and PostHog goes through
   A core test fails on an image without alt text, an unnamed SVG, or a raw icon glyph,
   and the axe audit (`image-alt`, `svg-img-alt`, `button-name`, `link-name`) passes on
   every screen with the new footer.
+
+## S29: Server-verified web sessions
+
+- **Cookies, not localStorage.** The web app's Supabase client is now `@supabase/ssr`'s
+  browser client, so the session lives in first-party cookies: `SameSite=Lax` (not sent
+  on cross-site POSTs), `Secure` on HTTPS, path `/`.
+- **Verified on the server.** `apps/web/proxy.ts` (Next 16's replacement for
+  middleware) runs before every page. It calls `supabase.auth.getUser()`, which asks
+  Supabase Auth to validate the token instead of trusting the cookie, refreshes the
+  cookies when they're near expiry, and redirects signed-out visitors to
+  `/sign-in?next=…` before an app page renders. Sign-in, password reset, and the legal
+  pages stay public (`lib/auth-routes.ts`). A forged cookie gets the redirect.
+- **If Auth is unreachable** the page still loads (the client-side guard shows its own
+  state) rather than signing everyone out; RLS still guards every read.
+- **Why not httpOnly.** The browser client calls PostgREST and the functions directly
+  with the access token, so it has to read the cookie. Keeping it httpOnly would mean
+  proxying every API call through Next. XSS exposure is limited by the CSP: scripts only from our own origin and no
+  third-party origins at all (S13–S14). It still allows `'unsafe-inline'` scripts for
+  Next's bootstrap; now that `proxy.ts` exists, per-request nonces can replace that
+  (tracked for S33).
+- **Tests:** route rules and cookie options in `lib/auth-routes.test.ts`; live checks
+  (signed-out redirect with `next`, forged cookie, public pages, API and assets
+  untouched) and the full signed-in axe walkthrough pass.

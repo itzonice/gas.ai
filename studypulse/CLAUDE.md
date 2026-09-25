@@ -93,12 +93,12 @@ Five top-level destinations: Today, Calendar, Courses, Focus, and Stats. Setting
 sit at the bottom of the sidebar. The information architecture stays the same at every size;
 only the presentation changes.
 
-| Viewport | Navigation | Content | StudyPulse behavior |
-| --- | --- | --- | --- |
-| Phone, under 600 px | Bottom navigation, 5 destinations | One column | "Start focus" stays visible as a floating button; task cards stack |
-| Tablet, 600–1023 px | Navigation rail, icons plus labels | One or two columns | Metric cards in a 2-column grid; search in the app bar |
-| Desktop, 1024 px and up | Persistent sidebar, 280 px | Main content, 1200 px max width | Readable width; extra space stays as whitespace |
-| Wide, 1440 px and up | Persistent sidebar | Main plus right panel | Right panel shows upcoming exams and the focus timer |
+| Viewport                | Navigation                         | Content                         | StudyPulse behavior                                                |
+| ----------------------- | ---------------------------------- | ------------------------------- | ------------------------------------------------------------------ |
+| Phone, under 600 px     | Bottom navigation, 5 destinations  | One column                      | "Start focus" stays visible as a floating button; task cards stack |
+| Tablet, 600–1023 px     | Navigation rail, icons plus labels | One or two columns              | Metric cards in a 2-column grid; search in the app bar             |
+| Desktop, 1024 px and up | Persistent sidebar, 280 px         | Main content, 1200 px max width | Readable width; extra space stays as whitespace                    |
+| Wide, 1440 px and up    | Persistent sidebar                 | Main plus right panel           | Right panel shows upcoming exams and the focus timer               |
 
 App bar: logo, search across courses and assignments, notifications, and profile. On phones
 it shows only the logo and one action.
@@ -111,16 +111,16 @@ header, nav, main, and footer.
 Colors are assigned by role, never as decoration. Each course's color_hex is used only as an
 identifying tint, never for status.
 
-| Role | StudyPulse use |
-| --- | --- |
-| primary / on-primary | The single main action per screen: Start focus, Upload syllabus, Save schedule |
-| surface | Page background |
-| surface-container | Task cards, metric cards, and the syllabus review drawer |
-| secondary-container | Filters, course chips, and secondary actions |
-| error / on-error | Overdue tasks, grade at risk, and delete confirmations |
-| on-surface-variant | Due times, weights, and other metadata |
-| outline-variant | Dividers between list rows |
-| Course tint | A 4 px left stripe and the course chip background, always shown with the course code as text |
+| Role                 | StudyPulse use                                                                               |
+| -------------------- | -------------------------------------------------------------------------------------------- |
+| primary / on-primary | The single main action per screen: Start focus, Upload syllabus, Save schedule               |
+| surface              | Page background                                                                              |
+| surface-container    | Task cards, metric cards, and the syllabus review drawer                                     |
+| secondary-container  | Filters, course chips, and secondary actions                                                 |
+| error / on-error     | Overdue tasks, grade at risk, and delete confirmations                                       |
+| on-surface-variant   | Due times, weights, and other metadata                                                       |
+| outline-variant      | Dividers between list rows                                                                   |
+| Course tint          | A 4 px left stripe and the course chip background, always shown with the course code as text |
 
 Spacing: an 8 px rhythm. Use 8 px between related items, 16 px for card padding, 24 px
 between sections, and 32 px for major separation.
@@ -139,15 +139,15 @@ both themes.
 Every screen has one H1, an optional one-line description, and one primary action. Secondary
 actions go in an overflow menu.
 
-| Screen | H1 and primary action | Metric cards | Main content | Wide-screen right panel |
-| --- | --- | --- | --- | --- |
-| Today | "Today" · Start focus | Due this week, focus hours this week, courses at risk | Due reviews first, then ranked tasks as a list | Next exam countdown and timer |
-| Calendar | "Calendar" · Add assignment | None | Month or week grid; on phones, a day-by-day agenda list | Selected day's details |
-| Courses | "Courses" · Upload syllabus | None | One card per course: code, current grade, next due item | None |
-| Course detail | Course code and title · Add score | Current grade, target, score needed on the final | Category weights, then assignments as a table; on phones, a list | What-if calculator |
-| Syllabus review | "Review your schedule" · Save to calendar | Items found, items needing review | Editable list of parsed items, with low-confidence items flagged first | Original syllabus text |
-| Focus | "Focus" · Start or pause | Today's minutes, streak | Large timer and the linked task | Session history |
-| Stats | "Stats" · Export | Weekly focus hours, average grade | Focus minutes against grade per course | None |
+| Screen          | H1 and primary action                     | Metric cards                                          | Main content                                                           | Wide-screen right panel       |
+| --------------- | ----------------------------------------- | ----------------------------------------------------- | ---------------------------------------------------------------------- | ----------------------------- |
+| Today           | "Today" · Start focus                     | Due this week, focus hours this week, courses at risk | Due reviews first, then ranked tasks as a list                         | Next exam countdown and timer |
+| Calendar        | "Calendar" · Add assignment               | None                                                  | Month or week grid; on phones, a day-by-day agenda list                | Selected day's details        |
+| Courses         | "Courses" · Upload syllabus               | None                                                  | One card per course: code, current grade, next due item                | None                          |
+| Course detail   | Course code and title · Add score         | Current grade, target, score needed on the final      | Category weights, then assignments as a table; on phones, a list       | What-if calculator            |
+| Syllabus review | "Review your schedule" · Save to calendar | Items found, items needing review                     | Editable list of parsed items, with low-confidence items flagged first | Original syllabus text        |
+| Focus           | "Focus" · Start or pause                  | Today's minutes, streak                               | Large timer and the linked task                                        | Session history               |
+| Stats           | "Stats" · Export                          | Weekly focus hours, average grade                     | Focus minutes against grade per course                                 | None                          |
 
 Use a plain list for tasks and assignments, not a card per item. When a whole row opens a
 task, don't put buttons inside the row; put the checkbox and overflow menu in their own tap
@@ -169,4 +169,3 @@ targets outside the row's link area.
 - Form fields in the review drawer and score entry use real labels; placeholders are only
   examples.
 - Layouts must hold up at 200% text size, with no fixed-height text containers that clip.
-

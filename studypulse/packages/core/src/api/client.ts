@@ -563,6 +563,11 @@ export function createApiClient(db: Db) {
         if (error) throw fromPostgrestError(error);
         return validate(ageResultSchema, data);
       },
+      /** Records that the user accepted this Terms version (S21). */
+      async acceptTerms(version: string): Promise<void> {
+        const { error } = await db.rpc("accept_terms", { p_version: version });
+        if (error) throw fromPostgrestError(error);
+      },
       /** Saves the answers and marks onboarding done. */
       async complete(input: OnboardingInput): Promise<void> {
         const v = validate(onboardingInputSchema, input);

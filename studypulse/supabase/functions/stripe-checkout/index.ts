@@ -130,6 +130,11 @@ Deno.serve(
       });
     }
 
+    // The pricing page states the Terms; checking out accepts them (S21).
+    const { data: termsVersion, error: termsError } = await db.rpc("record_checkout_terms", {
+      p_user_id: user.id,
+    });
+    if (termsError) throw termsError;
     const customerId = await getOrCreateStripeCustomer(db, user, options);
     const promotionCodeId = await discountFor(input, user, customerId, options);
     // Same key for repeat clicks within a minute: Stripe returns the same session.
@@ -143,6 +148,7 @@ Deno.serve(
         cancelUrl: `${origin}/billing`,
         idempotencyKey: `checkout-${user.id}-${interval}-${promotionCodeId ?? "none"}-${String(minute)}`,
         ...(promotionCodeId ? { promotionCodeId } : {}),
+        ...(termsVersion ? { termsVersion } : {}),
       },
       options,
     );

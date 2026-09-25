@@ -1752,6 +1752,38 @@ export type Database = {
           },
         ];
       };
+      terms_acceptances: {
+        Row: {
+          accepted_at: string;
+          context: string;
+          id: number;
+          user_id: string;
+          version: string;
+        };
+        Insert: {
+          accepted_at?: string;
+          context: string;
+          id?: never;
+          user_id: string;
+          version: string;
+        };
+        Update: {
+          accepted_at?: string;
+          context?: string;
+          id?: never;
+          user_id?: string;
+          version?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "terms_acceptances_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
     };
     Views: {
       assignment_grade_shares: {
@@ -1801,6 +1833,7 @@ export type Database = {
       };
     };
     Functions: {
+      accept_terms: { Args: { p_version: string }; Returns: undefined };
       ai_budget_status: { Args: { p_user_id: string }; Returns: Json };
       ai_cost_by_user: {
         Args: { p_since: string; p_until?: string };
@@ -2179,6 +2212,7 @@ export type Database = {
           user_id: string;
         }[];
       };
+      record_checkout_terms: { Args: { p_user_id: string }; Returns: string };
       register_push_token: {
         Args: {
           p_app_version?: string;
@@ -2310,6 +2344,7 @@ export type Database = {
         };
         Returns: number;
       };
+      terms_current: { Args: never; Returns: boolean };
       unregister_push_token: {
         Args: {
           p_provider: Database["public"]["Enums"]["push_provider"];

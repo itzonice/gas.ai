@@ -4,6 +4,8 @@
 // month at sign-up (launch safety S12). Shown before anything else; under 13, the server
 // deletes the account and this signs the browser out.
 import { AGE_MESSAGES, isOldEnough, toBirthMonth } from "@studypulse/core/auth";
+import { TERMS_VERSION } from "@studypulse/core/legal";
+import Link from "next/link";
 import { useEffect, useState, type FormEvent, type ReactNode } from "react";
 
 import { BirthMonthField, type BirthMonthValue } from "@/components/auth/BirthMonthField";
@@ -66,7 +68,11 @@ export function AgeCheck({ children }: { children: ReactNode }) {
       // Under 13 still goes to the server, which deletes the account.
       const result = await api.onboarding.confirmAge(birthMonth);
       if (result === "blocked" || ageBlocked() || !isOldEnough(birthMonth)) await block();
-      else setState("confirmed");
+      else {
+        // Apple/Google accounts accept the Terms here (S21).
+        await api.onboarding.acceptTerms(TERMS_VERSION);
+        setState("confirmed");
+      }
     } catch {
       setError("Couldn't save that. Try again.");
     } finally {
@@ -97,6 +103,10 @@ export function AgeCheck({ children }: { children: ReactNode }) {
       <h1 className={styles.title}>One question first</h1>
       <form className={styles.form} onSubmit={(e) => void submit(e)} noValidate>
         <BirthMonthField value={birth} onChange={setBirth} error={error} />
+        <p className={styles.lead}>
+          By continuing you agree to the <Link href="/terms">Terms of Use</Link> and{" "}
+          <Link href="/privacy">Privacy Policy</Link>.
+        </p>
         <Button type="submit" disabled={saving}>
           {saving ? "Saving…" : "Continue"}
         </Button>

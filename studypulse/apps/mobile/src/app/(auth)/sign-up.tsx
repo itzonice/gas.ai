@@ -1,4 +1,5 @@
 import { AGE_MESSAGES, authErrorMessage, isOldEnough, toBirthMonth } from "@studypulse/core/auth";
+import { TERMS_VERSION } from "@studypulse/core/legal";
 import { Link } from "expo-router";
 import { useEffect, useState } from "react";
 import { Text } from "react-native";
@@ -42,7 +43,7 @@ export default function SignUpScreen() {
     const { data, error } = await getSupabase().auth.signUp({
       email: email.trim(),
       password,
-      options: { data: { birth_month: birthMonth } },
+      options: { data: { birth_month: birthMonth, terms_version: TERMS_VERSION } },
     });
     setBusy(false);
     // With email confirmation on, there's no session yet; either way, the same words.

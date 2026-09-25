@@ -1,4 +1,5 @@
 import { AGE_MESSAGES, AUTH_MESSAGES } from "@studypulse/core/auth";
+import { TERMS_VERSION } from "@studypulse/core/legal";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -91,7 +92,7 @@ describe("SignInForm", () => {
     expect(auth.signUp).toHaveBeenCalledWith({
       email: "new@example.com",
       password: "correct horse battery",
-      options: { data: { birth_month: "2004-05" } },
+      options: { data: { birth_month: "2004-05", terms_version: TERMS_VERSION } },
     });
   });
 

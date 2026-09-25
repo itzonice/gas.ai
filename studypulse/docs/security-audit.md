@@ -347,3 +347,27 @@ Every call to Anthropic, Stripe, Expo, Resend, Google, and PostHog goes through
   listed in the launch checklist: `STUDYPULSE PRO`, the support email, and the refund URL.
 - **Fixed:** the S16 price lookup used `/prices/…` instead of `/v1/prices/…` and would
   have failed against real Stripe. A test now pins the URL.
+
+## S21: Terms of Service and acceptance records
+
+- **`/terms` (version shown at the top)** covers:
+  - what Free and Pro include, rendered from `PLAN_FEATURES`, the same values the database
+    enforces;
+  - the daily import limits (3 Free, 25 Pro, from `PARSE_LIMITS`);
+  - fair use, including the AI daily cap;
+  - a prominent section saying AI-read dates can be wrong and must be checked against the
+    syllabus;
+  - subscriptions, cancellation, and refunds;
+  - a limitation of liability (greater of 12 months' fees or US $50).
+- **`public.terms_acceptances`** records the user, version, context
+  (`signup` / `checkout` / `reaccept`), and time:
+  - Email sign-up sends `terms_version` with the account, and a trigger records it. Only
+    the current version counts.
+  - Apple and Google accounts accept on the first screen, next to the age question
+    (`accept_terms`).
+  - Checkout records it with the service role (`record_checkout_terms`) and puts
+    `terms_version` on the Stripe session and subscription metadata.
+  - `terms_current()` tells the apps whether to ask again after a version bump.
+  - Users can read only their own records and can't write any.
+- `TERMS_VERSION` (core) and `private.current_terms_version()` (SQL) must match; a core
+  test and SQL test 630 check both.

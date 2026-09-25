@@ -2,6 +2,7 @@
 // a birth month at sign-up (launch safety S12). Under 13, the server deletes the account
 // and the app signs out.
 import { AGE_MESSAGES, isOldEnough, toBirthMonth } from "@studypulse/core/auth";
+import { TERMS_VERSION } from "@studypulse/core/legal";
 import { router } from "expo-router";
 import { useState } from "react";
 import { Text } from "react-native";
@@ -40,6 +41,7 @@ export default function ConfirmAgeScreen() {
           .catch(() => undefined);
         return;
       }
+      await getApi().onboarding.acceptTerms(TERMS_VERSION);
       router.replace("/today");
     } catch {
       setMessage("Couldn't save that. Try again.");
@@ -74,6 +76,10 @@ export default function ConfirmAgeScreen() {
         One question first
       </Text>
       <BirthMonthFields value={birth} onChange={setBirth} />
+      <Text style={[theme.type.body, { color: theme.colors.onSurfaceVariant }]}>
+        By continuing you agree to the Terms of Use and Privacy Policy.
+      </Text>
+      <LegalLinks />
       {message ? (
         <Text
           accessibilityLiveRegion="polite"

@@ -137,6 +137,8 @@ export interface CheckoutInput {
   /** Pre-applied promotion code id (promo_...). Stripe allows this or the field, not both. */
   promotionCodeId?: string;
   idempotencyKey: string;
+  /** The Terms version accepted at checkout, stored on the session and subscription. */
+  termsVersion?: string;
 }
 
 /** A hosted Checkout page for a new subscription; returns its URL. */
@@ -156,8 +158,17 @@ export async function createCheckoutSession(
       success_url: input.successUrl,
       cancel_url: input.cancelUrl,
       // The webhook maps subscriptions back to users with this.
-      subscription_data: { metadata: { user_id: input.userId } },
-      metadata: { user_id: input.userId },
+      // terms_version: the Terms the user accepted at checkout (S21; dispute evidence).
+      subscription_data: {
+        metadata: {
+          user_id: input.userId,
+          ...(input.termsVersion ? { terms_version: input.termsVersion } : {}),
+        },
+      },
+      metadata: {
+        user_id: input.userId,
+        ...(input.termsVersion ? { terms_version: input.termsVersion } : {}),
+      },
       ...(input.promotionCodeId
         ? { discounts: [{ promotion_code: input.promotionCodeId }] }
         : { allow_promotion_codes: input.allowPromotionCodes ?? true }),

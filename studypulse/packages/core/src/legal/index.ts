@@ -26,6 +26,13 @@ export function supportEmail(configured?: string | null): string {
   return value === "" ? DEFAULT_SUPPORT_EMAIL : value;
 }
 
+/**
+ * The Terms of Service in force (launch safety S21). Bump it whenever the terms change
+ * materially; acceptances are recorded against it (public.terms_acceptances), and
+ * private.current_terms_version() in SQL must return the same value (a test checks).
+ */
+export const TERMS_VERSION = "2026-09-25";
+
 /** Where users manage (and cancel) a subscription bought in an app store. */
 export const STORE_SUBSCRIPTION_URLS = {
   app_store: "https://apps.apple.com/account/subscriptions",

@@ -1,5 +1,6 @@
 import { AGE_MESSAGES } from "@studypulse/core/auth";
-import { render, screen } from "@testing-library/react";
+import { TERMS_VERSION } from "@studypulse/core/legal";
+import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -7,7 +8,7 @@ import { expectNoAxeViolations } from "@/test/axe";
 
 import { AgeCheck } from "./AgeCheck";
 
-const onboarding = { ageConfirmed: vi.fn(), confirmAge: vi.fn() };
+const onboarding = { ageConfirmed: vi.fn(), confirmAge: vi.fn(), acceptTerms: vi.fn() };
 const api = { onboarding };
 vi.mock("@/components/auth/SessionProvider", () => ({ useApi: () => api }));
 const signOut = vi.fn(() => Promise.resolve({ error: null }));
@@ -41,6 +42,7 @@ describe("AgeCheck", () => {
     await expectNoAxeViolations();
     await answer("March", "2001");
     expect(onboarding.confirmAge).toHaveBeenCalledWith("2001-03");
+    await waitFor(() => expect(onboarding.acceptTerms).toHaveBeenCalledWith(TERMS_VERSION));
     expect(await screen.findByText("onboarding")).toBeInTheDocument();
   });
 

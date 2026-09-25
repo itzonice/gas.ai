@@ -3,6 +3,7 @@
 // Email and password sign-in (and account creation). Errors are announced in an alert
 // and tied to the form; after signing in the user goes back where they were headed.
 import { AGE_MESSAGES, authErrorMessage, isOldEnough, toBirthMonth } from "@studypulse/core/auth";
+import { TERMS_VERSION } from "@studypulse/core/legal";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState, type FormEvent } from "react";
@@ -60,7 +61,12 @@ export function SignInForm() {
     const result =
       mode === "sign-in" || !birthMonth
         ? await auth.signInWithPassword({ email, password })
-        : await auth.signUp({ email, password, options: { data: { birth_month: birthMonth } } });
+        : await auth.signUp({
+            email,
+            password,
+            // The Terms version shown here is recorded as accepted at sign-up (S21).
+            options: { data: { birth_month: birthMonth, terms_version: TERMS_VERSION } },
+          });
     setBusy(false);
     // The wording never reveals whether an account exists for this email (S6).
     if (mode === "sign-up" && (result.error || !result.data.session)) {

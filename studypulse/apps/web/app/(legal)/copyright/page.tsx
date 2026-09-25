@@ -59,15 +59,31 @@ export default function CopyrightPage() {
         holder. We keep a record of every notice and what we did.
       </p>
 
-      <h2>Counter-notices</h2>
+      <h2>If your upload was removed: counter-notices</h2>
       <p>
-        If your material was removed and you believe that was a mistake or misidentification, you
-        can send a counter-notice to the same address with your signature, the material removed and
-        where it was, a statement under penalty of perjury that you believe it was removed by
-        mistake, and your name, address, phone number, and consent to the jurisdiction of the
-        federal court for your district (or, outside the US, [jurisdiction]). We forward it to the
-        person who sent the notice and may restore the material after 10 business days unless they
-        tell us they have filed a lawsuit.
+        When we remove something you uploaded after a notice, we email you what was removed and why.
+        If you believe it was removed by mistake or misidentified (for example, it&apos;s your own
+        notes, or you have permission), you can send a counter-notice to the address above. Include:
+      </p>
+      <ol>
+        <li>Your physical or electronic signature.</li>
+        <li>What was removed and where it was in StudyPulse (the course or file name).</li>
+        <li>
+          A statement, under penalty of perjury, that you believe in good faith the material was
+          removed by mistake or misidentification.
+        </li>
+        <li>Your name, address, phone number, and email.</li>
+        <li>
+          A statement that you consent to the jurisdiction of the federal district court for your
+          address (or, outside the US, [jurisdiction]) and will accept service from the person who
+          sent the notice.
+        </li>
+      </ol>
+      <p>
+        We forward your counter-notice to the person who sent the original notice. If they
+        don&apos;t tell us within 10 business days that they have gone to court, we restore the
+        material (or let you upload it again) within 10 to 14 business days after we received your
+        counter-notice.
       </p>
 
       <h2>Repeat infringers</h2>

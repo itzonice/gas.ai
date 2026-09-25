@@ -431,6 +431,9 @@ export function SettingsScreen() {
           <Button variant="text" href="/refunds">
             Refund policy
           </Button>
+          <Button variant="text" href="/eula">
+            License agreement
+          </Button>
         </div>
         <p className={styles.muted}>
           Need help? Email <SupportEmail />.

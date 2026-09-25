@@ -30,6 +30,7 @@ export function LegalLinks() {
       {link("Terms of Use", urls.terms)}
       {link("Privacy Policy", urls.privacy)}
       {link("Refund policy", urls.refunds)}
+      {link("License agreement", urls.eula)}
       {link("Contact support", `mailto:${supportEmail(env.EXPO_PUBLIC_SUPPORT_EMAIL)}`)}
     </View>
   );

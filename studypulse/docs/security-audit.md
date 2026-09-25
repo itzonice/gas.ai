@@ -396,3 +396,13 @@ Every call to Anthropic, Stripe, Expo, Resend, Google, and PostHog goes through
   the real webhook against a fake Stripe server. That run checked: evidence posted with
   `submit=false`, the fraud refund posted, one alert per dispute, and no second alert on
   retry.
+
+## S22: License agreement and counter-notices
+
+- **`/eula`:** a short custom EULA. The app is licensed, not sold; no reverse engineering
+  or redistribution; no warranty and a liability limit; Apple and Google as third-party
+  beneficiaries with no support duty; the export clause. It's linked from Settings and
+  the mobile legal links, and the launch checklist has the App Store Connect and Play
+  steps.
+- **`/copyright`** now has a "If your upload was removed" counter-notice section listing
+  what to include and the 10-to-14-business-day restore timeline.

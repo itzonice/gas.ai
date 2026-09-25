@@ -11,6 +11,7 @@ export function legalUrls(webOrigin: string = DEFAULT_WEB_ORIGIN) {
     privacy: `${origin}/privacy`,
     refunds: `${origin}/refunds`,
     copyright: `${origin}/copyright`,
+    eula: `${origin}/eula`,
   };
 }
 

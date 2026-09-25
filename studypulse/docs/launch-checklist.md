@@ -131,6 +131,9 @@ Numbers are starting points; raise them as usage grows.
       payment and refund receipts (they show these details). The same address goes in
       `SUPPORT_EMAIL`, `NEXT_PUBLIC_SUPPORT_EMAIL`, and `EXPO_PUBLIC_SUPPORT_EMAIL`, and
       someone must watch that inbox.
+- [ ] App Store Connect → App Information → License Agreement: custom EULA with the text
+      of `/eula` (S22), or Apple's standard EULA with `/eula` linked in the description.
+      Google Play: link `/eula` and `/terms` in the store listing.
 - [ ] Refund window (S18): replace `[N]` on `/refunds` with the window you'll honor.
 - [ ] Stripe: customer portal configured (cancel, update card, invoices); student coupon
       created with **no** public promotion code; Stripe Tax if selling where required.

@@ -214,9 +214,14 @@ try {
       });
     });
     // Signed out: sign-in and the legal pages.
-    for (const [path, width] of ["/sign-in", "/terms", "/privacy", "/copyright"].flatMap((p) =>
-      [375, 1600].map((w) => [p, w]),
-    )) {
+    for (const [path, width] of [
+      "/sign-in",
+      "/terms",
+      "/privacy",
+      "/copyright",
+      "/refunds",
+      "/eula",
+    ].flatMap((p) => [375, 1600].map((w) => [p, w]))) {
       await page.setViewportSize({ width, height: 1000 });
       await load(page, path, "h1");
       const context = { path, width, scheme };

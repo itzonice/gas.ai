@@ -371,3 +371,28 @@ Every call to Anthropic, Stripe, Expo, Resend, Google, and PostHog goes through
   - Users can read only their own records and can't write any.
 - `TERMS_VERSION` (core) and `private.current_terms_version()` (SQL) must match; a core
   test and SQL test 630 check both.
+
+## S20: Disputes and early fraud warnings
+
+- **`charge.dispute.created`:**
+  1. The webhook finds the account (charge → customer → `billing_customers`).
+  2. It gathers evidence with `dispute_evidence_facts`: account email and name, Terms
+     acceptances (S21), the last 20 sign-ins (time and browser, no IPs), and usage
+     (courses, uploads, study sessions and minutes, first and last activity).
+  3. It builds Stripe text evidence (`buildDisputeEvidence`): product description, service
+     date, activity log, cancellation and refund policy disclosures as shown at checkout,
+     and the Terms records.
+  4. It stages the evidence on the dispute with `submit=false`, so the owner reviews it
+     and adds the receipt before submitting.
+  5. It records the dispute in `private.billing_disputes` (idempotent) and alerts the
+     owner through Sentry and `ALERT_WEBHOOK_URL`. A Stripe retry doesn't alert twice.
+- **Dispute rate:** each alert includes disputes ÷ paid invoices over the last 90 days,
+  headed "dispute rate above 0.5%" when over the threshold (2 disputes in 200 payments is
+  already 1%).
+- **`radar.early_fraud_warning.created` (actionable):** the charge is fully refunded
+  (idempotency key per warning), which ends Pro through the existing `charge.refunded`
+  flow, and the owner is alerted.
+- **Tests:** core tests (event mapping, evidence, rate), SQL test 640, and a live run of
+  the real webhook against a fake Stripe server. That run checked: evidence posted with
+  `submit=false`, the fraud refund posted, one alert per dispute, and no second alert on
+  retry.

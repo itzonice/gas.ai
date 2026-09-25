@@ -415,3 +415,78 @@ export async function retrieveStripePrice(
     options,
   );
 }
+
+// ------------------------------------------------------------------ disputes (S20)
+
+const chargeDetailsSchema = z.looseObject({
+  id: z.string(),
+  customer: z.union([z.string(), z.looseObject({ id: z.string() })]).nullish(),
+  amount: z.number().int(),
+  created: z.number().int(),
+  refunded: z.boolean().optional(),
+});
+export type StripeChargeDetails = z.infer<typeof chargeDetailsSchema>;
+
+export async function retrieveStripeCharge(
+  chargeId: string,
+  options: StripeOptions,
+): Promise<StripeChargeDetails> {
+  if (!/^(ch|py)_[A-Za-z0-9]+$/.test(chargeId)) throw new Error("not a Stripe charge id");
+  return await stripeRequest(
+    chargeDetailsSchema,
+    "GET",
+    `/v1/charges/${encodeURIComponent(chargeId)}`,
+    {},
+    options,
+  );
+}
+
+/** Full refund of a charge (the charge.refunded webhook then ends Pro). Idempotent per key. */
+export async function refundStripeCharge(
+  chargeId: string,
+  idempotencyKey: string,
+  options: StripeOptions,
+): Promise<string> {
+  const refund = await stripeRequest(
+    z.looseObject({ id: z.string() }),
+    "POST",
+    "/v1/refunds",
+    { charge: chargeId, reason: "fraudulent" },
+    { ...options, idempotencyKey },
+  );
+  return refund.id;
+}
+
+/** Evidence fields Stripe accepts as text. */
+export interface DisputeEvidence {
+  customer_email_address?: string;
+  customer_name?: string;
+  product_description?: string;
+  service_date?: string;
+  access_activity_log?: string;
+  cancellation_policy_disclosure?: string;
+  refund_policy_disclosure?: string;
+  uncategorized_text?: string;
+}
+
+/**
+ * Stages evidence on the dispute without submitting it (submit=false), so the owner can
+ * review and add receipts before sending it from the dashboard.
+ */
+export async function stageDisputeEvidence(
+  disputeId: string,
+  evidence: DisputeEvidence,
+  options: StripeOptions,
+): Promise<void> {
+  if (!/^dp_[A-Za-z0-9]+$/.test(disputeId)) throw new Error("not a Stripe dispute id");
+  const fields = Object.fromEntries(
+    Object.entries(evidence).filter(([, v]) => typeof v === "string" && v !== ""),
+  ) as Record<string, string>;
+  await stripeRequest(
+    z.looseObject({ id: z.string() }),
+    "POST",
+    `/v1/disputes/${encodeURIComponent(disputeId)}`,
+    { evidence: fields, submit: "false" },
+    { ...options, idempotencyKey: `dispute-evidence-${disputeId}` },
+  );
+}

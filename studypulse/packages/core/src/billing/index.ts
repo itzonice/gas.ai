@@ -6,3 +6,4 @@ export * from "./revenuecat.ts";
 export * from "./students.ts";
 export * from "./terms.ts";
 export * from "./emails.ts";
+export * from "./disputes.ts";

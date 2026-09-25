@@ -1909,6 +1909,7 @@ export type Database = {
         Args: { p_kind: Database["public"]["Enums"]["assignment_kind"] };
         Returns: number;
       };
+      dispute_evidence_facts: { Args: { p_user_id: string }; Returns: Json };
       email_digest_batch: {
         Args: { p_after?: string; p_limit?: number; p_now: string };
         Returns: {
@@ -2213,6 +2214,19 @@ export type Database = {
         }[];
       };
       record_checkout_terms: { Args: { p_user_id: string }; Returns: string };
+      record_dispute: {
+        Args: {
+          p_amount_cents: number;
+          p_charge_id: string;
+          p_currency: string;
+          p_dispute_id: string;
+          p_evidence?: Json;
+          p_evidence_due_by?: string;
+          p_reason: string;
+          p_user_id?: string;
+        };
+        Returns: Json;
+      };
       register_push_token: {
         Args: {
           p_app_version?: string;

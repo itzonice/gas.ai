@@ -115,8 +115,11 @@ Numbers are starting points; raise them as usage grows.
 - [ ] Webhooks registered:
   - [ ] Stripe → `https://<ref>.supabase.co/functions/v1/stripe-webhook`, events
         `customer.subscription.*`, `charge.refunded`, `invoice.paid`, and
-        `invoice.upcoming` (confirmation and yearly renewal reminder emails, S16); its
+        `invoice.upcoming` (confirmation and yearly renewal reminder emails, S16),
+        `charge.dispute.created` and `radar.early_fraud_warning.created` (S20); its
         signing secret is `STRIPE_WEBHOOK_SECRET`.
+  - [ ] Stripe Radar on (it is by default) with the default rules; `ALERT_WEBHOOK_URL`
+        set so dispute and fraud alerts reach someone (they also go to Sentry).
   - [ ] Stripe → Settings → Billing → Subscriptions: "Upcoming renewal events" at least
         7 days before renewal (when `invoice.upcoming` fires). Also turn on Stripe's own
         receipts and "Send emails about upcoming renewals" as a second reminder.

@@ -208,8 +208,33 @@ const chargeSchema = z.looseObject({
 });
 export type StripeRefundedCharge = z.infer<typeof chargeSchema>;
 
+const disputeSchema = z.looseObject({
+  id: z.string().startsWith("dp_"),
+  object: z.literal("dispute"),
+  charge: z.union([z.string(), z.looseObject({ id: z.string() })]),
+  amount: z.number().int(),
+  currency: z.string(),
+  reason: z.string(),
+  status: z.string(),
+  evidence_details: z.looseObject({ due_by: z.number().int().nullish() }).nullish(),
+});
+export type StripeDispute = z.infer<typeof disputeSchema>;
+
+const earlyFraudWarningSchema = z.looseObject({
+  id: z.string().startsWith("issfr_"),
+  object: z.literal("radar.early_fraud_warning"),
+  actionable: z.boolean(),
+  charge: z.union([z.string(), z.looseObject({ id: z.string() })]),
+  fraud_type: z.string().optional(),
+});
+export type StripeEarlyFraudWarning = z.infer<typeof earlyFraudWarningSchema>;
+
 export type StripeEventAction =
   | { kind: "subscription"; update: SubscriptionUpdate }
+  /** A chargeback was opened (S20): alert, gather evidence, watch the dispute rate. */
+  | { kind: "dispute"; dispute: StripeDispute }
+  /** Radar's early fraud warning (S20): refund before it becomes a dispute. */
+  | { kind: "fraud_warning"; warning: StripeEarlyFraudWarning }
   /** A full refund: revoke the subscription it paid for and stop billing. */
   | { kind: "refund"; charge: StripeRefundedCharge }
   | { kind: "ignore"; reason: string };
@@ -228,6 +253,15 @@ export function stripeEventAction(event: StripeEvent): StripeEventAction {
     return charge.amount > 0 && charge.amount_refunded >= charge.amount
       ? { kind: "refund", charge }
       : { kind: "ignore", reason: "partial refund" };
+  }
+  if (event.type === "charge.dispute.created") {
+    return { kind: "dispute", dispute: disputeSchema.parse(event.data.object) };
+  }
+  if (event.type === "radar.early_fraud_warning.created") {
+    const warning = earlyFraudWarningSchema.parse(event.data.object);
+    return warning.actionable
+      ? { kind: "fraud_warning", warning }
+      : { kind: "ignore", reason: "early fraud warning is not actionable" };
   }
   return { kind: "ignore", reason: `unhandled event type ${event.type}` };
 }

@@ -20,6 +20,7 @@ import { addDays, localDate, zonedParts, zonedTimeToUtc } from "@studypulse/core
 
 import { env } from "./env.ts";
 import { HttpError } from "./http.ts";
+import { providerFetch } from "./resilience.ts";
 import { PLAN_HORIZON_DAYS, replanUser } from "./planner.ts";
 import type { AdminClient } from "./supabase.ts";
 
@@ -40,9 +41,12 @@ export function googleConfig(): GoogleConfig | null {
   const base = e.GOOGLE_OAUTH_BASE_URL?.replace(/\/+$/, "");
   return {
     client: { clientId: e.GOOGLE_CLIENT_ID, clientSecret: e.GOOGLE_CLIENT_SECRET },
-    endpoints: base
-      ? { authUrl: `${base}/auth`, tokenUrl: `${base}/token`, revokeUrl: `${base}/revoke` }
-      : {},
+    endpoints: {
+      ...(base
+        ? { authUrl: `${base}/auth`, tokenUrl: `${base}/token`, revokeUrl: `${base}/revoke` }
+        : {}),
+      fetch: providerFetch("google"),
+    },
     apiBaseUrl: e.GOOGLE_API_BASE_URL,
     redirectUri: e.GOOGLE_REDIRECT_URI ?? `${e.SUPABASE_URL}/functions/v1/google-oauth/callback`,
   };
@@ -107,7 +111,10 @@ async function session(db: AdminClient, userId: string, config: GoogleConfig): P
     }
   }
   return {
-    api: googleCalendarApi(accessToken, config.apiBaseUrl ? { baseUrl: config.apiBaseUrl } : {}),
+    api: googleCalendarApi(accessToken, {
+      ...(config.apiBaseUrl ? { baseUrl: config.apiBaseUrl } : {}),
+      fetch: providerFetch("google"),
+    }),
     accessToken,
     calendarId: c.calendar_id,
     pushEnabled: c.push_enabled,

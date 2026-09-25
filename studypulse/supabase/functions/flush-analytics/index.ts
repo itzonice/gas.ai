@@ -9,6 +9,7 @@ import { requireCron } from "../_shared/cron.ts";
 import { env } from "../_shared/env.ts";
 import { createHandler } from "../_shared/handler.ts";
 import { json, requireMethod } from "../_shared/http.ts";
+import { providerFetch } from "../_shared/resilience.ts";
 import { adminClient } from "../_shared/supabase.ts";
 
 const MAX_BATCHES_PER_RUN = 20;
@@ -23,6 +24,8 @@ Deno.serve(
       apiKey: e.POSTHOG_API_KEY,
       ...(e.POSTHOG_HOST ? { host: e.POSTHOG_HOST } : {}),
       environment: e.APP_ENV,
+      // Events carry their outbox id as the PostHog uuid, so a repeat is deduplicated.
+      fetch: providerFetch("posthog", { idempotent: true }),
     };
     const db = adminClient();
     const totals = { sent: 0, failed: 0, invalid: 0 };

@@ -18,6 +18,7 @@
     "./lms": "./src/lms/index.ts",
     "./notify": "./src/notify/index.ts",
     "./observability": "./src/observability/index.ts",
+    "./resilience": "./src/resilience/index.ts",
     "./parser": "./src/parser/index.ts",
     "./plans": "./src/plans/index.ts",
     "./priority": "./src/priority/index.ts",

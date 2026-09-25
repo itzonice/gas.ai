@@ -2115,6 +2115,10 @@ export type Database = {
           user_id: string;
         }[];
       };
+      open_provider_circuit: {
+        Args: { p_provider: string; p_until: string };
+        Returns: undefined;
+      };
       org_focus_summary: {
         Args: { p_organization_id: string; p_weeks?: number };
         Returns: {
@@ -2139,6 +2143,13 @@ export type Database = {
         Returns: {
           ocr_allowed: boolean;
           plan_tier: Database["public"]["Enums"]["plan_tier"];
+        }[];
+      };
+      provider_circuits_open: {
+        Args: never;
+        Returns: {
+          open_until: string;
+          provider: string;
         }[];
       };
       record_ai_cost_alerts: {

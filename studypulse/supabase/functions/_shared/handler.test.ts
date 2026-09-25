@@ -49,3 +49,26 @@ Deno.test("turns thrown errors into a 500 that carries the request id", async ()
     out.restore();
   }
 });
+
+Deno.test(
+  "a paused provider becomes a 503 with Retry-After, even when an SDK wrapped it",
+  async () => {
+    const out = silenceConsole();
+    try {
+      const { CircuitOpenError } = await import("@studypulse/core/resilience/index.ts");
+      const handler = createHandler("test-fn", () => {
+        const open = new CircuitOpenError("anthropic", Date.now() + 90_000);
+        throw new Error("Connection error.", { cause: open });
+      });
+      const res = await handler(new Request("http://localhost/test-fn"));
+      assertEquals(res.status, 503);
+      assertEquals((await res.json()).error, "provider_unavailable");
+      const after = Number(res.headers.get("retry-after"));
+      assert(after >= 89 && after <= 90);
+      const entries = out.lines.map((l) => JSON.parse(l));
+      assert(!entries.some((e) => e.level === "error"), "not reported as an unhandled error");
+    } finally {
+      out.restore();
+    }
+  },
+);

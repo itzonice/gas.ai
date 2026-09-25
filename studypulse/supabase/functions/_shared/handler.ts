@@ -5,6 +5,8 @@ import {
   type Logger,
 } from "@studypulse/core/observability/index.ts";
 
+import { circuitOpenCause } from "@studypulse/core/resilience/index.ts";
+
 import { corsHeaders } from "./cors.ts";
 import { HttpError } from "./http.ts";
 import { Sentry } from "./sentry.ts";
@@ -50,6 +52,18 @@ export function createHandler(functionName: string, handler: ContextHandler) {
             request_id: requestId,
           },
           { status: error.status },
+        );
+      } else if (circuitOpenCause(error)) {
+        // A provider is paused after repeated failures (S9): expected, not a bug to report.
+        const open = circuitOpenCause(error)!;
+        log.warn("provider paused", { provider: open.provider, path });
+        response = Response.json(
+          {
+            error: "provider_unavailable",
+            message: "This feature is temporarily unavailable. Please try again in a few minutes.",
+            request_id: requestId,
+          },
+          { status: 503, headers: { "Retry-After": String(open.retryAfterSeconds()) } },
         );
       } else {
         log.error("unhandled error", { error, method: req.method, path });

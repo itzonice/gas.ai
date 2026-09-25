@@ -2,6 +2,7 @@ import { createStripeCustomer, type StripeOptions } from "@studypulse/core/billi
 
 import { env } from "./env.ts";
 import { HttpError } from "./http.ts";
+import { providerFetch } from "./resilience.ts";
 import type { AdminClient, AuthedUser } from "./supabase.ts";
 
 /** Stripe client options, or 503 if billing isn't configured in this environment. */
@@ -14,6 +15,7 @@ export function stripeOptions(): StripeOptions {
     apiKey: e.STRIPE_SECRET_KEY,
     ...(e.STRIPE_API_URL ? { baseUrl: e.STRIPE_API_URL } : {}),
     ...(e.STRIPE_API_VERSION ? { apiVersion: e.STRIPE_API_VERSION } : {}),
+    fetch: providerFetch("stripe"),
   };
 }
 

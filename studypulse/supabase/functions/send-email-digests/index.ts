@@ -20,6 +20,7 @@ import { requireCron } from "../_shared/cron.ts";
 import { env } from "../_shared/env.ts";
 import { createHandler } from "../_shared/handler.ts";
 import { json, requireMethod } from "../_shared/http.ts";
+import { providerFetch } from "../_shared/resilience.ts";
 import { adminClient } from "../_shared/supabase.ts";
 
 /** Users per page (PostgREST returns at most 100 rows; launch safety S8). */
@@ -63,6 +64,7 @@ Deno.serve(
     const resend = {
       apiKey: e.RESEND_API_KEY,
       ...(e.RESEND_API_URL ? { baseUrl: e.RESEND_API_URL } : {}),
+      fetch: providerFetch("resend"),
     };
     const started = Date.now();
     const db = adminClient();

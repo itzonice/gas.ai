@@ -143,3 +143,37 @@ path, ICS token, export, and link. The first run flagged these paths:
 | `organization_roster`                          | Admin sees member user ids                                                                   | By design (needed to manage members); the suite checks that nothing else of B's appears                                  |
 
 Current result: 400 attempts, 0 failed.
+
+## S9: Bounded retries and provider circuit breakers
+
+Every call to Anthropic, Stripe, Expo, Resend, Google, and PostHog goes through
+`providerFetch` (`supabase/functions/_shared/resilience.ts`, built on
+`packages/core/src/resilience`).
+
+- **Retries.** At most 3 attempts per request, with exponential backoff and full jitter
+  (250 ms base, 4 s cap). A Retry-After of 10 s or less is waited out; a longer one fails
+  the call. The Anthropic SDK's own retries are off, so retries don't multiply. Before,
+  one AI call could make up to 8 requests.
+- **What gets repeated.** A request is repeated only when repeating it can't do something
+  twice:
+  - it's idempotent: GET, PUT, or DELETE; Stripe and Resend requests that carry an
+    Idempotency-Key; AI completions; PostHog events, which carry their own uuid; or
+  - the provider answered 408, 429, 503, or 529, meaning it didn't process the request.
+
+  An Expo push send that fails with a 500 or a dropped connection is not repeated, so no
+  student gets the same reminder twice.
+
+- **Circuit breaker.**
+  - After 5 failed calls in a row to a provider, every function stops calling it for
+    5 minutes.
+  - Callers get `503 provider_unavailable` with a Retry-After header. This is logged as a
+    warning, not reported to Sentry.
+  - After the pause, one trial call decides whether to close the breaker or pause again.
+  - The pause is shared between workers and cron runs through `private.provider_circuits`,
+    which each worker reads at most every 30 s. Pauses are capped at 15 minutes.
+- **Not covered.** Web push and Canvas talk to many different hosts, so one breaker per
+  provider would let a single bad host pause everyone. They keep their existing
+  per-request handling.
+- **Tests.** Core unit tests (17), the handler's 503 mapping (Deno), SQL test 580, and a
+  live check that a breaker opened in one worker stops a fresh worker from calling the
+  provider.

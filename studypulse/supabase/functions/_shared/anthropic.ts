@@ -1,6 +1,7 @@
 import Anthropic from "@anthropic-ai/sdk";
 
 import { env } from "./env.ts";
+import { providerFetch } from "./resilience.ts";
 import { ParseFailure } from "./syllabus/errors.ts";
 
 let client: Anthropic | undefined;
@@ -9,7 +10,13 @@ let client: Anthropic | undefined;
 export function anthropicOrNull(): Anthropic | null {
   const apiKey = env().ANTHROPIC_API_KEY;
   if (!apiKey) return null;
-  client ??= new Anthropic({ apiKey });
+  // Transport retries (at most 3 attempts, jittered backoff) and the provider breaker live
+  // in providerFetch; the SDK's own retries are off so they don't multiply.
+  client ??= new Anthropic({
+    apiKey,
+    maxRetries: 0,
+    fetch: providerFetch("anthropic", { idempotent: true }),
+  });
   return client;
 }
 

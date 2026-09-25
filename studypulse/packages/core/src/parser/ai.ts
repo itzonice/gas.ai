@@ -50,7 +50,7 @@ export interface AiCallOptions {
   content: Anthropic.Beta.BetaContentBlockParam[];
   effort?: Effort;
   maxTokens?: number;
-  /** Per-attempt timeout; the SDK also retries 429/5xx/connection errors itself. */
+  /** Per-attempt timeout. Transport retries belong to the client (edge: providerFetch). */
   timeoutMs?: number;
   signal?: AbortSignal;
 }
@@ -127,7 +127,7 @@ export async function callStructured<S extends z.ZodType>(
           betas: [FALLBACK_BETA],
           fallbacks: "default",
         },
-        { timeout: options.timeoutMs ?? 120_000, maxRetries: 3, signal: options.signal },
+        { timeout: options.timeoutMs ?? 120_000, signal: options.signal },
       );
       checkStop(message);
       const result = schema.safeParse(message.parsed_output);
@@ -138,7 +138,7 @@ export async function callStructured<S extends z.ZodType>(
       );
     } catch (error) {
       const aiError = toAiError(error, model);
-      // Only malformed output is worth another try; the SDK already retried transport errors.
+      // Only malformed output is worth another try; transport errors were already retried.
       if (aiError.kind !== "invalid_output") throw aiError;
       lastError = aiError;
     }
@@ -160,7 +160,7 @@ export async function callText(options: AiCallOptions): Promise<{ text: string; 
         betas: [FALLBACK_BETA],
         fallbacks: "default",
       },
-      { timeout: options.timeoutMs ?? 300_000, maxRetries: 3, signal: options.signal },
+      { timeout: options.timeoutMs ?? 300_000, signal: options.signal },
     );
     const message = await stream.finalMessage();
     checkStop(message);

@@ -128,12 +128,18 @@ describe("settings model", () => {
 });
 
 describe("SettingsScreen", () => {
+  // axe checks every element, including ~400 timezone options, so it gets its own time.
+  it("has no axe violations", { timeout: 20_000 }, async () => {
+    render(<SettingsScreen />);
+    await screen.findByRole("checkbox", { name: "Send reminders" });
+    await expectNoAxeViolations();
+  });
+
   it("saves changed fields and announces it", async () => {
     render(<SettingsScreen />);
     const twoHours = await screen.findByRole("checkbox", {
       name: "Two hours before something is due",
     });
-    await expectNoAxeViolations();
     await userEvent.click(twoHours);
     await userEvent.clear(screen.getByLabelText("Name"));
     await userEvent.type(screen.getByLabelText("Name"), "Ada L.");

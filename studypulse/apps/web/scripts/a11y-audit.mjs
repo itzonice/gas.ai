@@ -11,6 +11,9 @@
 // - measures tap targets: controls must be at least 48 x 48 px (CLAUDE.md), except links
 //   inside running text
 // - reflow: no horizontal scrolling at 320 px wide, or at 200% text size
+// - third parties (launch safety S13): every request goes to the app itself or Supabase.
+//   No fonts, analytics, or trackers from anyone else, signed in or out (nothing needs
+//   consent because nothing is sent). The report lists every outside host it saw.
 // Writes a JSON report and exits 1 if anything fails.
 import { createRequire } from "node:module";
 import { writeFileSync } from "node:fs";
@@ -24,6 +27,10 @@ const EMAIL = process.env.A11Y_EMAIL ?? "demo@studypulse.dev";
 const PASSWORD = process.env.A11Y_PASSWORD ?? "studypulse-demo";
 const OUT = process.env.A11Y_REPORT ?? "a11y-report.json";
 const WIDTHS = [375, 768, 1600];
+const SUPABASE =
+  process.env.A11Y_SUPABASE_URL ?? process.env.NEXT_PUBLIC_SUPABASE_URL ?? "http://127.0.0.1:54321";
+const FIRST_PARTY = new Set([new URL(BASE).origin, new URL(SUPABASE).origin]);
+const thirdParty = new Map(); // origin -> first page it was seen on
 const SCHEMES = ["light", "dark"];
 
 /** Screens, with a selector that means "loaded", and optional interactions to audit. */
@@ -191,6 +198,21 @@ try {
       viewport: { width: 1600, height: 1000 },
     });
     const page = await ctx.newPage();
+    page.on("request", (req) => {
+      const url = req.url();
+      if (!/^https?:|^wss?:/.test(url)) return; // data:, blob:
+      const origin = new URL(url).origin.replace(/^ws/, "http");
+      if (FIRST_PARTY.has(origin) || thirdParty.has(origin)) return;
+      const where = new URL(page.url() || BASE).pathname;
+      thirdParty.set(origin, where);
+      fail({
+        path: where,
+        width: 0,
+        scheme,
+        check: "third-party request",
+        help: url.slice(0, 200),
+      });
+    });
     // Signed out: sign-in and the legal pages.
     for (const [path, width] of ["/sign-in", "/terms", "/privacy"].flatMap((p) =>
       [375, 1600].map((w) => [p, w]),
@@ -272,6 +294,11 @@ try {
 }
 
 writeFileSync(OUT, JSON.stringify(results, null, 2));
+console.log(
+  thirdParty.size
+    ? `Third-party requests: ${[...thirdParty].map(([o, p]) => `${o} (first on ${p})`).join(", ")}`
+    : `Third-party requests: none (only ${[...FIRST_PARTY].join(" and ")}).`,
+);
 const byCheck = new Map();
 for (const r of results) byCheck.set(r.check, (byCheck.get(r.check) ?? 0) + 1);
 if (results.length === 0) {

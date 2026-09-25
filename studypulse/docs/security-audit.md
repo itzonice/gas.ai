@@ -239,3 +239,23 @@ Every call to Anthropic, Stripe, Expo, Resend, Google, and PostHog goes through
   - under 13: 403;
   - adult: 200, with nothing stored but the confirmation time.
 - The privacy policy's Children section describes all of this.
+
+## S13–S14: No third-party requests before consent, no session replay
+
+- **Fonts.** The web app uses the Roboto or system font stack from the design tokens and
+  loads no web fonts, and the CSP only allows fonts from our own origin. The mobile app
+  uses system fonts.
+- **Third-party requests, listed.** The a11y audit now records every request a real
+  browser makes, on every screen (signed out and signed in, phone to desktop, light and
+  dark). Result: **none**. Only the app's own origin and Supabase are contacted.
+  - Sentry browser errors now go through our own `/monitoring` route (`tunnelRoute`), so
+    Sentry is gone from the CSP `connect-src`.
+  - PostHog runs only server-side, from the analytics outbox.
+  - Stripe is only reached by redirecting to Checkout or the portal, after the user clicks.
+- **Session replay** is off in every Sentry SDK (`replaysSessionSampleRate` and
+  `replaysOnErrorSampleRate` are 0), and there is no PostHog client SDK, so nothing is
+  recorded. The privacy policy says so, and says consent, full masking, and a policy
+  update come first if that ever changes.
+- **Guard test.** `packages/core/src/launch/third-party.test.ts` fails if app code adds
+  hosted fonts, Google Analytics or Tag Manager, a client PostHog SDK, or any replay
+  integration. It also checks the CSP.

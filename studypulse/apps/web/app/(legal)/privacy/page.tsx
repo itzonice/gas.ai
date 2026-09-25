@@ -105,6 +105,13 @@ export default function PrivacyPage() {
         features help. We do not sell personal information, and we do not use it for advertising or
         to train AI models.
       </p>
+      <p>
+        We don&apos;t record your screen or sessions (no &quot;session replay&quot;), and the app
+        loads no fonts, analytics, or trackers from other companies: your browser only talks to
+        StudyPulse and our database host. Error reports go through our own servers first. If we ever
+        wanted session recording, we would ask you first, hide everything you type or see, and
+        update this policy before turning it on.
+      </p>
 
       <h2>Who else handles your data</h2>
       <p>

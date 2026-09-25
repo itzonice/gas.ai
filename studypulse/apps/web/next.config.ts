@@ -5,8 +5,9 @@ const isDev = process.env.NODE_ENV !== "production";
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
 const supabaseWs = supabaseUrl.replace(/^http/, "ws");
 
-// Content Security Policy. The app talks only to itself, Supabase (REST + realtime
-// websocket), and Sentry. 'unsafe-inline' scripts are needed for Next's inline bootstrap
+// Content Security Policy. The app talks only to itself and Supabase (REST + realtime
+// websocket); Sentry events go through our own /monitoring route (launch safety S13), and
+// fonts can only come from our own origin. 'unsafe-inline' scripts are needed for Next's inline bootstrap
 // until nonces are wired through middleware; 'unsafe-eval' only in dev (fast refresh).
 const csp = [
   "default-src 'self'",
@@ -14,7 +15,7 @@ const csp = [
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: blob:",
   "font-src 'self' data:",
-  `connect-src 'self' ${supabaseUrl} ${supabaseWs} https://*.ingest.sentry.io https://*.ingest.us.sentry.io`,
+  `connect-src 'self' ${supabaseUrl} ${supabaseWs}`,
   "worker-src 'self'",
   "frame-ancestors 'none'",
   "base-uri 'self'",
@@ -53,4 +54,7 @@ export default withSentryConfig(nextConfig, {
   authToken: process.env.SENTRY_AUTH_TOKEN,
   silent: !process.env.CI,
   widenClientFileUpload: true,
+  // Browser error reports go to our own origin and are forwarded server-side, so the
+  // browser makes no third-party request (S13).
+  tunnelRoute: "/monitoring",
 });

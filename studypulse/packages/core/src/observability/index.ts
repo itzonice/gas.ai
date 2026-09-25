@@ -13,6 +13,12 @@ export interface SentryBaseOptions {
   environment: AppEnv;
   tracesSampleRate: number;
   sendDefaultPii: false;
+  /**
+   * Session replay stays off (launch safety S14). Turning it on requires opt-in consent,
+   * masking all text and inputs, and a line in the privacy policy first.
+   */
+  replaysSessionSampleRate: 0;
+  replaysOnErrorSampleRate: 0;
 }
 
 export function sentryBaseOptions(dsn: string | undefined, environment: AppEnv): SentryBaseOptions {
@@ -23,6 +29,8 @@ export function sentryBaseOptions(dsn: string | undefined, environment: AppEnv):
     environment,
     tracesSampleRate: environment === "production" ? 0.1 : 1,
     sendDefaultPii: false,
+    replaysSessionSampleRate: 0,
+    replaysOnErrorSampleRate: 0,
   };
 }
 

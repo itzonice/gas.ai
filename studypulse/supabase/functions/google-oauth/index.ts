@@ -20,7 +20,7 @@ import { runInBackground } from "../_shared/background.ts";
 import { env } from "../_shared/env.ts";
 import { requireGoogleConfig, syncGoogleUser } from "../_shared/gcal.ts";
 import { createHandler } from "../_shared/handler.ts";
-import { HttpError, json, requireMethod } from "../_shared/http.ts";
+import { HttpError, json, oauthCallbackQuery, parseQuery, requireMethod } from "../_shared/http.ts";
 import { adminClient, requireUser } from "../_shared/supabase.ts";
 
 async function sha256Hex(value: string): Promise<string> {
@@ -79,9 +79,9 @@ async function start(req: Request): Promise<Response> {
 async function callback(req: Request, log: Logger): Promise<Response> {
   requireMethod(req, "GET");
   const config = requireGoogleConfig();
-  const params = new URL(req.url).searchParams;
-  const state = params.get("state") ?? "";
-  if (!/^[A-Za-z0-9_-]{43}$/.test(state)) return finish("expired");
+  const params = parseQuery(req, oauthCallbackQuery);
+  if (!params) return finish("expired");
+  const { state } = params;
 
   const db = adminClient();
   const { data: userId, error } = await db.rpc("gcal_consume_oauth_state", {
@@ -89,8 +89,8 @@ async function callback(req: Request, log: Logger): Promise<Response> {
   });
   if (error) throw error;
   if (!userId) return finish("expired");
-  if (params.get("error")) return finish("denied");
-  const code = params.get("code");
+  if (params.error) return finish("denied");
+  const { code } = params;
   if (!code) return finish("failed");
 
   let tokens;

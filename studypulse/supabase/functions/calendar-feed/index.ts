@@ -3,10 +3,11 @@
 // subscribe to. Calendar apps can't send auth headers, so the secret token in the URL
 // is the credential: only its SHA-256 hash is stored, looked up with the service role.
 import { encodeHex } from "jsr:@std/encoding@^1/hex";
+import { z } from "zod";
 import { DEADLINE_EVENT_MINUTES, renderIcs, type IcsEvent } from "@studypulse/core/ics/index.ts";
 
 import { createHandler } from "../_shared/handler.ts";
-import { HttpError, requireMethod } from "../_shared/http.ts";
+import { HttpError, parseQuery, requireMethod } from "../_shared/http.ts";
 import { enforce } from "../_shared/rate-limit.ts";
 import { adminClient } from "../_shared/supabase.ts";
 
@@ -20,11 +21,16 @@ async function sha256Hex(value: string): Promise<string> {
   );
 }
 
+const tokenSchema = z.string().regex(TOKEN_RE);
+const querySchema = z.object({ token: tokenSchema.optional() });
+
+/** The token from ?token=… or the last path segment (…/<token>.ics). */
 function tokenFrom(req: Request): string | null {
-  const url = new URL(req.url);
-  const last = url.pathname.split("/").filter(Boolean).at(-1) ?? "";
-  const candidate = url.searchParams.get("token") ?? last.replace(/\.ics$/, "");
-  return TOKEN_RE.test(candidate) ? candidate : null;
+  const query = parseQuery(req, querySchema);
+  if (!query) return null;
+  const last = new URL(req.url).pathname.split("/").filter(Boolean).at(-1) ?? "";
+  const token = tokenSchema.safeParse(query.token ?? last.replace(/\.ics$/, ""));
+  return token.success ? token.data : null;
 }
 
 Deno.serve(

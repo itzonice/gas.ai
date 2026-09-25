@@ -11,7 +11,7 @@ import { z } from "zod";
 import { canvasSession } from "../_shared/canvas.ts";
 import { requireCron } from "../_shared/cron.ts";
 import { createHandler } from "../_shared/handler.ts";
-import { HttpError, json, requireMethod } from "../_shared/http.ts";
+import { HttpError, json, parseJsonBody, requireMethod } from "../_shared/http.ts";
 import { adminClient, requireUser, type AdminClient } from "../_shared/supabase.ts";
 
 const USER_MIN_INTERVAL_MS = 5 * 60 * 1000;
@@ -71,14 +71,14 @@ Deno.serve(
     }
 
     const user = await requireUser(req);
-    const raw: unknown = await req.json().catch(() => ({}));
-    const body = z.object({ connection_id: z.uuid().optional() }).safeParse(raw);
-    if (!body.success) throw new HttpError(400, "invalid_body", "Pass connection_id or nothing");
+    const body = await parseJsonBody(req, z.object({ connection_id: z.uuid().optional() }), {
+      allowEmpty: true,
+    });
     let query = db
       .from("lms_connections")
       .select("id, status, last_synced_at")
       .eq("user_id", user.id);
-    if (body.data.connection_id) query = query.eq("id", body.data.connection_id);
+    if (body.connection_id) query = query.eq("id", body.connection_id);
     const { data: connections, error } = await query;
     if (error) throw error;
     if (!connections.length)

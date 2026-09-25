@@ -16,7 +16,14 @@ import { z } from "zod";
 
 import { env } from "../_shared/env.ts";
 import { createHandler } from "../_shared/handler.ts";
-import { HttpError, json, parseJsonBody, requireMethod } from "../_shared/http.ts";
+import {
+  HttpError,
+  json,
+  oauthCallbackQuery,
+  parseJsonBody,
+  parseQuery,
+  requireMethod,
+} from "../_shared/http.ts";
 import { adminClient, requireUser } from "../_shared/supabase.ts";
 
 async function sha256Hex(value: string): Promise<string> {
@@ -87,9 +94,9 @@ async function callback(
   log: { warn: (m: string, f?: Record<string, unknown>) => void },
 ) {
   requireMethod(req, "GET");
-  const params = new URL(req.url).searchParams;
-  const state = params.get("state") ?? "";
-  if (!/^[A-Za-z0-9_-]{43}$/.test(state)) return finish("expired");
+  const params = parseQuery(req, oauthCallbackQuery);
+  if (!params) return finish("expired");
+  const { state } = params;
 
   const db = adminClient();
   const { data: rows, error } = await db.rpc("lms_consume_oauth_state", {
@@ -99,8 +106,8 @@ async function callback(
   const pending = rows[0];
   if (!pending?.user_id || !pending.institution_id) return finish("expired");
   // The user clicked "Cancel" on Canvas's approve page.
-  if (params.get("error")) return finish("denied");
-  const code = params.get("code");
+  if (params.error) return finish("denied");
+  const { code } = params;
   if (!code) return finish("failed");
 
   const { data: institutions, error: instError } = await db.rpc("lms_institution_client", {

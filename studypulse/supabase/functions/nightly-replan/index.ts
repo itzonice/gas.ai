@@ -13,7 +13,7 @@ import { z } from "zod";
 
 import { requireCron } from "../_shared/cron.ts";
 import { createHandler } from "../_shared/handler.ts";
-import { json, requireMethod } from "../_shared/http.ts";
+import { json, parseJsonBody, requireMethod } from "../_shared/http.ts";
 import { replanUser } from "../_shared/planner.ts";
 import { adminClient } from "../_shared/supabase.ts";
 import { chunks } from "../_shared/chunks.ts";
@@ -32,7 +32,7 @@ Deno.serve(
     requireMethod(req, "POST");
     requireCron(req);
     const started = Date.now();
-    const body = bodySchema.parse(await req.json().catch(() => ({})));
+    const body = await parseJsonBody(req, bodySchema, { allowEmpty: true });
     const db = adminClient();
     const now = new Date();
 

@@ -534,3 +534,27 @@ Every call to Anthropic, Stripe, Expo, Resend, Google, and PostHog goes through
 - **Tests:** route rules and cookie options in `lib/auth-routes.test.ts`; live checks
   (signed-out redirect with `next`, forged cookie, public pages, API and assets
   untouched) and the full signed-in axe walkthrough pass.
+
+## S30: Every endpoint authenticates, validates, and is rate limited
+
+- **Declared and checked in CI.** `supabase/functions/_shared/endpoints.ts` lists all 22
+  edge functions with how callers authenticate (user JWT, cron secret, Stripe
+  signature, shared secret, OAuth state, signed URL token, or public with a reason) and
+  what input they read. `endpoints.test.ts` (part of `pnpm test`) reads each function's
+  source and fails when:
+  - a function isn't declared, or a declaration has no function;
+  - the declared auth check isn't called, or an undeclared one is;
+  - request data is read raw (`req.json()`, `searchParams`, `formData()`, …) instead of
+    through `parseJsonBody` / `parseQuery`, which validate with zod; a raw body is
+    allowed only for the Stripe signature check, followed by a schema parse;
+  - it doesn't go through `createHandler` (per-IP limit) or has no `FUNCTION_LIMITS`
+    entry, or a signed-in endpoint has no per-user limit.
+    Breaking a declaration on purpose fails the matching check.
+- **Gaps it found, now fixed.** Four functions read query strings without zod:
+  `calendar-feed` (token), `email-unsubscribe` (token, scope), and the Google and
+  Canvas OAuth callbacks (state, code, error). They now go through `parseQuery` with
+  schemas; malformed input still gets the same answer as an unknown token.
+  `export-cards`, `canvas-sync`, and `nightly-replan` also moved to the shared
+  helpers (`parseJsonBody` gained `allowEmpty` for optional bodies).
+- **Live:** the cross-user suite (420 attempts, 22 functions) passes, and probes of the
+  changed functions return the expected 404 / 400 / 401 / expired responses.

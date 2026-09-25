@@ -8,10 +8,11 @@ import {
   type UnsubscribeScope,
   verifyUnsubscribeToken,
 } from "@studypulse/core/notify/index.ts";
+import { z } from "zod";
 
 import { env } from "../_shared/env.ts";
 import { createHandler } from "../_shared/handler.ts";
-import { requireMethod } from "../_shared/http.ts";
+import { parseQuery, requireMethod } from "../_shared/http.ts";
 import { adminClient } from "../_shared/supabase.ts";
 
 function page(status: number, title: string, body: string): Response {
@@ -41,16 +42,21 @@ const invalid = () =>
     "<p>Turn off email digests in StudyPulse under Settings → Notifications.</p>",
   );
 
+const querySchema = z.object({
+  token: z.string().min(1).max(200),
+  scope: z.enum(["digest", "marketing"]).default("digest"),
+});
+
 Deno.serve(
   createHandler("email-unsubscribe", async (req) => {
     requireMethod(req, "GET", "POST");
     const secret = env().EMAIL_UNSUBSCRIBE_SECRET;
-    const params = new URL(req.url).searchParams;
-    const token = params.get("token") ?? "";
+    const query = parseQuery(req, querySchema);
+    if (!query) return invalid();
+    const { token } = query;
     // Marketing and digest links are signed for their own scope (S15).
-    const scope: UnsubscribeScope = params.get("scope") === "marketing" ? "marketing" : "digest";
-    const userId =
-      secret && token.length <= 200 ? await verifyUnsubscribeToken(token, secret, scope) : null;
+    const scope: UnsubscribeScope = query.scope;
+    const userId = secret ? await verifyUnsubscribeToken(token, secret, scope) : null;
     if (!userId) return invalid();
     const what = scope === "marketing" ? "StudyPulse news and tips" : "email digests";
 

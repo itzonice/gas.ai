@@ -395,64 +395,8 @@
   line-height: var(--sp-type-body-line-height);
 }
 
-/* ------------------------------------------------------------------ drawer */
+/* ------------------------------------------------------------------ drawer contents */
 
-.drawer {
-  box-sizing: border-box;
-  width: min(480px, 100vw);
-  max-width: 100vw;
-  height: 100dvh;
-  max-height: 100dvh;
-  margin: 0 0 0 auto;
-  padding: 0;
-  border: 0;
-  border-radius: var(--sp-radius-sheet) 0 0 var(--sp-radius-sheet);
-  background: var(--sp-color-surface-container-low);
-  color: var(--sp-color-on-surface);
-}
-.drawer::backdrop {
-  background: color-mix(in srgb, var(--sp-color-scrim) 32%, transparent);
-}
-@media (max-width: 599px) {
-  .drawer {
-    width: 100vw;
-    border-radius: 0;
-  }
-}
-.drawerInner {
-  display: grid;
-  grid-template-rows: auto 1fr auto;
-  height: 100%;
-}
-.drawerHeader {
-  display: flex;
-  align-items: flex-start;
-  gap: var(--sp-space-related);
-  padding: var(--sp-space-card) var(--sp-space-card) var(--sp-space-related) var(--sp-space-section);
-}
-.drawerTitle {
-  flex: 1;
-  padding-top: 10px;
-  font-size: var(--sp-type-section-heading-size);
-  line-height: var(--sp-type-section-heading-line-height);
-  font-weight: var(--sp-type-section-heading-weight);
-  overflow-wrap: anywhere;
-}
-.drawerBody {
-  display: grid;
-  align-content: start;
-  gap: var(--sp-space-card);
-  padding: var(--sp-space-related) var(--sp-space-section) var(--sp-space-section);
-  overflow-y: auto;
-}
-.drawerFooter {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-  gap: var(--sp-space-related);
-  padding: var(--sp-space-card) var(--sp-space-section);
-  border-top: 1px solid var(--sp-color-outline-variant);
-}
 .quote {
   margin: 0;
   padding: var(--sp-space-related) var(--sp-space-card);

@@ -16,6 +16,8 @@ import { addResourceInputSchema, type AddResourceInput } from "../resources/inde
 import { ApiError, fromPostgrestError } from "./errors.ts";
 import {
   blockStatusInputSchema,
+  calendarRangeInputSchema,
+  calendarRangeSchema,
   createAssignmentInputSchema,
   exportCardsInputSchema,
   generateCardsRequestSchema,
@@ -37,6 +39,8 @@ import {
   type StartSessionInput,
   type StopSessionInput,
   type BlockStatusInput,
+  type CalendarRange,
+  type CalendarRangeInput,
   type TodayFeedInput,
   type TodayFeedRow,
   type TodayOverview,
@@ -443,6 +447,14 @@ export function createApiClient(db: Db) {
     },
 
     calendar: {
+      /** Due dates and study blocks between two local dates (at most 62 days). */
+      async range(input: CalendarRangeInput): Promise<CalendarRange> {
+        const { from, to } = validate(calendarRangeInputSchema, input);
+        return parseResponse(
+          calendarRangeSchema,
+          unwrap(await db.rpc("get_calendar", { p_from: from, p_to: to })),
+        );
+      },
       /**
        * Creates a new secret feed token (the old feed URL stops working) and returns it.
        * Build the subscribe link with calendarFeedUrl() from @studypulse/core/ics.

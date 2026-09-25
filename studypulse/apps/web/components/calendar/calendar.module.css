@@ -1,0 +1,262 @@
+/* Calendar: month and week grids from 600 px, a day-by-day agenda on phones. */
+
+.content {
+  display: grid;
+  gap: var(--sp-space-section);
+  min-width: 0;
+}
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-space-related);
+}
+.rangeNav {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-space-half);
+}
+.rangeLabel {
+  margin-inline-end: auto;
+  font-size: var(--sp-type-section-heading-size);
+  line-height: var(--sp-type-section-heading-line-height);
+  font-weight: var(--sp-type-section-heading-weight);
+}
+.iconButton {
+  display: inline-grid;
+  place-items: center;
+  width: var(--sp-layout-min-target);
+  height: var(--sp-layout-min-target);
+  padding: 0;
+  border: 0;
+  border-radius: var(--sp-radius-full);
+  background: transparent;
+  color: var(--sp-color-on-surface-variant);
+  cursor: pointer;
+}
+.iconButton:hover {
+  background: color-mix(in srgb, var(--sp-color-on-surface) 8%, transparent);
+}
+
+/* Month / Week switch: two toggle buttons sharing an outline. */
+.viewSwitch {
+  display: none;
+  border: 1px solid var(--sp-color-outline);
+  border-radius: var(--sp-radius-full);
+  overflow: hidden;
+}
+.viewSwitch button {
+  min-height: var(--sp-layout-min-target);
+  min-width: 72px;
+  padding: 0 var(--sp-space-card);
+  border: 0;
+  background: transparent;
+  color: var(--sp-color-on-surface);
+  font: inherit;
+  font-size: var(--sp-type-label-large-size);
+  font-weight: var(--sp-type-label-large-weight);
+  cursor: pointer;
+}
+.viewSwitch button + button {
+  border-left: 1px solid var(--sp-color-outline);
+}
+.viewSwitch button[aria-pressed="true"] {
+  background: var(--sp-color-secondary-container);
+  color: var(--sp-color-on-secondary-container);
+}
+
+/* ------------------------------------------------------------------ grid */
+
+.grid {
+  display: none;
+  width: 100%;
+  table-layout: fixed;
+  border-collapse: separate;
+  border-spacing: 0;
+  border-radius: var(--sp-radius-card);
+  background: var(--sp-color-surface-container-low);
+}
+.grid th {
+  padding: var(--sp-space-related) var(--sp-space-half);
+  color: var(--sp-color-on-surface-variant);
+  font-size: var(--sp-type-label-size);
+  font-weight: var(--sp-type-label-large-weight);
+  text-align: start;
+}
+.cell {
+  vertical-align: top;
+  height: 112px;
+  padding: var(--sp-space-half);
+  border-top: 1px solid var(--sp-color-outline-variant);
+  cursor: pointer;
+}
+.cell + .cell {
+  border-left: 1px solid var(--sp-color-outline-variant);
+}
+.weekCell {
+  height: 360px;
+}
+.cell:hover {
+  background: color-mix(in srgb, var(--sp-color-on-surface) 4%, transparent);
+}
+.cell:focus-visible {
+  outline-offset: -3px;
+}
+.cell[aria-selected="true"] {
+  background: var(--sp-color-secondary-container);
+  color: var(--sp-color-on-secondary-container);
+}
+.outside {
+  color: var(--sp-color-on-surface-variant);
+}
+.dayNumber {
+  display: inline-grid;
+  place-items: center;
+  min-width: 28px;
+  height: 28px;
+  border-radius: var(--sp-radius-full);
+  font-weight: var(--sp-type-label-large-weight);
+}
+/* Today: a filled circle and the word in the screen-reader label. */
+.today .dayNumber {
+  background: var(--sp-color-primary);
+  color: var(--sp-color-on-primary);
+}
+.chips {
+  display: grid;
+  gap: 2px;
+  margin: var(--sp-space-half) 0 0;
+  padding: 0;
+  list-style: none;
+}
+.chip {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-space-half);
+  min-width: 0;
+  padding: 1px var(--sp-space-half);
+  border-radius: var(--sp-radius-control);
+  border-left: 3px solid var(--stripe, transparent);
+  background: var(--sp-color-surface);
+  color: var(--sp-color-on-surface);
+  font-size: var(--sp-type-label-size);
+  line-height: var(--sp-type-label-line-height);
+}
+.chip span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.chipOverdue {
+  color: var(--sp-color-error);
+  font-weight: var(--sp-type-label-large-weight);
+}
+.more {
+  color: var(--sp-color-on-surface-variant);
+  font-size: var(--sp-type-label-size);
+}
+
+/* ------------------------------------------------------------------ agenda (phones) */
+
+.agenda {
+  display: grid;
+  gap: var(--sp-space-card);
+}
+.agendaDay {
+  display: grid;
+  gap: var(--sp-space-related);
+}
+.agendaHeading {
+  font-size: var(--sp-type-card-title-size);
+  line-height: var(--sp-type-card-title-line-height);
+  font-weight: var(--sp-type-card-title-weight);
+}
+
+@media (min-width: 600px) {
+  .viewSwitch {
+    display: inline-flex;
+  }
+  .grid {
+    display: table;
+  }
+  .agenda {
+    display: none;
+  }
+}
+
+/* ------------------------------------------------------------------ items (panel and agenda) */
+
+.itemList {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-radius: var(--sp-radius-card);
+  background: var(--sp-color-surface-container-low);
+}
+.item {
+  display: grid;
+  gap: 2px;
+  padding: 12px var(--sp-space-card);
+  border-left: var(--sp-layout-course-stripe) solid var(--stripe, transparent);
+}
+.item + .item {
+  border-top: 1px solid var(--sp-color-outline-variant);
+}
+.itemTitle {
+  font-size: var(--sp-type-card-title-size);
+  line-height: var(--sp-type-card-title-line-height);
+  font-weight: var(--sp-type-card-title-weight);
+  overflow-wrap: anywhere;
+}
+.itemMeta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-space-half) var(--sp-space-related);
+  color: var(--sp-color-on-surface-variant);
+  font-size: var(--sp-type-body-size);
+}
+.overdue {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-space-half);
+  color: var(--sp-color-error);
+  font-weight: var(--sp-type-label-large-weight);
+}
+.done {
+  text-decoration: line-through;
+}
+
+.panel {
+  display: grid;
+  gap: 12px;
+  padding: var(--sp-space-card);
+  border-radius: var(--sp-radius-card);
+  background: var(--sp-color-surface-container);
+}
+.panelTitle {
+  font-size: var(--sp-type-card-title-size);
+  line-height: var(--sp-type-card-title-line-height);
+  font-weight: var(--sp-type-card-title-weight);
+}
+.muted {
+  margin: 0;
+  color: var(--sp-color-on-surface-variant);
+}
+.alert {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-space-related);
+  margin: 0;
+  padding: 12px var(--sp-space-card);
+  border-radius: var(--sp-radius-control);
+  background: var(--sp-color-error-container);
+  color: var(--sp-color-on-error-container);
+}
+.twoUp {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: var(--sp-space-card);
+}

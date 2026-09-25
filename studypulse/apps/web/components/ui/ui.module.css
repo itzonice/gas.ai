@@ -365,3 +365,78 @@
   resize: vertical;
   line-height: var(--sp-type-body-large-line-height);
 }
+
+/* ------------------------------------------------------------------ dialog */
+
+.dialog {
+  box-sizing: border-box;
+  max-width: 100vw;
+  padding: 0;
+  border: 0;
+  background: var(--sp-color-surface-container-low);
+  color: var(--sp-color-on-surface);
+}
+.dialog::backdrop {
+  background: color-mix(in srgb, var(--sp-color-scrim) 32%, transparent);
+}
+/* Side sheet from the right; full screen on phones. */
+.dialogSide {
+  width: min(480px, 100vw);
+  height: 100dvh;
+  max-height: 100dvh;
+  margin: 0 0 0 auto;
+  border-radius: var(--sp-radius-sheet) 0 0 var(--sp-radius-sheet);
+}
+/* Centered card; a bottom sheet on phones. */
+.dialogCenter {
+  width: min(560px, calc(100vw - 2 * var(--sp-space-card)));
+  max-height: calc(100dvh - 2 * var(--sp-space-section));
+  border-radius: var(--sp-radius-sheet);
+}
+@media (max-width: 599px) {
+  .dialogSide {
+    width: 100vw;
+    border-radius: 0;
+  }
+  .dialogCenter {
+    width: 100vw;
+    max-height: 90dvh;
+    margin: auto 0 0;
+    border-radius: var(--sp-radius-sheet) var(--sp-radius-sheet) 0 0;
+  }
+}
+.dialogInner {
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  height: 100%;
+  max-height: inherit;
+}
+.dialogHeader {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--sp-space-related);
+  padding: var(--sp-space-card) var(--sp-space-card) var(--sp-space-related) var(--sp-space-section);
+}
+.dialogTitle {
+  flex: 1;
+  padding-top: 10px;
+  font-size: var(--sp-type-section-heading-size);
+  line-height: var(--sp-type-section-heading-line-height);
+  font-weight: var(--sp-type-section-heading-weight);
+  overflow-wrap: anywhere;
+}
+.dialogBody {
+  display: grid;
+  align-content: start;
+  gap: var(--sp-space-card);
+  padding: var(--sp-space-related) var(--sp-space-section) var(--sp-space-section);
+  overflow-y: auto;
+}
+.dialogFooter {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--sp-space-related);
+  padding: var(--sp-space-card) var(--sp-space-section);
+  border-top: 1px solid var(--sp-color-outline-variant);
+}

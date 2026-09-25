@@ -1900,6 +1900,7 @@ export type Database = {
         };
         Returns: undefined;
       };
+      get_calendar: { Args: { p_from: string; p_to: string }; Returns: Json };
       get_card_quota: {
         Args: never;
         Returns: {

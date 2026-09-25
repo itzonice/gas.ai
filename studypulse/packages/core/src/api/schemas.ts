@@ -87,6 +87,13 @@ export const todayFeedRowSchema = z.object({
 });
 export type TodayFeedRow = z.infer<typeof todayFeedRowSchema>;
 
+const courseChipSchema = z.object({
+  id: uuidSchema,
+  code: z.string(),
+  name: z.string(),
+  color: z.string().nullable(),
+});
+
 /** Response of get_today_overview(): the Today screen's metrics, reviews, and next exam. */
 export const todayOverviewSchema = z.object({
   timezone: z.string(),
@@ -119,11 +126,39 @@ export const todayOverviewSchema = z.object({
       days_until: z.number().int(),
     })
     .nullable(),
-  courses: z.array(
-    z.object({ id: uuidSchema, code: z.string(), name: z.string(), color: z.string().nullable() }),
-  ),
+  courses: z.array(courseChipSchema),
 });
 export type TodayOverview = z.infer<typeof todayOverviewSchema>;
+
+export const calendarRangeInputSchema = z
+  .object({ from: isoDateSchema, to: isoDateSchema })
+  .refine((r) => r.to >= r.from, { message: "End date is before start date", path: ["to"] });
+export type CalendarRangeInput = z.infer<typeof calendarRangeInputSchema>;
+
+/** Response of get_calendar(): items tagged with their local date, plus course chips. */
+export const calendarRangeSchema = z.object({
+  timezone: z.string(),
+  today: isoDateSchema,
+  from: isoDateSchema,
+  to: isoDateSchema,
+  items: z.array(
+    z.object({
+      type: z.enum(["due", "study"]),
+      id: uuidSchema,
+      title: z.string(),
+      kind: z.string(),
+      status: z.string(),
+      course_id: uuidSchema,
+      date: isoDateSchema,
+      starts_at: z.string(),
+      ends_at: z.string().nullable(),
+      overdue: z.boolean(),
+    }),
+  ),
+  courses: z.array(courseChipSchema),
+});
+export type CalendarRange = z.infer<typeof calendarRangeSchema>;
+export type CalendarItem = CalendarRange["items"][number];
 
 export const blockStatusInputSchema = z.object({
   id: uuidSchema,

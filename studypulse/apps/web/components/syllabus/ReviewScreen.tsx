@@ -139,7 +139,6 @@ function ReviewEditor({ row, result }: { row: UploadRow; result: ParseResult }) 
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
   const alertRef = useRef<HTMLDivElement>(null);
-  const openerRef = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
     if (error) alertRef.current?.focus();
@@ -198,15 +197,13 @@ function ReviewEditor({ row, result }: { row: UploadRow; result: ParseResult }) 
     }));
   }
 
+  // The Dialog returns focus to whatever opened it.
   function openDrawer(key: string) {
-    openerRef.current = document.activeElement as HTMLElement | null;
     setOpenKey(key);
   }
 
   function closeDrawer() {
     setOpenKey(null);
-    // Return focus to whatever opened the drawer.
-    requestAnimationFrame(() => openerRef.current?.focus());
   }
 
   function confirm(key: string) {

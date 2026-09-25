@@ -39,6 +39,8 @@ const paths = {
     "M7 21q-.825 0-1.412-.587T5 19V6H4V4h5V3h6v1h5v2h-1v13q0 .825-.587 1.413T17 21zM17 6H7v13h10zM9 17h2V8H9zm4 0h2V8h-2zM7 6v13z",
   description:
     "M8 18h8v-2H8zm0-4h8v-2H8zm-2 8q-.825 0-1.412-.587T4 20V4q0-.825.588-1.412T6 2h8l6 6v12q0 .825-.587 1.413T18 22zm7-13V4H6v16h12V9zM6 4v5zv16z",
+  chevronLeft: "M14 18l-6-6 6-6 1.4 1.4-4.6 4.6 4.6 4.6z",
+  chevronRight: "M9.4 18 8 16.6l4.6-4.6L8 7.4 9.4 6l6 6z",
 } as const;
 
 export type IconName = keyof typeof paths;

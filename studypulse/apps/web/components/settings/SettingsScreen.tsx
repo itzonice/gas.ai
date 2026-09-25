@@ -398,6 +398,10 @@ export function SettingsScreen() {
             <Button variant="tonal" onClick={() => void manageSubscription()}>
               Manage subscription
             </Button>
+          ) : plan.action === "store" && plan.storeUrl ? (
+            <Button variant="tonal" href={plan.storeUrl}>
+              Manage in {plan.storeUrl.includes("apple") ? "App Store" : "Google Play"}
+            </Button>
           ) : plan.action === "upgrade" ? (
             <Button variant="tonal" href="/upgrade">
               See Pro

@@ -1,6 +1,7 @@
 // Pure helpers for the Settings screen: which fields changed, and plan/device wording.
 import type { NotificationPrefsUpdate, ProfileUpdate, Settings } from "@studypulse/core/api";
 import type { BillingStatus } from "@studypulse/core/billing";
+import { STORE_SUBSCRIPTION_URLS } from "@studypulse/core/legal";
 
 type Profile = Settings["profile"];
 type Prefs = Settings["notifications"];
@@ -50,7 +51,13 @@ const STORE_NAMES = { app_store: "the App Store", play_store: "Google Play", ama
 export function planSummary(
   billing: BillingStatus | null,
   tier: "free" | "pro",
-): { title: string; detail: string | null; action: "portal" | "upgrade" | null } {
+): {
+  title: string;
+  detail: string | null;
+  action: "portal" | "upgrade" | "store" | null;
+  /** For a store subscription: the store's own subscriptions page, where it's cancelled. */
+  storeUrl?: string;
+} {
   const pro = billing ? billing.pro : tier === "pro";
   if (!pro) {
     return {
@@ -68,10 +75,12 @@ export function planSummary(
   const detail = end ? (sub?.cancel_at_period_end ? `Ends on ${end}.` : `Renews on ${end}.`) : null;
   const where = billing?.manage_in;
   if (where && where !== "stripe_portal") {
+    const storeUrl = where === "amazon" ? undefined : STORE_SUBSCRIPTION_URLS[where];
     return {
       title: "StudyPulse Pro",
       detail: `${detail ? `${detail} ` : ""}Manage it in ${STORE_NAMES[where]}.`,
-      action: null,
+      action: storeUrl ? "store" : null,
+      ...(storeUrl ? { storeUrl } : {}),
     };
   }
   return { title: "StudyPulse Pro", detail, action: where === "stripe_portal" ? "portal" : null };

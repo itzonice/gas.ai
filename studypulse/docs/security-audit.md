@@ -205,3 +205,37 @@ Every call to Anthropic, Stripe, Expo, Resend, Google, and PostHog goes through
   - per user, across 10 IPs;
   - per IP, with a second IP unaffected;
   - per ICS token, across many IPs.
+
+## S11–S12: Easy cancellation, one-click unsubscribe, and the age gate
+
+**S11**
+
+- Web: Settings → Manage subscription opens the Stripe portal in one click.
+- App Store and Google Play subscriptions have a direct button on web and in the mobile
+  app, linking to that store's subscriptions page. Before, web only named the store.
+- Every email (the digest is the only one we send) carries `List-Unsubscribe` and
+  `List-Unsubscribe-Post: List-Unsubscribe=One-Click`, signed with
+  `EMAIL_UNSUBSCRIBE_SECRET`. Unsubscribing works without signing in. A GET only shows a
+  confirm button, so link scanners can't unsubscribe anyone.
+
+**S12**
+
+- **Email sign-ups** ask for birth month and year, neutrally and with the reason.
+  - Under 13 is refused in the app. The `before_user_created` auth hook refuses it again
+    with a clear message, and a trigger on `auth.users` refuses it if the hook is off.
+  - The birth month is removed before the row is saved; only `age_confirmed_at` is kept.
+  - Age is computed as if the birthday were the last day of the month.
+- **Apple and Google sign-ups** can't carry a birth month, so they start unconfirmed.
+  - The first screen asks (web onboarding, mobile tabs).
+  - Under 13: `confirm_age` deletes the account on the spot.
+  - Until the age is confirmed, the account can't create a course or an upload, or finish
+    onboarding (`SPA14`).
+- **No second try:** a blocked attempt is remembered on the device for 24 hours.
+- **Existing accounts:** marked confirmed at migration.
+- **Tests:** SQL test 600 (21 checks), core age tests (property: nobody under 13 passes;
+  leap-year parity with SQL), web tests for sign-up and the onboarding age step, and a
+  live check against the Auth server:
+  - no birth month: 400;
+  - under 13: 403;
+  - adult: 200, with nothing stored but the confirmation time.
+- The privacy policy's Children section describes all of this.

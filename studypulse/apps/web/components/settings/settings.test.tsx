@@ -127,7 +127,8 @@ describe("settings model", () => {
     expect(store).toEqual({
       title: "StudyPulse Pro",
       detail: "Renews on April 1, 2027. Manage it in the App Store.",
-      action: null,
+      action: "store",
+      storeUrl: "https://apps.apple.com/account/subscriptions",
     });
   });
 });

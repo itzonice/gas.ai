@@ -14,7 +14,7 @@ from generate_series(1, :users) n;
 
 insert into auth.users (id, instance_id, aud, role, email, email_confirmed_at, raw_user_meta_data, created_at, updated_at)
 select id, '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated',
-       'load-' || n || '@load.test', now(), jsonb_build_object('timezone', tz), now(), now()
+       'load-' || n || '@load.test', now(), jsonb_build_object('timezone', tz, 'birth_month', '2003-09'), now(), now()
 from load_users;
 
 -- Profiles and notification prefs come from the signup triggers. Spread digest times so

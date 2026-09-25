@@ -30,7 +30,7 @@ begin
     demo_id, '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated',
     'demo@studypulse.dev', extensions.crypt('studypulse-demo', extensions.gen_salt('bf')), now(),
     '{"provider": "email", "providers": ["email"]}',
-    jsonb_build_object('timezone', tz, 'display_name', 'Demo Student', 'school', 'State University'),
+    jsonb_build_object('timezone', tz, 'display_name', 'Demo Student', 'school', 'State University', 'birth_month', '2004-05'),
     now(), now(), '', '', '', ''
   );
 

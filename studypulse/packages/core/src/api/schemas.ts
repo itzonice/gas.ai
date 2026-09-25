@@ -505,3 +505,7 @@ export const assignmentListInputSchema = pageInputSchema.extend({
   courseId: uuidSchema.optional(),
 });
 export type AssignmentListInput = z.input<typeof assignmentListInputSchema>;
+
+/** A birth month, "YYYY-MM" (launch safety S12 age gate). */
+export const birthMonthSchema = z.string().regex(/^(19|20)\d{2}-(0[1-9]|1[0-2])$/, "Use YYYY-MM");
+export const ageResultSchema = z.enum(["confirmed", "blocked"]);

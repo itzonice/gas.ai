@@ -15,10 +15,13 @@ set search_path = ''
 as $$
 declare
   user_id uuid := gen_random_uuid();
+  -- Test users are adults unless a test says otherwise (launch safety S12 age gate).
+  meta jsonb := case when metadata ? 'birth_month' or metadata ? 'no_birth_month' then metadata - 'no_birth_month'
+                     else metadata || '{"birth_month": "1990-01"}' end;
 begin
   insert into auth.users (id, instance_id, aud, role, email, raw_user_meta_data, created_at, updated_at)
   values (user_id, '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated',
-          email, metadata, now(), now());
+          email, meta, now(), now());
   return user_id;
 end;
 $$;

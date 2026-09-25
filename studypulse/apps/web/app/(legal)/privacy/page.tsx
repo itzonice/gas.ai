@@ -144,9 +144,11 @@ export default function PrivacyPage() {
 
       <h2>Children</h2>
       <p>
-        StudyPulse is not for children under 13, and sign-up asks for your age. If we learn that we
-        have an account for a child under 13, we delete it. If you believe a child under 13 has an
-        account, contact [privacy contact email].
+        StudyPulse is not for children under 13. Sign-up (or, with Apple or Google, the first screen
+        after it) asks for your birth month and year; we use it only to check that you are 13 or
+        older and don&apos;t keep it. If you are under 13, no account is created, or the one just
+        made is deleted at once. If we learn that we have an account for a child under 13, we delete
+        it. If you believe a child under 13 has an account, contact [privacy contact email].
       </p>
 
       <h2>How long we keep it</h2>

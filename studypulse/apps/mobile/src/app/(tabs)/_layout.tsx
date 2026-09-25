@@ -3,11 +3,12 @@
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { Redirect } from "expo-router";
 import { Tabs } from "expo-router/tabs";
-import type { ComponentProps } from "react";
+import { useEffect, useState, type ComponentProps } from "react";
 import { View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { FocusFab } from "../../components/FocusFab";
+import { getApi } from "../../lib/supabase";
 import { useSession } from "../../session";
 import { useAppTheme } from "../../theme";
 
@@ -26,8 +27,31 @@ export default function TabsLayout() {
   const insets = useSafeAreaInsets();
   const session = useSession();
   const barHeight = theme.layout.bottomBarHeight + insets.bottom;
+  const userId = session.status === "signed-in" ? session.session.user.id : null;
+  // Accounts from Sign in with Apple/Google answer the age question first (S12).
+  const [ageChecked, setAgeChecked] = useState<{ user: string; ok: boolean } | null>(null);
+  useEffect(() => {
+    if (!userId) return;
+    let cancelled = false;
+    getApi()
+      .onboarding.ageConfirmed()
+      .then(
+        (ok) => {
+          if (!cancelled) setAgeChecked({ user: userId, ok });
+        },
+        // The server refuses unconfirmed accounts anyway; don't lock anyone out on a blip.
+        () => {
+          if (!cancelled) setAgeChecked({ user: userId, ok: true });
+        },
+      );
+    return () => {
+      cancelled = true;
+    };
+  }, [userId]);
   if (session.status === "loading") return null;
   if (session.status === "signed-out") return <Redirect href="/sign-in" />;
+  if (ageChecked?.user !== userId) return null;
+  if (!ageChecked.ok) return <Redirect href="/confirm-age" />;
 
   return (
     <View style={{ flex: 1, backgroundColor: theme.colors.surface }}>

@@ -1296,6 +1296,7 @@ export type Database = {
       };
       profiles: {
         Row: {
+          age_confirmed_at: string | null;
           calendar_token_hash: string | null;
           card_tasks_enabled: boolean;
           created_at: string;
@@ -1312,6 +1313,7 @@ export type Database = {
           updated_at: string;
         };
         Insert: {
+          age_confirmed_at?: string | null;
           calendar_token_hash?: string | null;
           card_tasks_enabled?: boolean;
           created_at?: string;
@@ -1328,6 +1330,7 @@ export type Database = {
           updated_at?: string;
         };
         Update: {
+          age_confirmed_at?: string | null;
           calendar_token_hash?: string | null;
           card_tasks_enabled?: boolean;
           created_at?: string;
@@ -1854,6 +1857,7 @@ export type Database = {
         };
         Returns: undefined;
       };
+      confirm_age: { Args: { p_birth_month: string }; Returns: string };
       course_current_grade: { Args: { p_course_id: string }; Returns: number };
       create_organization: {
         Args: { p_name: string };
@@ -1998,6 +2002,7 @@ export type Database = {
         }[];
       };
       get_today_overview: { Args: never; Returns: Json };
+      hook_before_user_created: { Args: { event: Json }; Returns: Json };
       hook_password_verification_attempt: {
         Args: { event: Json };
         Returns: Json;

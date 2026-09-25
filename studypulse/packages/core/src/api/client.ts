@@ -25,6 +25,8 @@ import {
   pageInputSchema,
   notificationPrefsUpdateSchema,
   onboardingInputSchema,
+  ageResultSchema,
+  birthMonthSchema,
   profileUpdateSchema,
   settingsSchema,
   statsOverviewSchema,
@@ -534,6 +536,31 @@ export function createApiClient(db: Db) {
           .single();
         if (error) throw fromPostgrestError(error);
         return data.onboarded_at === null;
+      },
+      /**
+       * Whether this account has confirmed it's 13 or older. Accounts made with Apple or
+       * Google start unconfirmed and must answer before anything else (launch safety S12).
+       */
+      async ageConfirmed(): Promise<boolean> {
+        const { data: auth, error: authError } = await db.auth.getUser();
+        if (authError) throw new ApiError(401, "unauthorized", authError.message);
+        const { data, error } = await db
+          .from("profiles")
+          .select("age_confirmed_at")
+          .eq("id", auth.user.id)
+          .single();
+        if (error) throw fromPostgrestError(error);
+        return data.age_confirmed_at !== null;
+      },
+      /**
+       * Confirms the age from a birth month ("YYYY-MM"). "blocked" means under 13: the
+       * server has deleted the account, and the app should sign out.
+       */
+      async confirmAge(birthMonth: string): Promise<"confirmed" | "blocked"> {
+        const bm = validate(birthMonthSchema, birthMonth);
+        const { data, error } = await db.rpc("confirm_age", { p_birth_month: bm });
+        if (error) throw fromPostgrestError(error);
+        return validate(ageResultSchema, data);
       },
       /** Saves the answers and marks onboarding done. */
       async complete(input: OnboardingInput): Promise<void> {

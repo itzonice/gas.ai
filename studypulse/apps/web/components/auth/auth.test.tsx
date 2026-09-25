@@ -1,4 +1,4 @@
-import { AUTH_MESSAGES } from "@studypulse/core/auth";
+import { AGE_MESSAGES, AUTH_MESSAGES } from "@studypulse/core/auth";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -26,13 +26,21 @@ vi.mock("@/lib/supabase", () => ({
 }));
 vi.mock("./SessionProvider", () => ({ useSession: () => ({ status: "signed-out" }) }));
 
+async function birth(month: string, year: string) {
+  await userEvent.selectOptions(screen.getByLabelText("Month"), month);
+  await userEvent.selectOptions(screen.getByLabelText("Year"), year);
+}
+
 async function fill(email: string) {
   await userEvent.type(screen.getByLabelText("Email"), email);
   await userEvent.type(screen.getByLabelText("Password"), "correct horse battery");
 }
 
 describe("SignInForm", () => {
-  beforeEach(() => vi.clearAllMocks());
+  beforeEach(() => {
+    vi.clearAllMocks();
+    window.localStorage.clear();
+  });
 
   it("says the same thing for a wrong password and an unknown email", async () => {
     auth.signInWithPassword.mockResolvedValue({
@@ -53,6 +61,7 @@ describe("SignInForm", () => {
     render(<SignInForm />);
     await userEvent.click(screen.getByRole("button", { name: "Create an account" }));
     await fill("taken@example.com");
+    await birth("May", "2004");
     await userEvent.click(screen.getByRole("button", { name: "Create account" }));
     expect(await screen.findByText(AUTH_MESSAGES.signUpSent)).toBeInTheDocument();
     expect(screen.queryByText(/already registered/i)).not.toBeInTheDocument();
@@ -70,5 +79,46 @@ describe("SignInForm", () => {
       "/privacy",
     );
     await expectNoAxeViolations();
+  });
+
+  it("sends only the birth month with a sign-up", async () => {
+    auth.signUp.mockResolvedValue({ data: { session: null }, error: null });
+    render(<SignInForm />);
+    await userEvent.click(screen.getByRole("button", { name: "Create an account" }));
+    await fill("new@example.com");
+    await birth("May", "2004");
+    await userEvent.click(screen.getByRole("button", { name: "Create account" }));
+    expect(auth.signUp).toHaveBeenCalledWith({
+      email: "new@example.com",
+      password: "correct horse battery",
+      options: { data: { birth_month: "2004-05" } },
+    });
+  });
+
+  it("asks for a birth month before creating an account", async () => {
+    render(<SignInForm />);
+    await userEvent.click(screen.getByRole("button", { name: "Create an account" }));
+    await fill("new@example.com");
+    await userEvent.click(screen.getByRole("button", { name: "Create account" }));
+    expect(await screen.findByText(AGE_MESSAGES.missing)).toBeInTheDocument();
+    expect(auth.signUp).not.toHaveBeenCalled();
+  });
+
+  it("never sends an under-13 sign-up, and remembers the answer", async () => {
+    const year = String(new Date().getFullYear() - 10);
+    const { unmount } = render(<SignInForm />);
+    await userEvent.click(screen.getByRole("button", { name: "Create an account" }));
+    await fill("kid@example.com");
+    await birth("January", year);
+    await userEvent.click(screen.getByRole("button", { name: "Create account" }));
+    expect(await screen.findByText(AGE_MESSAGES.blocked)).toBeInTheDocument();
+    expect(auth.signUp).not.toHaveBeenCalled();
+    unmount();
+
+    // Coming back to try another year shows the same answer.
+    render(<SignInForm />);
+    await userEvent.click(screen.getByRole("button", { name: "Create an account" }));
+    expect(await screen.findByText(AGE_MESSAGES.blocked)).toBeInTheDocument();
+    expect(screen.queryByLabelText("Year")).not.toBeInTheDocument();
   });
 });

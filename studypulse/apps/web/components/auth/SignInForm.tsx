@@ -2,15 +2,17 @@
 
 // Email and password sign-in (and account creation). Errors are announced in an alert
 // and tied to the form; after signing in the user goes back where they were headed.
-import { authErrorMessage } from "@studypulse/core/auth";
+import { AGE_MESSAGES, authErrorMessage, isOldEnough, toBirthMonth } from "@studypulse/core/auth";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState, type FormEvent } from "react";
 
 import { Button, Icon, TextField } from "@/components/ui";
+import { ageBlocked, recordAgeBlock } from "@/lib/age-block";
 import { getSupabase, safeNext } from "@/lib/supabase";
 
 import styles from "./auth.module.css";
+import { BirthMonthField, type BirthMonthValue } from "./BirthMonthField";
 import { useSession } from "./SessionProvider";
 
 type Mode = "sign-in" | "sign-up";
@@ -25,6 +27,9 @@ export function SignInForm() {
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [birth, setBirth] = useState<BirthMonthValue>({ month: "", year: "" });
+  const [birthError, setBirthError] = useState<string | undefined>(undefined);
+  const [blocked, setBlocked] = useState(false);
 
   useEffect(() => {
     if (session.status === "signed-in") router.replace(next);
@@ -34,12 +39,27 @@ export function SignInForm() {
     event.preventDefault();
     setError(null);
     setNotice(null);
+    setBirthError(undefined);
+    let birthMonth: string | null = null;
+    if (mode === "sign-up") {
+      // Age gate (S12): checked here and again on the server; under 13 never reaches it.
+      birthMonth = toBirthMonth(Number(birth.year), Number(birth.month));
+      if (!birthMonth) {
+        setBirthError(AGE_MESSAGES.missing);
+        return;
+      }
+      if (ageBlocked() || !isOldEnough(birthMonth)) {
+        recordAgeBlock();
+        setBlocked(true);
+        return;
+      }
+    }
     setBusy(true);
     const auth = getSupabase().auth;
     const result =
-      mode === "sign-in"
+      mode === "sign-in" || !birthMonth
         ? await auth.signInWithPassword({ email, password })
-        : await auth.signUp({ email, password });
+        : await auth.signUp({ email, password, options: { data: { birth_month: birthMonth } } });
     setBusy(false);
     // The wording never reveals whether an account exists for this email (S6).
     if (mode === "sign-up" && (result.error || !result.data.session)) {
@@ -59,6 +79,17 @@ export function SignInForm() {
   }
 
   const title = mode === "sign-in" ? "Sign in to StudyPulse" : "Create your account";
+  if (blocked) {
+    return (
+      <div className={styles.card}>
+        <h1 className={styles.title}>You can&apos;t create an account</h1>
+        <p className={styles.switch}>{AGE_MESSAGES.blocked}</p>
+        <p className={styles.legalLinks}>
+          <Link href="/privacy">Privacy Policy</Link>
+        </p>
+      </div>
+    );
+  }
   return (
     <div className={styles.card}>
       <h1 className={styles.title}>{title}</h1>
@@ -97,6 +128,9 @@ export function SignInForm() {
           }}
         />
         {mode === "sign-up" ? (
+          <BirthMonthField value={birth} onChange={setBirth} error={birthError} />
+        ) : null}
+        {mode === "sign-up" ? (
           <p className={styles.legal}>
             By creating an account you agree to the <Link href="/terms">Terms of Use</Link> and{" "}
             <Link href="/privacy">Privacy Policy</Link>.
@@ -117,7 +151,12 @@ export function SignInForm() {
         <Button
           variant="text"
           onClick={() => {
-            setMode(mode === "sign-in" ? "sign-up" : "sign-in");
+            const nextMode = mode === "sign-in" ? "sign-up" : "sign-in";
+            if (nextMode === "sign-up" && ageBlocked()) {
+              setBlocked(true);
+              return;
+            }
+            setMode(nextMode);
             setError(null);
           }}
         >

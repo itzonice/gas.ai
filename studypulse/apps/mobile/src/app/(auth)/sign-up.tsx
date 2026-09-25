@@ -1,12 +1,14 @@
-import { authErrorMessage } from "@studypulse/core/auth";
+import { AGE_MESSAGES, authErrorMessage, isOldEnough, toBirthMonth } from "@studypulse/core/auth";
 import { Link } from "expo-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Text } from "react-native";
 
+import { BirthMonthFields, type BirthMonthValue } from "../../components/BirthMonthFields";
 import { LegalLinks } from "../../components/LegalLinks";
 import { Screen } from "../../components/Screen";
 import { Button } from "../../components/ui/Button";
 import { TextField } from "../../components/ui/TextField";
+import { ageBlocked, recordAgeBlock } from "../../lib/age-block";
 import { getSupabase } from "../../lib/supabase";
 import { useAppTheme } from "../../theme";
 
@@ -16,14 +18,52 @@ export default function SignUpScreen() {
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState(false);
+  const [birth, setBirth] = useState<BirthMonthValue>({ month: "", year: "" });
+  const [blocked, setBlocked] = useState(false);
+
+  useEffect(() => {
+    void ageBlocked().then(setBlocked);
+  }, []);
 
   async function signUp() {
-    setBusy(true);
     setMessage("");
-    const { data, error } = await getSupabase().auth.signUp({ email: email.trim(), password });
+    // Age gate (S12): checked here and again on the server; under 13 never reaches it.
+    const birthMonth = toBirthMonth(Number(birth.year), Number(birth.month));
+    if (!birthMonth) {
+      setMessage(AGE_MESSAGES.missing);
+      return;
+    }
+    if (!isOldEnough(birthMonth)) {
+      await recordAgeBlock();
+      setBlocked(true);
+      return;
+    }
+    setBusy(true);
+    const { data, error } = await getSupabase().auth.signUp({
+      email: email.trim(),
+      password,
+      options: { data: { birth_month: birthMonth } },
+    });
     setBusy(false);
     // With email confirmation on, there's no session yet; either way, the same words.
     if (error || !data.session) setMessage(authErrorMessage("sign-up", error));
+  }
+
+  if (blocked) {
+    return (
+      <Screen>
+        <Text
+          accessibilityRole="header"
+          style={[theme.type.pageTitle, { color: theme.colors.onSurface }]}
+        >
+          You can&apos;t create an account
+        </Text>
+        <Text style={[theme.type.bodyLarge, { color: theme.colors.onSurface }]}>
+          {AGE_MESSAGES.blocked}
+        </Text>
+        <LegalLinks />
+      </Screen>
+    );
   }
 
   return (
@@ -51,6 +91,7 @@ export default function SignUpScreen() {
         value={password}
         onChangeText={setPassword}
       />
+      <BirthMonthFields value={birth} onChange={setBirth} />
       <Text style={[theme.type.body, { color: theme.colors.onSurfaceVariant }]}>
         By creating an account you agree to the Terms of Use and Privacy Policy.
       </Text>

@@ -134,7 +134,11 @@ async function createUser(label: string, displayName: string): Promise<User> {
     email,
     password: PASSWORD,
     email_confirm: true,
-    user_metadata: { timezone: "America/Chicago", display_name: displayName },
+    user_metadata: {
+      timezone: "America/Chicago",
+      display_name: displayName,
+      birth_month: "2001-06",
+    },
   })) as { id: string };
   const session = await http(`${API}/auth/v1/token?grant_type=password`, {
     method: "POST",

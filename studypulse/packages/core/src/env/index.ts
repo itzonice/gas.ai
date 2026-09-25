@@ -100,6 +100,10 @@ export const edgeEnvSchema = z.object({
   STRIPE_API_URL: optionalUrl,
   // Canvas OAuth redirect URI override; defaults to <SUPABASE_URL>/functions/v1/canvas-oauth/callback.
   CANVAS_REDIRECT_URI: optionalUrl,
+  // PostHog project API key (phc_...) for server-side events. Unset = events wait in the outbox.
+  POSTHOG_API_KEY: optionalNonEmpty,
+  // PostHog ingestion host; defaults to https://us.i.posthog.com (EU: https://eu.i.posthog.com).
+  POSTHOG_HOST: optionalUrl,
   // Shared secret pg_cron sends (x-cron-secret) to scheduled functions. Unset = cron endpoints refuse all calls.
   CRON_SECRET: optionalNonEmpty,
 });

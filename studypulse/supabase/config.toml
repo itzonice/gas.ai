@@ -519,3 +519,10 @@ enabled = true
 verify_jwt = false
 import_map = "./functions/deno.json"
 entrypoint = "./functions/canvas-sync/index.ts"
+
+[functions.flush-analytics]
+enabled = true
+# Called by pg_cron with x-cron-secret.
+verify_jwt = false
+import_map = "./functions/deno.json"
+entrypoint = "./functions/flush-analytics/index.ts"

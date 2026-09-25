@@ -19,7 +19,8 @@
     "./ics": "./src/ics/index.ts",
     "./notify": "./src/notify/index.ts",
     "./billing": "./src/billing/index.ts",
-    "./lms": "./src/lms/index.ts"
+    "./lms": "./src/lms/index.ts",
+    "./analytics": "./src/analytics/index.ts"
   },
   "scripts": {
     "lint": "eslint .",

@@ -28,6 +28,44 @@ export type Database = {
   };
   public: {
     Tables: {
+      analytics_events: {
+        Row: {
+          attempts: number;
+          event: string;
+          id: string;
+          occurred_at: string;
+          properties: Json;
+          sent_at: string | null;
+          user_id: string;
+        };
+        Insert: {
+          attempts?: number;
+          event: string;
+          id?: string;
+          occurred_at?: string;
+          properties?: Json;
+          sent_at?: string | null;
+          user_id: string;
+        };
+        Update: {
+          attempts?: number;
+          event?: string;
+          id?: string;
+          occurred_at?: string;
+          properties?: Json;
+          sent_at?: string | null;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "analytics_events_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       assignments: {
         Row: {
           category_id: string | null;
@@ -1305,6 +1343,17 @@ export type Database = {
       };
     };
     Functions: {
+      analytics_claim_batch: {
+        Args: { p_limit?: number };
+        Returns: {
+          event: string;
+          id: string;
+          occurred_at: string;
+          properties: Json;
+          user_id: string;
+        }[];
+      };
+      analytics_mark_sent: { Args: { p_ids: string[] }; Returns: undefined };
       apply_billing_event: {
         Args: {
           p_event_created_at: string;

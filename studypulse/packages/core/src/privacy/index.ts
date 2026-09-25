@@ -141,3 +141,4 @@ export const OPTIONAL_PROCESSING = [
       "When something breaks in your browser, technical details go through our servers to Sentry so we can fix it. Names, emails, and cookies are removed first.",
   },
 ];
+export * from "./data-inventory.ts";

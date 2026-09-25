@@ -53,6 +53,10 @@ export function toPostHogEvent(e: OutboxEvent, environment?: string) {
       ...e.properties,
       $lib: "studypulse-server",
       ...(environment ? { environment } : {}),
+      // Data minimization (S25): no IP address and no GeoIP lookup. The request comes
+      // from our server, so PostHog would otherwise record the server's IP as the user's.
+      $ip: null,
+      $geoip_disable: true,
     },
   };
 }

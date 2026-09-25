@@ -22,6 +22,8 @@ describe("toPostHogEvent", () => {
         source: "timer",
         $lib: "studypulse-server",
         environment: "production",
+        $ip: null,
+        $geoip_disable: true,
       },
     });
   });
@@ -56,5 +58,14 @@ describe("sendPostHogBatch", () => {
     const none = vi.fn();
     await sendPostHogBatch([], { apiKey: "x", fetch: none });
     expect(none).not.toHaveBeenCalled();
+  });
+});
+
+describe("data minimization (S25)", () => {
+  it("never sends an IP address or asks PostHog to geolocate", () => {
+    const e = toPostHogEvent(row, "production");
+    expect(e.properties.$ip).toBeNull();
+    expect(e.properties.$geoip_disable).toBe(true);
+    expect(JSON.stringify(e)).not.toMatch(/email|name|title/i);
   });
 });

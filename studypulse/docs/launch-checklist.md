@@ -134,6 +134,10 @@ Numbers are starting points; raise them as usage grows.
 - [ ] App Store Connect → App Information → License Agreement: custom EULA with the text
       of `/eula` (S22), or Apple's standard EULA with `/eula` linked in the description.
       Google Play: link `/eula` and `/terms` in the store listing.
+- [ ] Sentry project settings (S25): data retention 30 days (or the shortest your plan
+      allows), "Prevent storing of IP addresses" on, default scrubbers on.
+- [ ] PostHog project settings (S25): "Discard client IP data" on (events already send
+      no IP), person profiles only for identified users.
 - [ ] Refund window (S18): replace `[N]` on `/refunds` with the window you'll honor.
 - [ ] Stripe: customer portal configured (cancel, update card, invoices); student coupon
       created with **no** public promotion code; Stripe Tax if selling where required.

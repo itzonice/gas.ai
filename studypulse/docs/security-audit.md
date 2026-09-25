@@ -444,3 +444,20 @@ Every call to Anthropic, Stripe, Expo, Resend, Google, and PostHog goes through
   - the a11y audit, which now also covers the banner and `/cookies` and fixed a keyboard
     issue with the scrollable table on phones;
   - the third-party request audit: still none.
+
+## S25: Data minimization
+
+- **Inventory:** `docs/data-inventory.md` (the source of truth is
+  `packages/core/src/privacy/data-inventory.ts`) covers every table, why it's needed,
+  whether it's personal, and its retention, plus what each outside service receives. A
+  test fails if a migration adds a table without an entry.
+- **Removed or reduced:**
+  - the IP address and GeoIP lookup in PostHog events;
+  - birth dates (only the age confirmation is kept, S12);
+  - IPs in dispute evidence;
+  - reminder text in `notification_log`, now deleted after 90 days;
+  - plan alerts, expired OAuth states, and old busy times, now on a daily
+    `cleanup_retention` job.
+- **Sentry:** it already scrubs personal data (S3/S14); the launch checklist adds the
+  project-level IP and retention settings.
+- **Tests:** the core inventory test, a PostHog event test, and SQL test 660.

@@ -2288,6 +2288,17 @@ export type Database = {
         Args: { p_date: string; p_user_id: string };
         Returns: number;
       };
+      takedown_content: {
+        Args: {
+          p_notice_ref: string;
+          p_reason?: string;
+          p_received_at: string;
+          p_target_id: string;
+          p_target_type: string;
+        };
+        Returns: string;
+      };
+      takedown_count: { Args: { p_user_id: string }; Returns: number };
       task_priority: {
         Args: {
           p_daily_minutes?: number;

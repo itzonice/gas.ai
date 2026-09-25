@@ -307,3 +307,20 @@ Every call to Anthropic, Stripe, Expo, Resend, Google, and PostHog goes through
     twice.
 - **Tests:** core tests for terms and both emails; a web test that the terms sit next to
   the button and follow the chosen interval.
+
+## S17: Copyright and takedowns
+
+- `/copyright` (linked from the Terms) covers:
+  - who to send a notice to (the designated agent, as bracketed placeholders);
+  - the six elements of a DMCA notice;
+  - what happens next, counter-notices, and the repeat-infringer policy.
+- **Takedowns:** `public.takedown_content` (service role only) removes a reported upload
+  (clears its text and marks it removed), flashcard, or link. It records every notice in
+  `private.content_takedowns`, keeping the owner for repeat-infringer checks.
+- **Operator script:** `scripts/takedown.mjs` also deletes the stored file and prints the
+  account's takedown count, flagging 3 or more.
+- **Runbook:** `docs/takedowns.md`.
+- **Manual step:** register the DMCA designated agent with the US Copyright Office ($6,
+  renewed every 3 years) and put the registered details on the page.
+- **Tests:** SQL test 620, and a live run of the script against the local stack (file
+  deleted, row updated, notice recorded).

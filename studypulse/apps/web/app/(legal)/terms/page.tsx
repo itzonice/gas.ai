@@ -34,7 +34,8 @@ export default function TermsPage() {
         You keep ownership of what you upload and create. You give us permission to store and
         process it only to run StudyPulse for you. Only upload material you have the right to use.
         Don&apos;t use StudyPulse to break your school&apos;s academic-integrity rules or the law,
-        or to interfere with the service.
+        or to interfere with the service. To report copyright infringement, see{" "}
+        <Link href="/copyright">Copyright and takedowns</Link>.
       </p>
 
       <h2>Subscriptions</h2>

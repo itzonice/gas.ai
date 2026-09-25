@@ -1,6 +1,8 @@
 import { darkColors, lightColors } from "@studypulse/tokens";
 import type { Metadata, Viewport } from "next";
 
+import { SessionProvider } from "@/components/auth/SessionProvider";
+
 import "@studypulse/tokens/tokens.css";
 import "./globals.css";
 
@@ -22,7 +24,9 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body>
+        <SessionProvider>{children}</SessionProvider>
+      </body>
     </html>
   );
 }

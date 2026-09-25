@@ -98,6 +98,38 @@ describe("calls", () => {
     ]);
   });
 
+  it("validates the Today overview response", async () => {
+    const overview = {
+      timezone: "America/Chicago",
+      today: "2027-03-01",
+      week_start: "2027-03-01",
+      due_this_week: 2,
+      focus_minutes_this_week: 95,
+      courses_at_risk: [],
+      reviews: [],
+      next_exam: null,
+      courses: [],
+    };
+    const ok = fakeDb({ rpc: { get_today_overview: { data: overview, error: null } } });
+    expect(await ok.api.today.overview()).toEqual(overview);
+
+    const bad = fakeDb({
+      rpc: { get_today_overview: { data: { ...overview, today: "soon" }, error: null } },
+    });
+    await expect(bad.api.today.overview()).rejects.toMatchObject({
+      status: 502,
+      code: "bad_response",
+    });
+  });
+
+  it("rejects an unknown block status before any call", async () => {
+    const { api, calls } = fakeDb({});
+    await expect(
+      api.plan.setBlockStatus({ id: uploadId, status: "finished" as "done" }),
+    ).rejects.toMatchObject({ status: 400 });
+    expect(calls).toEqual([]);
+  });
+
   it("maps database errors, including quota and Pro errors", async () => {
     const { api } = fakeDb({
       rpc: {

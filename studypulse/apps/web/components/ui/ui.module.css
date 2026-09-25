@@ -323,3 +323,40 @@
 .menuItemDestructive {
   color: var(--sp-color-error);
 }
+
+/* ------------------------------------------------------------------ text field */
+
+.field {
+  display: grid;
+  gap: var(--sp-space-half);
+}
+.fieldLabel {
+  font-size: var(--sp-type-label-large-size);
+  line-height: var(--sp-type-label-large-line-height);
+  font-weight: var(--sp-type-label-large-weight);
+}
+.fieldInput {
+  min-height: var(--sp-layout-min-target);
+  padding: 12px var(--sp-space-card);
+  border: 1px solid var(--sp-color-outline);
+  border-radius: var(--sp-radius-control);
+  background: var(--sp-color-surface);
+  color: var(--sp-color-on-surface);
+  font: inherit;
+  font-size: var(--sp-type-body-large-size);
+  box-sizing: border-box;
+  width: 100%;
+}
+.fieldInput[aria-invalid="true"] {
+  border: 2px solid var(--sp-color-error);
+}
+.fieldHint {
+  color: var(--sp-color-on-surface-variant);
+  font-size: var(--sp-type-label-size);
+  line-height: var(--sp-type-label-line-height);
+}
+.fieldError {
+  composes: statusError;
+  font-size: var(--sp-type-label-size);
+  line-height: var(--sp-type-label-line-height);
+}

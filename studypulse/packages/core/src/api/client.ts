@@ -14,6 +14,7 @@ import {
 import { commitPayloadSchema, type CommitPayload } from "../parser/commit.ts";
 import { ApiError, fromPostgrestError } from "./errors.ts";
 import {
+  blockStatusInputSchema,
   createAssignmentInputSchema,
   exportCardsInputSchema,
   registerPushTokenInputSchema,
@@ -21,6 +22,7 @@ import {
   startSessionInputSchema,
   stopSessionInputSchema,
   todayFeedInputSchema,
+  todayOverviewSchema,
   uploadSyllabusInputSchema,
   uuidSchema,
   type CreateAssignmentInput,
@@ -28,7 +30,9 @@ import {
   type UpdateAssignmentInput,
   type StartSessionInput,
   type StopSessionInput,
+  type BlockStatusInput,
   type TodayFeedInput,
+  type TodayOverview,
   type UploadSyllabusInput,
 } from "./schemas.ts";
 
@@ -158,6 +162,17 @@ export function createApiClient(db: Db) {
         const { date } = validate(todayFeedInputSchema, input);
         return unwrap(await db.rpc("get_today_feed", date ? { p_date: date } : {}));
       },
+      /** Metric cards, today's reviews, the next exam, and course chips, in one call. */
+      async overview(): Promise<TodayOverview> {
+        const data = unwrap(await db.rpc("get_today_overview"));
+        const parsed = todayOverviewSchema.safeParse(data);
+        if (!parsed.success) {
+          throw new ApiError(502, "bad_response", "Unexpected response from StudyPulse", {
+            cause: parsed.error,
+          });
+        }
+        return parsed.data;
+      },
     },
 
     assignments: {
@@ -244,6 +259,18 @@ export function createApiClient(db: Db) {
           unscheduled: { assignmentId: string; minutes: number }[];
           overloaded_days: string[];
         }>("plan-study");
+      },
+      /** Marks a study block done (or back to planned, or missed). */
+      async setBlockStatus(input: BlockStatusInput) {
+        const { id, status } = validate(blockStatusInputSchema, input);
+        return unwrap(
+          await db
+            .from("study_blocks")
+            .update({ status })
+            .eq("id", id)
+            .select("id, status, completed_at")
+            .single(),
+        );
       },
     },
 

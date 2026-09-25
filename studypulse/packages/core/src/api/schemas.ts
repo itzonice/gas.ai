@@ -36,6 +36,50 @@ export type UploadSyllabusInput = z.infer<typeof uploadSyllabusInputSchema>;
 export const todayFeedInputSchema = z.object({ date: isoDateSchema.optional() }).default({});
 export type TodayFeedInput = z.infer<typeof todayFeedInputSchema>;
 
+/** Response of get_today_overview(): the Today screen's metrics, reviews, and next exam. */
+export const todayOverviewSchema = z.object({
+  timezone: z.string(),
+  today: isoDateSchema,
+  week_start: isoDateSchema,
+  due_this_week: z.number().int(),
+  focus_minutes_this_week: z.number().int(),
+  courses_at_risk: z.array(
+    z.object({ id: uuidSchema, code: z.string(), current: z.number(), target: z.number() }),
+  ),
+  reviews: z.array(
+    z.object({
+      id: uuidSchema,
+      kind: z.enum(["review", "exam_prep"]),
+      status: z.enum(["planned", "done", "missed"]),
+      starts_at: z.string(),
+      ends_at: z.string(),
+      minutes: z.number().int(),
+      course_id: uuidSchema,
+      assignment_id: uuidSchema.nullable(),
+      title: z.string(),
+    }),
+  ),
+  next_exam: z
+    .object({
+      id: uuidSchema,
+      title: z.string(),
+      course_id: uuidSchema,
+      due_at: z.string(),
+      days_until: z.number().int(),
+    })
+    .nullable(),
+  courses: z.array(
+    z.object({ id: uuidSchema, code: z.string(), name: z.string(), color: z.string().nullable() }),
+  ),
+});
+export type TodayOverview = z.infer<typeof todayOverviewSchema>;
+
+export const blockStatusInputSchema = z.object({
+  id: uuidSchema,
+  status: z.enum(["planned", "done", "missed"]),
+});
+export type BlockStatusInput = z.infer<typeof blockStatusInputSchema>;
+
 export const exportCardsInputSchema = z.object({
   courseId: uuidSchema,
   format: z.enum(["anki", "quizlet"]).default("anki"),

@@ -1502,6 +1502,7 @@ export type Database = {
           title: string;
         }[];
       };
+      get_today_overview: { Args: never; Returns: Json };
       invalidate_push_tokens: {
         Args: { p_token_ids: string[] };
         Returns: number;

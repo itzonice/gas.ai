@@ -128,6 +128,71 @@ export type Database = {
           },
         ];
       };
+      assignment_resources: {
+        Row: {
+          assignment_id: string;
+          course_id: string;
+          created_at: string;
+          id: string;
+          kind: string;
+          position: number;
+          title: string | null;
+          updated_at: string;
+          url: string;
+        };
+        Insert: {
+          assignment_id: string;
+          course_id: string;
+          created_at?: string;
+          id?: string;
+          kind: string;
+          position?: number;
+          title?: string | null;
+          updated_at?: string;
+          url: string;
+        };
+        Update: {
+          assignment_id?: string;
+          course_id?: string;
+          created_at?: string;
+          id?: string;
+          kind?: string;
+          position?: number;
+          title?: string | null;
+          updated_at?: string;
+          url?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "assignment_resources_assignment_fkey";
+            columns: ["assignment_id", "course_id"];
+            isOneToOne: false;
+            referencedRelation: "assignment_grade_shares";
+            referencedColumns: ["assignment_id", "course_id"];
+          },
+          {
+            foreignKeyName: "assignment_resources_assignment_fkey";
+            columns: ["assignment_id", "course_id"];
+            isOneToOne: false;
+            referencedRelation: "assignments";
+            referencedColumns: ["id", "course_id"];
+          },
+          {
+            foreignKeyName: "assignment_resources_course_id_fkey";
+            columns: ["course_id"];
+            isOneToOne: false;
+            referencedRelation: "courses";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "assignment_resources_course_id_fkey";
+            columns: ["course_id"];
+            isOneToOne: false;
+            referencedRelation: "weekly_focus_by_course";
+            referencedColumns: ["course_id"];
+          },
+        ];
+      };
       assignments: {
         Row: {
           category_id: string | null;

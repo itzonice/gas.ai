@@ -12,6 +12,7 @@ import {
   type BillingStatus,
 } from "../billing/plans.ts";
 import { commitPayloadSchema, type CommitPayload } from "../parser/commit.ts";
+import { addResourceInputSchema, type AddResourceInput } from "../resources/index.ts";
 import { ApiError, fromPostgrestError } from "./errors.ts";
 import {
   blockStatusInputSchema,
@@ -263,6 +264,50 @@ export function createApiClient(db: Db) {
       async remove(id: string) {
         const valid = validate(uuidSchema, id);
         const { error } = await db.from("assignments").delete().eq("id", valid);
+        if (error) throw fromPostgrestError(error);
+      },
+    },
+
+    resources: {
+      /** Study links for an assignment, in the order the student arranged them. */
+      async list(assignmentId: string) {
+        const id = validate(uuidSchema, assignmentId);
+        return unwrap(
+          await db
+            .from("assignment_resources")
+            .select("id, kind, url, title, position, created_at")
+            .eq("assignment_id", id)
+            .order("position")
+            .order("created_at"),
+        );
+      },
+      /** Adds a link; its kind (Khan Academy, NotebookLM, Anki deck, other) comes from the URL. */
+      async add(input: AddResourceInput) {
+        const valid = validate(addResourceInputSchema, input);
+        const { data: assignment, error } = await db
+          .from("assignments")
+          .select("course_id")
+          .eq("id", valid.assignmentId)
+          .maybeSingle();
+        if (error) throw fromPostgrestError(error);
+        if (!assignment) throw new ApiError(404, "not_found", "Assignment not found");
+        return unwrap(
+          await db
+            .from("assignment_resources")
+            .insert({
+              assignment_id: valid.assignmentId,
+              course_id: assignment.course_id,
+              kind: valid.kind,
+              url: valid.url,
+              title: valid.title ?? null,
+            })
+            .select("id, kind, url, title, position, created_at")
+            .single(),
+        );
+      },
+      async remove(resourceId: string): Promise<void> {
+        const id = validate(uuidSchema, resourceId);
+        const { error } = await db.from("assignment_resources").delete().eq("id", id);
         if (error) throw fromPostgrestError(error);
       },
     },

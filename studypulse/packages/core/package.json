@@ -22,7 +22,8 @@
     "./lms": "./src/lms/index.ts",
     "./analytics": "./src/analytics/index.ts",
     "./syllabus": "./src/syllabus/index.ts",
-    "./gcal": "./src/gcal/index.ts"
+    "./gcal": "./src/gcal/index.ts",
+    "./resources": "./src/resources/index.ts"
   },
   "scripts": {
     "lint": "eslint .",

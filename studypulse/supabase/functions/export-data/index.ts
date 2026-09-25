@@ -19,7 +19,9 @@ Deno.serve(
       db.from("notification_prefs").select("*").maybeSingle(),
       db
         .from("courses")
-        .select("*, grade_categories(*), assignments(*), flashcards(*), course_meetings(*)")
+        .select(
+          "*, grade_categories(*), assignments(*, assignment_resources(*)), flashcards(*), course_meetings(*)",
+        )
         .order("created_at"),
       db.from("study_sessions").select("*").order("started_at"),
       db.from("study_blocks").select("*").order("starts_at"),

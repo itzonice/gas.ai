@@ -1941,6 +1941,7 @@ export type Database = {
           used_today: number;
         }[];
       };
+      get_stats_overview: { Args: { p_weeks?: number }; Returns: Json };
       get_today_feed: {
         Args: { p_date?: string };
         Returns: {

@@ -222,6 +222,32 @@ export const focusOverviewInputSchema = z.object({
 });
 export type FocusOverviewInput = z.infer<typeof focusOverviewInputSchema>;
 
+/** Response of get_stats_overview(): focus minutes against grade per course. */
+export const statsOverviewSchema = z.object({
+  timezone: z.string(),
+  today: isoDateSchema,
+  week_start: isoDateSchema,
+  period_start: isoDateSchema,
+  weeks: z.number().int(),
+  this_week_minutes: z.number().int(),
+  weekly: z.array(z.object({ week_start: isoDateSchema, minutes: z.number().int() })),
+  average_grade: z.coerce.number().nullable(),
+  courses: z.array(
+    z.object({
+      id: uuidSchema,
+      code: z.string().nullable(),
+      name: z.string(),
+      color: z.string().nullable(),
+      target_grade: z.coerce.number().nullable(),
+      current_grade: z.coerce.number().nullable(),
+      letter: z.string().nullable(),
+      focus_minutes: z.number().int(),
+    }),
+  ),
+});
+export type StatsOverview = z.infer<typeof statsOverviewSchema>;
+export const statsWeeksSchema = z.number().int().min(1).max(26);
+
 /** Response of the `features` edge function. */
 export const featuresResponseSchema = z.object({
   features: z.object({

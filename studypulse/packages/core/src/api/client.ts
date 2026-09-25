@@ -20,6 +20,8 @@ import {
   courseTargetInputSchema,
   featuresResponseSchema,
   coursesOverviewSchema,
+  statsOverviewSchema,
+  statsWeeksSchema,
   focusOverviewInputSchema,
   focusOverviewSchema,
   calendarRangeSchema,
@@ -428,6 +430,17 @@ export function createApiClient(db: Db) {
           await db
             .rpc("stop_study_session", { p_id: id, ...(endedAt ? { p_ended_at: endedAt } : {}) })
             .single(),
+        );
+      },
+    },
+
+    stats: {
+      /** Focus minutes against current grade per course over the last `weeks` weeks. */
+      async overview(weeks = 4) {
+        const p_weeks = validate(statsWeeksSchema, weeks);
+        return parseResponse(
+          statsOverviewSchema,
+          unwrap(await db.rpc("get_stats_overview", { p_weeks })),
         );
       },
     },

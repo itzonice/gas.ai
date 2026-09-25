@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 
+import { PRIORITY_FIXTURES } from "./fixtures.ts";
 import { gradeShare, minutesRemaining, priority } from "./index.ts";
 
 const now = new Date("2027-03-01T15:00:00Z");
@@ -22,8 +23,9 @@ describe("priority", () => {
       status: "todo",
     });
     expect(midterm.score).toBeGreaterThan(quiz.score);
-    expect(midterm.score).toBeCloseTo(67.86, 1);
-    expect(quiz.score).toBeCloseTo(39.89, 1);
+    // Dated, weighted work sits in the 10-90 band: 10 + 80 * blend.
+    expect(midterm.score).toBeCloseTo(64.29, 1);
+    expect(quiz.score).toBeCloseTo(41.91, 1);
   });
 
   it("still puts a small task due in hours above a big one weeks away", () => {
@@ -84,6 +86,85 @@ describe("priority", () => {
     expect(
       priority({ gradeShare: 5, dueAt: null, now, minutesRemaining: 60, status: "todo" }).urgency,
     ).toBe(0.05);
+  });
+});
+
+describe("priority bands", () => {
+  const scored = PRIORITY_FIXTURES.map((f) => ({
+    ...f,
+    ...priority({
+      gradeShare: f.gradeShare,
+      dueAt: f.dueInDays === null ? null : inDays(f.dueInDays),
+      now,
+      minutesRemaining: f.minutesRemaining,
+      status: f.status,
+      dailyMinutes: f.dailyMinutes,
+    }),
+  }));
+  const open = scored.filter((f) => f.status === "todo" || f.status === "in_progress");
+
+  it("scores every fixture as a number from 0 to 100", () => {
+    for (const f of scored) {
+      expect(Number.isFinite(f.score), f.name).toBe(true);
+      expect(f.score, f.name).toBeGreaterThanOrEqual(0);
+      expect(f.score, f.name).toBeLessThanOrEqual(100);
+    }
+  });
+
+  it("puts every open overdue task above every task that isn't overdue", () => {
+    const overdue = open.filter((f) => f.dueInDays !== null && f.dueInDays < 0);
+    const rest = open.filter((f) => !(f.dueInDays !== null && f.dueInDays < 0));
+    expect(overdue.length).toBeGreaterThanOrEqual(6);
+    const lowestOverdue = Math.min(...overdue.map((f) => f.score));
+    const highestRest = Math.max(...rest.map((f) => f.score));
+    expect(lowestOverdue).toBeGreaterThan(highestRest);
+    expect(overdue.every((f) => f.band === "overdue")).toBe(true);
+  });
+
+  it("ranks undated and unweighted work below all dated, weighted work", () => {
+    const upcoming = open.filter((f) => f.dueInDays === null || f.dueInDays >= 0);
+    const weighted = upcoming.filter((f) => f.dueInDays !== null && f.gradeShare > 0);
+    const low = upcoming.filter((f) => f.dueInDays === null || f.gradeShare === 0);
+    expect(low.length).toBeGreaterThanOrEqual(5);
+    expect(Math.max(...low.map((f) => f.score))).toBeLessThan(
+      Math.min(...weighted.map((f) => f.score)),
+    );
+  });
+
+  it("scores done and skipped work 0, even when overdue", () => {
+    for (const f of scored.filter((x) => x.status === "done" || x.status === "skipped")) {
+      expect(f.score, f.name).toBe(0);
+      expect(f.band).toBe("finished");
+    }
+  });
+
+  it("gives in-progress work a small boost within its band", () => {
+    const todo = scored.find((f) => f.name === "10% in 3 days, not started");
+    const doing = scored.find((f) => f.name === "in progress");
+    expect(doing?.score).toBeGreaterThan(todo?.score ?? Infinity);
+    expect((doing?.score ?? 0) - (todo?.score ?? 0)).toBeLessThan(10);
+  });
+
+  it("treats non-finite inputs as missing instead of returning NaN", () => {
+    const weird = priority({
+      gradeShare: Number.NaN,
+      dueAt: "not a date",
+      now,
+      minutesRemaining: Number.POSITIVE_INFINITY,
+      status: "todo",
+      dailyMinutes: Number.NaN,
+    });
+    expect(weird).toMatchObject({ band: "low", daysUntilDue: null });
+    expect(Number.isFinite(weird.score)).toBe(true);
+    expect(
+      priority({
+        gradeShare: Infinity,
+        dueAt: inDays(1),
+        now,
+        minutesRemaining: 30,
+        status: "todo",
+      }).score,
+    ).toBeLessThanOrEqual(90);
   });
 });
 

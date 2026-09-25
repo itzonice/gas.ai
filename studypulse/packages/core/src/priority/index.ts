@@ -2,6 +2,16 @@
 //   impact   - the task's share of the final grade (damped: 2% vs 30% matters, 30% vs 40% less so)
 //   urgency  - how little slack is left: days until due minus the days of work remaining
 //   status   - done/skipped tasks drop out; in-progress work gets a small momentum boost
+// into a 0-1 blend, then places it in a band so the order between kinds of work is fixed:
+//   90-100  overdue and still open (the student hasn't finished or skipped it), whatever
+//           its weight: late work that can still be handed in comes first. Work that can't
+//           be submitted any more should be marked skipped, which scores 0.
+//   10-90   dated work that counts toward the grade (grade share > 0)
+//    0-10   undated work, and work with no category or weight (grade share 0): it still
+//           ranks, but always below dated, weighted work
+//    0      done or skipped
+// Non-finite inputs are treated as missing (share 0, no due date, no work left), so the
+// score is always a number from 0 to 100.
 // The SQL function public.task_priority mirrors this formula exactly (parity-tested).
 
 export type TaskStatus = "todo" | "in_progress" | "done" | "skipped";
@@ -14,6 +24,13 @@ export const IMPACT_SATURATION_SHARE = 30;
 export const IN_PROGRESS_BOOST = 1.1;
 /** Urgency for tasks with no due date. */
 export const UNDATED_URGENCY = 0.05;
+/** Score bands (see the header). */
+export const PRIORITY_BANDS = {
+  overdue: { min: 90, max: 100 },
+  dated: { min: 10, max: 90 },
+  low: { min: 0, max: 10 },
+} as const;
+export type PriorityBand = keyof typeof PRIORITY_BANDS | "finished";
 /** Default study capacity when the user hasn't set one. */
 export const DEFAULT_DAILY_MINUTES = 120;
 
@@ -45,6 +62,7 @@ export interface PriorityInput {
 export interface PriorityBreakdown {
   /** 0-100; 0 for finished tasks. */
   score: number;
+  band: PriorityBand;
   impact: number;
   urgency: number;
   daysUntilDue: number | null;
@@ -69,26 +87,39 @@ export function urgencyScore(
 }
 
 export function priority(input: PriorityInput): PriorityBreakdown {
+  const finite = (x: number) => Number.isFinite(x);
   const dailyMinutes =
-    input.dailyMinutes && input.dailyMinutes > 0 ? input.dailyMinutes : DEFAULT_DAILY_MINUTES;
-  const due = input.dueAt === null ? null : new Date(input.dueAt);
-  const daysUntilDue = due === null ? null : (due.getTime() - input.now.getTime()) / 86_400_000;
-  const workDays = Math.max(0, input.minutesRemaining) / dailyMinutes;
-  const impact = impactScore(input.gradeShare);
+    input.dailyMinutes !== undefined && finite(input.dailyMinutes) && input.dailyMinutes > 0
+      ? input.dailyMinutes
+      : DEFAULT_DAILY_MINUTES;
+  const share = finite(input.gradeShare) ? Math.max(0, input.gradeShare) : 0;
+  const minutes = finite(input.minutesRemaining) ? Math.max(0, input.minutesRemaining) : 0;
+  const dueMs = input.dueAt === null ? NaN : new Date(input.dueAt).getTime();
+  const daysUntilDue = finite(dueMs) ? (dueMs - input.now.getTime()) / 86_400_000 : null;
+  const workDays = minutes / dailyMinutes;
+  const impact = impactScore(share);
   const { urgency, slackDays } = urgencyScore(daysUntilDue, workDays);
+  const overdue = daysUntilDue !== null && daysUntilDue < 0;
 
   if (input.status === "done" || input.status === "skipped") {
-    return { score: 0, impact, urgency, daysUntilDue, slackDays, overdue: false };
+    return { score: 0, band: "finished", impact, urgency, daysUntilDue, slackDays, overdue: false };
   }
-  const base = PRIORITY_WEIGHTS.impact * impact + PRIORITY_WEIGHTS.urgency * urgency;
-  const boosted = input.status === "in_progress" ? base * IN_PROGRESS_BOOST : base;
+  const blend = PRIORITY_WEIGHTS.impact * impact + PRIORITY_WEIGHTS.urgency * urgency;
+  const base = Math.min(1, input.status === "in_progress" ? blend * IN_PROGRESS_BOOST : blend);
+  const band: PriorityBand = overdue
+    ? "overdue"
+    : daysUntilDue !== null && share > 0
+      ? "dated"
+      : "low";
+  const { min, max } = PRIORITY_BANDS[band];
   return {
-    score: Math.round(Math.min(1, boosted) * 100 * 1000) / 1000,
+    score: Math.round((min + (max - min) * base) * 1000) / 1000,
+    band,
     impact,
     urgency,
     daysUntilDue,
     slackDays,
-    overdue: daysUntilDue !== null && daysUntilDue < 0,
+    overdue,
   };
 }
 

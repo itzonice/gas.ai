@@ -1,5 +1,7 @@
 // POST /stripe-checkout  { "interval": "monthly" | "yearly", "student"?: true, "promoCode"?: "FALL20" }
 //   ->  { "url": "https://checkout.stripe.com/..." }
+// GET /stripe-checkout  ->  { "monthly": { amount_cents, currency } | null, "yearly": ... }
+//   The live prices, so the price sits next to the subscribe button (launch safety S16).
 // Starts a Stripe Checkout for StudyPulse Pro. The client redirects to the returned URL;
 // the subscription itself is recorded by the Stripe webhook, never by this endpoint.
 // Users who already have an active subscription (on any platform) get 409 and should
@@ -18,6 +20,8 @@ import {
   findPromotionCode,
   isAcademicEmail,
   isStudentOnlyPromotion,
+  type PricesResponse,
+  retrieveStripePrice,
   STUDENT_CODE_TTL_MS,
   type StripeOptions,
 } from "@studypulse/core/billing/index.ts";
@@ -77,9 +81,32 @@ async function discountFor(
   return undefined;
 }
 
+/** Prices change rarely; each worker re-reads them from Stripe at most every 10 minutes. */
+const PRICE_TTL_MS = 10 * 60_000;
+let priceCache: { at: number; value: PricesResponse } | null = null;
+
+async function currentPrices(): Promise<PricesResponse> {
+  if (priceCache && Date.now() - priceCache.at < PRICE_TTL_MS) return priceCache.value;
+  const e = env();
+  if (!e.STRIPE_SECRET_KEY) return { monthly: null, yearly: null };
+  const options = stripeOptions();
+  const one = async (id: string | undefined) => {
+    if (!id) return null;
+    const p = await retrieveStripePrice(id, options);
+    return p.unit_amount === null ? null : { amount_cents: p.unit_amount, currency: p.currency };
+  };
+  const [monthly, yearly] = await Promise.all([
+    one(e.STRIPE_PRICE_MONTHLY),
+    one(e.STRIPE_PRICE_YEARLY),
+  ]);
+  priceCache = { at: Date.now(), value: { monthly, yearly } };
+  return priceCache.value;
+}
+
 Deno.serve(
   createHandler("stripe-checkout", async (req, { log }) => {
-    requireMethod(req, "POST");
+    requireMethod(req, "GET", "POST");
+    if (req.method === "GET") return json(await currentPrices());
     const user = await requireUser(req);
     const input = await parseJsonBody(req, checkoutInputSchema);
     const { interval } = input;

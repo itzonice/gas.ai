@@ -11,6 +11,7 @@ import {
   type BillingInterval,
   type BillingStatus,
 } from "../billing/plans.ts";
+import { pricesResponseSchema, type PricesResponse } from "../billing/terms.ts";
 import { commitPayloadSchema, type CommitPayload } from "../parser/commit.ts";
 import { addResourceInputSchema, type AddResourceInput } from "../resources/index.ts";
 import { ApiError, fromPostgrestError } from "./errors.ts";
@@ -915,6 +916,12 @@ export function createApiClient(db: Db) {
         const body = validate(checkoutInputSchema, { interval, ...discount });
         const { url } = await invoke<{ url: string }>("stripe-checkout", { body });
         return url;
+      },
+      /** Current web prices, to show next to the subscribe button (null when unknown). */
+      async prices(): Promise<PricesResponse> {
+        const data = await invoke<unknown>("stripe-checkout", { method: "GET" });
+        const parsed = pricesResponseSchema.safeParse(data);
+        return parsed.success ? parsed.data : { monthly: null, yearly: null };
       },
       /** The Stripe customer-portal URL for web subscribers (ApiError 404 otherwise). */
       async openPortal(): Promise<string> {

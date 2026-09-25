@@ -114,8 +114,12 @@ Numbers are starting points; raise them as usage grows.
 
 - [ ] Webhooks registered:
   - [ ] Stripe → `https://<ref>.supabase.co/functions/v1/stripe-webhook`, events
-        `customer.subscription.*` and `charge.refunded`; its signing secret is
-        `STRIPE_WEBHOOK_SECRET`.
+        `customer.subscription.*`, `charge.refunded`, `invoice.paid`, and
+        `invoice.upcoming` (confirmation and yearly renewal reminder emails, S16); its
+        signing secret is `STRIPE_WEBHOOK_SECRET`.
+  - [ ] Stripe → Settings → Billing → Subscriptions: "Upcoming renewal events" at least
+        7 days before renewal (when `invoice.upcoming` fires). Also turn on Stripe's own
+        receipts and "Send emails about upcoming renewals" as a second reminder.
   - [ ] RevenueCat → `.../functions/v1/revenuecat-webhook` with Authorization header =
         `REVENUECAT_WEBHOOK_AUTH`; send a test event and check `billing_events`.
 - [ ] Stripe: customer portal configured (cancel, update card, invoices); student coupon

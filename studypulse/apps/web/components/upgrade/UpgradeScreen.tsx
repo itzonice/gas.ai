@@ -5,7 +5,12 @@
 // the Stripe page (the price ids live in the server's environment). After checkout,
 // Stripe returns to /billing/success, where this screen waits for the webhook to land.
 import { ApiError, type Features } from "@studypulse/core/api";
-import type { BillingInterval, BillingStatus } from "@studypulse/core/billing";
+import {
+  subscriptionTerms,
+  type BillingInterval,
+  type BillingStatus,
+  type PricesResponse,
+} from "@studypulse/core/billing";
 import { PLAN_FEATURES } from "@studypulse/core/plans";
 import Link from "next/link";
 import { useCallback, useEffect, useState, type FormEvent } from "react";
@@ -36,6 +41,7 @@ export function UpgradeScreen({ returned }: { returned?: "success" | "canceled" 
   const [promo, setPromo] = useState("");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
+  const [prices, setPrices] = useState<PricesResponse>({ monthly: null, yearly: null });
 
   const refresh = useCallback(async () => {
     try {
@@ -43,6 +49,9 @@ export function UpgradeScreen({ returned }: { returned?: "success" | "canceled" 
         api.billing.status(),
         api.features().catch(() => null),
       ]);
+      // Prices are shown next to every subscribe button (S16); without them the page
+      // still states the terms and Checkout shows the amount.
+      void api.billing.prices().then(setPrices, () => undefined);
       setLoad({ status: "ready", billing, features });
       return billing;
     } catch (e) {
@@ -93,6 +102,7 @@ export function UpgradeScreen({ returned }: { returned?: "success" | "canceled" 
   }
 
   const ready = load.status === "ready";
+  const terms = subscriptionTerms(interval, prices[interval]);
   const pro = ready && load.billing.pro;
   const available = ready && Boolean(load.features?.stripe);
 
@@ -100,7 +110,11 @@ export function UpgradeScreen({ returned }: { returned?: "success" | "canceled" 
     <div className={styles.content}>
       <PageHeader
         title="StudyPulse Pro"
-        description="More courses, more imports, and every import source."
+        description={
+          ready && !pro && available
+            ? `More courses, more imports, and every import source. ${terms.price ? `${terms.price}. ` : ""}${terms.renewal} Cancel anytime in Settings.`
+            : "More courses, more imports, and every import source."
+        }
         {...(ready && !pro && available
           ? {
               primaryAction: {
@@ -198,7 +212,13 @@ export function UpgradeScreen({ returned }: { returned?: "success" | "canceled" 
                 <span>
                   {value === "yearly" ? "Yearly" : "Monthly"}
                   <span className={styles.hint}>
-                    {value === "yearly" ? " · billed once a year" : " · billed every month"}
+                    {" · "}
+                    {[
+                      subscriptionTerms(value, prices[value]).price,
+                      value === "yearly" ? "billed once a year" : "billed every month",
+                    ]
+                      .filter(Boolean)
+                      .join(" · ")}
                   </span>
                 </span>
               </label>
@@ -226,14 +246,23 @@ export function UpgradeScreen({ returned }: { returned?: "success" | "canceled" 
               {error}
             </p>
           ) : null}
-          <p className={styles.note}>
-            You&apos;ll see the price and pay on Stripe&apos;s secure checkout page. Pro renews
-            automatically until you cancel, which you can do anytime in Settings. By subscribing you
-            agree to the <Link href="/terms">Terms of Use</Link> and{" "}
-            <Link href="/privacy">Privacy Policy</Link>.
-          </p>
+          <div className={styles.note} id="checkout-terms">
+            <p>
+              <strong>
+                {terms.price
+                  ? `${terms.price} · ${terms.frequency.toLowerCase()}.`
+                  : `${terms.frequency}; the price is shown on the checkout page.`}
+              </strong>{" "}
+              {terms.renewal} {terms.cancel}
+            </p>
+            <p>
+              You&apos;ll pay on Stripe&apos;s secure checkout page. By subscribing you agree to the{" "}
+              <Link href="/terms">Terms of Use</Link> and{" "}
+              <Link href="/privacy">Privacy Policy</Link>.
+            </p>
+          </div>
           <div>
-            <Button type="submit" variant="tonal" disabled={busy}>
+            <Button type="submit" variant="tonal" disabled={busy} aria-describedby="checkout-terms">
               Continue to checkout
             </Button>
           </div>

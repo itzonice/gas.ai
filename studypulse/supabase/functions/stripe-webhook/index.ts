@@ -6,6 +6,7 @@
 // Responses: 2xx = done (including duplicates and ignored types); 400 = bad signature or
 // body (Stripe won't fix it by retrying); 5xx = our failure, so Stripe retries.
 import {
+  billingEmailFromEvent,
   cancelStripeSubscription,
   stripeEventAction,
   stripeEventSchema,
@@ -14,11 +15,13 @@ import {
   verifyStripeSignature,
   type SubscriptionUpdate,
 } from "@studypulse/core/billing/index.ts";
+import { sendResendBatch } from "@studypulse/core/notify/index.ts";
 
 import { stripeOptions } from "../_shared/billing.ts";
 import { env } from "../_shared/env.ts";
 import { createHandler } from "../_shared/handler.ts";
 import { HttpError, json, requireMethod } from "../_shared/http.ts";
+import { providerFetch } from "../_shared/resilience.ts";
 import { adminClient } from "../_shared/supabase.ts";
 
 const MAX_BODY_BYTES = 1_000_000;
@@ -73,6 +76,40 @@ Deno.serve(
       ...(update ? { p_subscription: { ...update } } : {}),
     });
     if (error) throw error;
+
+    // Confirmation on a new subscription, and a reminder before yearly renewals (S16).
+    // Resend's idempotency key is the event id, so Stripe's retries never send twice.
+    const e = env();
+    const email =
+      result === "duplicate"
+        ? null
+        : billingEmailFromEvent(event, {
+            ...(e.APP_URL ? { appUrl: e.APP_URL.replace(/\/+$/, "") } : {}),
+            ...(e.SUPPORT_EMAIL ? { supportEmail: e.SUPPORT_EMAIL } : {}),
+          });
+    if (email && e.RESEND_API_KEY && e.EMAIL_FROM) {
+      await sendResendBatch(
+        [
+          {
+            from: e.EMAIL_FROM,
+            to: [email.to],
+            subject: email.subject,
+            html: email.html,
+            text: email.text,
+            tags: [{ name: "kind", value: email.kind }],
+          },
+        ],
+        `billing-email:${event.id}`,
+        {
+          apiKey: e.RESEND_API_KEY,
+          ...(e.RESEND_API_URL ? { baseUrl: e.RESEND_API_URL } : {}),
+          fetch: providerFetch("resend"),
+        },
+      );
+      log.info("billing email sent", { event_id: event.id, kind: email.kind });
+    } else if (email) {
+      log.warn("billing email not sent: email isn't configured", { kind: email.kind });
+    }
 
     const fields = { event_id: event.id, type: event.type, result };
     if (result === "unknown_user") log.error("stripe event for an unknown user", fields);

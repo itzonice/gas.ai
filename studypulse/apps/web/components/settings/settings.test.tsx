@@ -1,3 +1,4 @@
+import type { PricesResponse } from "@studypulse/core/billing";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
@@ -35,7 +36,12 @@ vi.mock("@/lib/web-push", () => ({
 const api = {
   settings: { get: vi.fn(), updateProfile: vi.fn(), updateNotifications: vi.fn() },
   onboarding: { complete: vi.fn() },
-  billing: { status: vi.fn(), startCheckout: vi.fn(), openPortal: vi.fn() },
+  billing: {
+    status: vi.fn(),
+    startCheckout: vi.fn(),
+    openPortal: vi.fn(),
+    prices: vi.fn(() => Promise.resolve<PricesResponse>({ monthly: null, yearly: null })),
+  },
   account: { exportData: vi.fn(), delete: vi.fn() },
   features: vi.fn(),
 };
@@ -239,6 +245,25 @@ describe("UpgradeScreen", () => {
       expect(api.billing.startCheckout).toHaveBeenCalledWith("monthly", { promoCode: "SPRING" }),
     );
     expect(assign).toHaveBeenCalledWith("https://checkout.stripe.test/s");
+  });
+
+  it("shows the price, frequency, renewal, and how to cancel next to the button", async () => {
+    api.features.mockResolvedValue({ ...noFeatures, stripe: true });
+    api.billing.prices.mockResolvedValue({
+      monthly: { amount_cents: 499, currency: "usd" },
+      yearly: { amount_cents: 3999, currency: "usd" },
+    });
+    render(<UpgradeScreen />);
+    const button = await screen.findByRole("button", { name: "Continue to checkout" });
+    const terms = document.getElementById(button.getAttribute("aria-describedby") ?? "")!;
+    await waitFor(() => expect(terms).toHaveTextContent("$39.99 / year · billed once a year."));
+    expect(terms).toHaveTextContent("Renews automatically every year until you cancel.");
+    expect(terms).toHaveTextContent("Cancel anytime in Settings → Manage subscription");
+    expect(
+      screen.getByRole("radio", { name: /Monthly.*\$4\.99 \/ month.*billed every month/ }),
+    ).toBeInTheDocument();
+    await userEvent.click(screen.getByRole("radio", { name: /Monthly/ }));
+    expect(terms).toHaveTextContent("$4.99 / month · billed every month.");
   });
 
   it("says upgrades are unavailable when billing is off", async () => {

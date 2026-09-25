@@ -379,3 +379,19 @@ export async function deleteStripeCustomer(
     throw error;
   }
 }
+
+// ------------------------------------------------------------------ prices
+
+const priceSchema = z.looseObject({
+  id: z.string(),
+  unit_amount: z.number().int().nullable(),
+  currency: z.string(),
+  recurring: z.looseObject({ interval: z.enum(["day", "week", "month", "year"]) }).nullable(),
+});
+export type StripePrice = z.infer<typeof priceSchema>;
+
+/** One price, to show the real amount next to the subscribe button (launch safety S16). */
+export function retrieveStripePrice(priceId: string, options: StripeOptions): Promise<StripePrice> {
+  if (!/^price_[A-Za-z0-9]+$/.test(priceId)) throw new Error("not a Stripe price id");
+  return stripeRequest(priceSchema, "GET", `/prices/${priceId}`, {}, options);
+}

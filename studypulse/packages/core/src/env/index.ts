@@ -100,6 +100,8 @@ export const edgeEnvSchema = z.object({
   // a PO box is fine). Marketing email refuses to send without the address.
   COMPANY_LEGAL_NAME: optionalNonEmpty,
   COMPANY_POSTAL_ADDRESS: optionalNonEmpty,
+  // Where students get help; shown in billing emails (and on the site, S19).
+  SUPPORT_EMAIL: optionalNonEmpty,
   // Stripe (web billing). Unset = checkout and portal endpoints return 503.
   STRIPE_SECRET_KEY: optionalNonEmpty,
   STRIPE_PRICE_MONTHLY: optionalNonEmpty,

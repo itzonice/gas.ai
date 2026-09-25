@@ -281,3 +281,29 @@ Every call to Anthropic, Stripe, Expo, Resend, Google, and PostHog goes through
 - **Nothing is sent as marketing yet.** Any future campaign must go through
   `planMarketingEmail`.
 - **Tests:** core tests (footer, headers, opt-in, token scopes) and SQL test 610.
+
+## S16: Renewal terms at every subscribe button, and in email
+
+- **One source for the terms:** `packages/core/src/billing/terms.ts` (`subscriptionTerms`)
+  covers the price, how often it's charged, that it renews until canceled, and how to
+  cancel.
+- **Upgrade page.**
+  - The header (whose button starts checkout) and the checkout panel both show the live
+    price from Stripe (`GET /stripe-checkout`, cached 10 minutes per worker), the
+    frequency, the renewal line, and the cancel instructions.
+  - The Continue button is `aria-describedby` the terms.
+  - Each billing option shows its own price and frequency.
+  - If prices can't be loaded, the page still states the terms and says the price is
+    shown at checkout.
+- **Mobile paywall:** not built yet (L1). It must use `subscriptionTerms` with the store
+  price.
+- **Emails,** both transactional:
+  - `invoice.paid` with `billing_reason: subscription_create` sends a confirmation with
+    the same terms, the next charge date, a link to manage or cancel, and the support
+    address.
+  - `invoice.upcoming` on a yearly price sends a renewal reminder. The Stripe dashboard
+    fires it at least 7 days ahead (launch checklist).
+  - Resend's idempotency key is the Stripe event id, so a retried event never sends
+    twice.
+- **Tests:** core tests for terms and both emails; a web test that the terms sit next to
+  the button and follow the chosen interval.

@@ -4,6 +4,7 @@ import {
   cancelStripeSubscription,
   createCheckoutSession,
   createPortalSession,
+  deleteStripeCustomer,
   createStripeCustomer,
   encodeStripeForm,
   StripeError,
@@ -212,5 +213,29 @@ describe("refund helpers", () => {
     const ended = router({ "GET /v1/subscriptions/sub_1": { id: "sub_1", status: "canceled" } });
     await cancelStripeSubscription("sub_1", { apiKey: "k", fetch: ended });
     expect(ended).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe("deleteStripeCustomer", () => {
+  it("deletes the customer (which cancels their subscriptions)", async () => {
+    const fetchMock = mockFetch({ id: "cus_1", deleted: true });
+    await deleteStripeCustomer("cus_1", { apiKey: "k", fetch: fetchMock });
+    const [url, init] = fetchMock.mock.calls[0]!;
+    expect(url).toBe("https://api.stripe.com/v1/customers/cus_1");
+    expect(init!.method).toBe("DELETE");
+  });
+
+  it("treats an already-deleted customer as done, and surfaces other errors", async () => {
+    const gone = mockFetch(
+      { error: { message: "No such customer", code: "resource_missing" } },
+      404,
+    );
+    await expect(
+      deleteStripeCustomer("cus_1", { apiKey: "k", fetch: gone }),
+    ).resolves.toBeUndefined();
+    const down = mockFetch({ error: { message: "Server error" } }, 500);
+    await expect(
+      deleteStripeCustomer("cus_1", { apiKey: "k", fetch: down }),
+    ).rejects.toBeInstanceOf(StripeError);
   });
 });

@@ -36,6 +36,16 @@ Deno.serve(
         .from("notification_log")
         .select("kind, channel, status, title, body, created_at")
         .order("created_at"),
+      // Own rows only: an organization admin's RLS also shows their roster.
+      db
+        .from("organization_memberships")
+        .select("role, share_focus_hours, sharing_changed_at, joined_at, organizations(name)")
+        .eq("user_id", user.id),
+      db
+        .from("lms_connections")
+        .select(
+          "external_user_name, status, connected_at, last_synced_at, lms_institutions(name, base_url)",
+        ),
     ]);
     for (const r of results) if (r.error) throw r.error;
     const [
@@ -48,6 +58,8 @@ Deno.serve(
       subscriptions,
       devices,
       notifications,
+      organizations,
+      lmsConnections,
     ] = results;
 
     const uploadRows = (uploads.data ?? []) as { file_path: string | null }[];
@@ -72,6 +84,8 @@ Deno.serve(
       subscriptions: subscriptions.data,
       devices: devices.data,
       notifications: notifications.data,
+      organizations: organizations.data,
+      lms_connections: lmsConnections.data,
     };
     const date = body.generated_at.slice(0, 10);
     return new Response(JSON.stringify(body, null, 2), {

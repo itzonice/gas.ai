@@ -357,3 +357,25 @@ export async function createCustomerPromotionCode(
     );
   }
 }
+
+/**
+ * Deletes a Stripe customer, which immediately cancels their subscriptions and removes
+ * their saved payment methods (account deletion). Already-deleted customers are fine.
+ */
+export async function deleteStripeCustomer(
+  customerId: string,
+  options: StripeOptions,
+): Promise<void> {
+  try {
+    await stripeRequest(
+      z.looseObject({ id: z.string(), deleted: z.boolean().optional() }),
+      "DELETE",
+      `/v1/customers/${encodeURIComponent(customerId)}`,
+      {},
+      options,
+    );
+  } catch (error) {
+    if (error instanceof StripeError && error.status === 404) return;
+    throw error;
+  }
+}

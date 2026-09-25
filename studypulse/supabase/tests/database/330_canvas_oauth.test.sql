@@ -43,7 +43,7 @@ select is((select status::text from public.lms_connections where id = :'conn'), 
 
 -- What clients can see ----------------------------------------------------------------------------
 select tests.authenticate_as(:'ada');
-select is((select name from public.lms_institutions), 'State U', 'users can list schools');
+select ok(exists (select 1 from public.lms_institutions where name = 'State U'), 'users can list schools');
 select throws_ok($$ select client_secret_id from public.lms_institutions $$, '42501', null, 'but not their credentials');
 select is((select status::text from public.lms_connections), 'needs_reauth', 'users see their own connection status');
 select throws_ok($$ select access_token_secret_id from public.lms_connections $$, '42501', null, 'but not token references');

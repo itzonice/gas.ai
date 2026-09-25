@@ -120,3 +120,37 @@ export function SelectField({
     </FieldFrame>
   );
 }
+
+/**
+ * A checkbox with its label as part of one 48 px tap target, and an optional hint read
+ * after the label.
+ */
+export function CheckboxField({
+  label,
+  hint,
+  id,
+  ...props
+}: Omit<FieldProps, "error"> & Omit<InputHTMLAttributes<HTMLInputElement>, "type">) {
+  const generated = useId();
+  const inputId = id ?? generated;
+  const hintId = hint ? `${inputId}-hint` : undefined;
+  return (
+    <div className={styles.checkField}>
+      <label htmlFor={inputId} className={styles.checkLabel}>
+        <input
+          id={inputId}
+          type="checkbox"
+          className={styles.checkbox}
+          aria-describedby={hintId}
+          {...props}
+        />
+        <span>{label}</span>
+      </label>
+      {hint ? (
+        <span id={hintId} className={`${styles.fieldHint} ${styles.checkHint}`}>
+          {hint}
+        </span>
+      ) : null}
+    </div>
+  );
+}

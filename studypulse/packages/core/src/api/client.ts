@@ -20,6 +20,10 @@ import {
   courseTargetInputSchema,
   featuresResponseSchema,
   coursesOverviewSchema,
+  notificationPrefsUpdateSchema,
+  onboardingInputSchema,
+  profileUpdateSchema,
+  settingsSchema,
   statsOverviewSchema,
   statsWeeksSchema,
   focusOverviewInputSchema,
@@ -44,6 +48,9 @@ import {
   type GeneratedCardsResponse,
   type UpdateAssignmentInput,
   type FocusOverviewInput,
+  type NotificationPrefsUpdate,
+  type OnboardingInput,
+  type ProfileUpdate,
   type StartSessionInput,
   type StopSessionInput,
   type BlockStatusInput,
@@ -431,6 +438,74 @@ export function createApiClient(db: Db) {
             .rpc("stop_study_session", { p_id: id, ...(endedAt ? { p_ended_at: endedAt } : {}) })
             .single(),
         );
+      },
+    },
+
+    settings: {
+      /** Profile, reminder preferences, and devices, plus the sign-in email. */
+      async get() {
+        const [{ data: auth }, settings] = await Promise.all([
+          db.auth.getUser(),
+          db.rpc("get_settings"),
+        ]);
+        const data = unwrap(settings) as Record<string, unknown>;
+        return parseResponse(settingsSchema, { ...data, email: auth.user?.email ?? null });
+      },
+      /** Saves profile fields that are present (name, school, timezone, study time...). */
+      async updateProfile(input: ProfileUpdate): Promise<void> {
+        const v = validate(profileUpdateSchema, input);
+        const columns = {
+          ...(v.displayName !== undefined
+            ? { display_name: v.displayName === "" ? null : v.displayName }
+            : {}),
+          ...(v.school !== undefined ? { school: v.school === "" ? null : v.school } : {}),
+          ...(v.timezone !== undefined ? { timezone: v.timezone } : {}),
+          ...(v.dailyStudyMinutes !== undefined
+            ? { daily_study_minutes: v.dailyStudyMinutes }
+            : {}),
+          ...(v.studyStartTime !== undefined ? { study_start_time: v.studyStartTime } : {}),
+          ...(v.cardTasksEnabled !== undefined ? { card_tasks_enabled: v.cardTasksEnabled } : {}),
+        };
+        if (Object.keys(columns).length === 0) return;
+        const { data: auth, error: authError } = await db.auth.getUser();
+        if (authError) throw new ApiError(401, "unauthorized", authError.message);
+        const { error } = await db.from("profiles").update(columns).eq("id", auth.user.id);
+        if (error) throw fromPostgrestError(error);
+      },
+      /** Saves reminder preferences that are present. */
+      async updateNotifications(input: NotificationPrefsUpdate): Promise<void> {
+        const v = validate(notificationPrefsUpdateSchema, input);
+        if (Object.keys(v).length === 0) return;
+        const { data: auth, error: authError } = await db.auth.getUser();
+        if (authError) throw new ApiError(401, "unauthorized", authError.message);
+        const { error } = await db.from("notification_prefs").update(v).eq("user_id", auth.user.id);
+        if (error) throw fromPostgrestError(error);
+      },
+    },
+
+    onboarding: {
+      /** Whether this user still needs onboarding (a new account). */
+      async needed(): Promise<boolean> {
+        const { data: auth, error: authError } = await db.auth.getUser();
+        if (authError) throw new ApiError(401, "unauthorized", authError.message);
+        const { data, error } = await db
+          .from("profiles")
+          .select("onboarded_at")
+          .eq("id", auth.user.id)
+          .single();
+        if (error) throw fromPostgrestError(error);
+        return data.onboarded_at === null;
+      },
+      /** Saves the answers and marks onboarding done. */
+      async complete(input: OnboardingInput): Promise<void> {
+        const v = validate(onboardingInputSchema, input);
+        const { error } = await db.rpc("complete_onboarding", {
+          p_display_name: v.displayName,
+          p_timezone: v.timezone,
+          p_daily_study_minutes: v.dailyStudyMinutes,
+          p_study_start_time: v.studyStartTime,
+        });
+        if (error) throw fromPostgrestError(error);
       },
     },
 

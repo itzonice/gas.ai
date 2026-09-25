@@ -41,6 +41,9 @@ begin
     now(), now(), now()
   );
 
+  -- The demo account has already been through onboarding.
+  update public.profiles set onboarded_at = now() where id = demo_id;
+
   -- Courses ------------------------------------------------------------------
   -- The demo account is a Pro subscriber (web, renews in 30 days), so it can hold more
   -- than the free plan's 3 courses and try every import source.

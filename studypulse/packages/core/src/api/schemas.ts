@@ -248,6 +248,82 @@ export const statsOverviewSchema = z.object({
 export type StatsOverview = z.infer<typeof statsOverviewSchema>;
 export const statsWeeksSchema = z.number().int().min(1).max(26);
 
+const hhmmSchema = z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/, "Use HH:MM (24-hour)");
+
+/** Response of get_settings() plus the sign-in email from the session. */
+export const settingsSchema = z.object({
+  email: z.string().nullable(),
+  profile: z.object({
+    display_name: z.string().nullable(),
+    school: z.string().nullable(),
+    timezone: z.string(),
+    daily_study_minutes: z.number().int(),
+    study_start_time: hhmmSchema,
+    card_tasks_enabled: z.boolean(),
+    plan_tier: z.enum(["free", "pro"]),
+    onboarded_at: z.string().nullable(),
+  }),
+  notifications: z.object({
+    push_enabled: z.boolean(),
+    email_digest_enabled: z.boolean(),
+    remind_24h: z.boolean(),
+    remind_2h: z.boolean(),
+    exam_countdown: z.boolean(),
+    morning_digest: z.boolean(),
+    morning_digest_time: hhmmSchema,
+    quiet_hours_enabled: z.boolean(),
+    quiet_hours_start: hhmmSchema,
+    quiet_hours_end: hhmmSchema,
+    daily_cap: z.number().int(),
+  }),
+  devices: z.object({ mobile: z.number().int(), web: z.number().int() }),
+});
+export type Settings = z.infer<typeof settingsSchema>;
+export type NotificationPrefs = Settings["notifications"];
+
+const timezoneSchema = z
+  .string()
+  .min(1)
+  .max(64)
+  .regex(/^[A-Za-z0-9_+\-/]+$/, "Choose a timezone from the list");
+
+export const profileUpdateSchema = z
+  .object({
+    displayName: z.string().trim().max(100).nullable(),
+    school: z.string().trim().max(200).nullable(),
+    timezone: timezoneSchema,
+    dailyStudyMinutes: z.number().int().min(0).max(960),
+    studyStartTime: hhmmSchema,
+    cardTasksEnabled: z.boolean(),
+  })
+  .partial();
+export type ProfileUpdate = z.infer<typeof profileUpdateSchema>;
+
+export const notificationPrefsUpdateSchema = z
+  .object({
+    push_enabled: z.boolean(),
+    email_digest_enabled: z.boolean(),
+    remind_24h: z.boolean(),
+    remind_2h: z.boolean(),
+    exam_countdown: z.boolean(),
+    morning_digest: z.boolean(),
+    morning_digest_time: hhmmSchema,
+    quiet_hours_enabled: z.boolean(),
+    quiet_hours_start: hhmmSchema,
+    quiet_hours_end: hhmmSchema,
+    daily_cap: z.number().int().min(1).max(50),
+  })
+  .partial();
+export type NotificationPrefsUpdate = z.infer<typeof notificationPrefsUpdateSchema>;
+
+export const onboardingInputSchema = z.object({
+  displayName: z.string().trim().max(100),
+  timezone: timezoneSchema,
+  dailyStudyMinutes: z.number().int().min(15).max(960),
+  studyStartTime: hhmmSchema,
+});
+export type OnboardingInput = z.infer<typeof onboardingInputSchema>;
+
 /** Response of the `features` edge function. */
 export const featuresResponseSchema = z.object({
   features: z.object({

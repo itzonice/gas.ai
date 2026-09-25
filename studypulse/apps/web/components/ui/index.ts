@@ -6,5 +6,5 @@ export { MetricCard, MetricGrid } from "./MetricCard";
 export { OverflowMenu, type MenuItem } from "./OverflowMenu";
 export { PageHeader, type PrimaryAction } from "./PageHeader";
 export { TaskList, TaskRow, type TaskRowProps } from "./TaskRow";
-export { SelectField, TextArea, TextField } from "./TextField";
+export { CheckboxField, SelectField, TextArea, TextField } from "./TextField";
 export { Dialog } from "./Dialog";

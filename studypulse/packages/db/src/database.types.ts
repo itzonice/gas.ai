@@ -1288,6 +1288,7 @@ export type Database = {
           display_name: string | null;
           id: string;
           last_replanned_on: string | null;
+          onboarded_at: string | null;
           plan_tier: Database["public"]["Enums"]["plan_tier"];
           school: string | null;
           study_minutes_by_weekday: number[] | null;
@@ -1303,6 +1304,7 @@ export type Database = {
           display_name?: string | null;
           id: string;
           last_replanned_on?: string | null;
+          onboarded_at?: string | null;
           plan_tier?: Database["public"]["Enums"]["plan_tier"];
           school?: string | null;
           study_minutes_by_weekday?: number[] | null;
@@ -1318,6 +1320,7 @@ export type Database = {
           display_name?: string | null;
           id?: string;
           last_replanned_on?: string | null;
+          onboarded_at?: string | null;
           plan_tier?: Database["public"]["Enums"]["plan_tier"];
           school?: string | null;
           study_minutes_by_weekday?: number[] | null;
@@ -1826,6 +1829,15 @@ export type Database = {
         Args: { p_payload?: Json; p_upload_id: string };
         Returns: string;
       };
+      complete_onboarding: {
+        Args: {
+          p_daily_study_minutes: number;
+          p_display_name: string;
+          p_study_start_time: string;
+          p_timezone: string;
+        };
+        Returns: undefined;
+      };
       course_current_grade: { Args: { p_course_id: string }; Returns: number };
       create_organization: {
         Args: { p_name: string };
@@ -1941,6 +1953,7 @@ export type Database = {
           used_today: number;
         }[];
       };
+      get_settings: { Args: never; Returns: Json };
       get_stats_overview: { Args: { p_weeks?: number }; Returns: Json };
       get_today_feed: {
         Args: { p_date?: string };

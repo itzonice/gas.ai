@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 
-import { Placeholder } from "@/components/page/Placeholder";
+import { SettingsScreen } from "@/components/settings/SettingsScreen";
 
 export const metadata: Metadata = { title: "Settings" };
 
 export default function SettingsPage() {
-  return <Placeholder title="Settings" description="Account, notifications, and plan." />;
+  return <SettingsScreen />;
 }

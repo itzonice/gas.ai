@@ -440,3 +440,28 @@
   padding: var(--sp-space-card) var(--sp-space-section);
   border-top: 1px solid var(--sp-color-outline-variant);
 }
+
+/* Checkbox fields: the whole label row is the tap target. */
+.checkField {
+  display: grid;
+}
+.checkLabel {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: var(--sp-layout-min-target);
+  padding: 0 var(--sp-space-related);
+  margin: 0 calc(-1 * var(--sp-space-related));
+  border-radius: var(--sp-radius-control);
+  cursor: pointer;
+}
+.checkLabel:hover {
+  background: color-mix(in srgb, var(--sp-color-on-surface) 8%, transparent);
+}
+.checkLabel:has(input:disabled) {
+  color: var(--sp-color-on-surface-variant);
+  cursor: not-allowed;
+}
+.checkHint {
+  padding-left: 32px;
+}

@@ -494,6 +494,41 @@ export type Database = {
           },
         ];
       };
+      external_busy_times: {
+        Row: {
+          ends_at: string;
+          fetched_at: string;
+          id: number;
+          source: string;
+          starts_at: string;
+          user_id: string;
+        };
+        Insert: {
+          ends_at: string;
+          fetched_at?: string;
+          id?: never;
+          source?: string;
+          starts_at: string;
+          user_id: string;
+        };
+        Update: {
+          ends_at?: string;
+          fetched_at?: string;
+          id?: never;
+          source?: string;
+          starts_at?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "external_busy_times_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       flashcards: {
         Row: {
           assignment_id: string | null;
@@ -553,6 +588,124 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "weekly_focus_by_course";
             referencedColumns: ["course_id"];
+          },
+        ];
+      };
+      google_calendar_connections: {
+        Row: {
+          access_token_expires_at: string | null;
+          access_token_secret_id: string;
+          calendar_id: string | null;
+          connected_at: string;
+          last_error: string | null;
+          last_synced_at: string | null;
+          push_enabled: boolean;
+          read_busy: boolean;
+          refresh_token_secret_id: string | null;
+          status: Database["public"]["Enums"]["lms_connection_status"];
+          updated_at: string;
+          user_id: string;
+        };
+        Insert: {
+          access_token_expires_at?: string | null;
+          access_token_secret_id: string;
+          calendar_id?: string | null;
+          connected_at?: string;
+          last_error?: string | null;
+          last_synced_at?: string | null;
+          push_enabled?: boolean;
+          read_busy?: boolean;
+          refresh_token_secret_id?: string | null;
+          status?: Database["public"]["Enums"]["lms_connection_status"];
+          updated_at?: string;
+          user_id: string;
+        };
+        Update: {
+          access_token_expires_at?: string | null;
+          access_token_secret_id?: string;
+          calendar_id?: string | null;
+          connected_at?: string;
+          last_error?: string | null;
+          last_synced_at?: string | null;
+          push_enabled?: boolean;
+          read_busy?: boolean;
+          refresh_token_secret_id?: string | null;
+          status?: Database["public"]["Enums"]["lms_connection_status"];
+          updated_at?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "google_calendar_connections_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: true;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      google_calendar_events: {
+        Row: {
+          content_hash: string;
+          event_id: string;
+          item_key: string;
+          updated_at: string;
+          user_id: string;
+        };
+        Insert: {
+          content_hash: string;
+          event_id: string;
+          item_key: string;
+          updated_at?: string;
+          user_id: string;
+        };
+        Update: {
+          content_hash?: string;
+          event_id?: string;
+          item_key?: string;
+          updated_at?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "google_calendar_events_connection_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "google_calendar_connections";
+            referencedColumns: ["user_id"];
+          },
+          {
+            foreignKeyName: "google_calendar_events_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      google_oauth_states: {
+        Row: {
+          expires_at: string;
+          state_hash: string;
+          user_id: string;
+        };
+        Insert: {
+          expires_at?: string;
+          state_hash: string;
+          user_id: string;
+        };
+        Update: {
+          expires_at?: string;
+          state_hash?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "google_oauth_states_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
           },
         ];
       };
@@ -1618,6 +1771,69 @@ export type Database = {
           timezone: string;
           user_id: string;
         }[];
+      };
+      gcal_begin_oauth: {
+        Args: { p_state_hash: string; p_user_id: string };
+        Returns: undefined;
+      };
+      gcal_connections_due: {
+        Args: { p_limit?: number };
+        Returns: {
+          user_id: string;
+        }[];
+      };
+      gcal_consume_oauth_state: {
+        Args: { p_state_hash: string };
+        Returns: string;
+      };
+      gcal_credentials: {
+        Args: { p_user_id: string };
+        Returns: {
+          access_token: string;
+          access_token_expires_at: string;
+          calendar_id: string;
+          push_enabled: boolean;
+          read_busy: boolean;
+          refresh_token: string;
+          status: Database["public"]["Enums"]["lms_connection_status"];
+          timezone: string;
+          user_id: string;
+        }[];
+      };
+      gcal_disconnect: { Args: { p_user_id: string }; Returns: boolean };
+      gcal_mark_needs_reauth: {
+        Args: { p_error: string; p_user_id: string };
+        Returns: undefined;
+      };
+      gcal_record_sync: {
+        Args: { p_error?: string; p_user_id: string };
+        Returns: undefined;
+      };
+      gcal_replace_busy: {
+        Args: { p_busy: Json; p_from: string; p_to: string; p_user_id: string };
+        Returns: boolean;
+      };
+      gcal_save_connection: {
+        Args: {
+          p_access_token: string;
+          p_expires_at?: string;
+          p_refresh_token?: string;
+          p_user_id: string;
+        };
+        Returns: undefined;
+      };
+      gcal_set_calendar: {
+        Args: { p_calendar_id?: string; p_user_id: string };
+        Returns: undefined;
+      };
+      gcal_update_tokens: {
+        Args: {
+          p_access_token: string;
+          p_expires_at?: string;
+          p_refresh_token?: string;
+          p_user_id: string;
+        };
+        Returns: undefined;
       };
       get_card_quota: {
         Args: never;

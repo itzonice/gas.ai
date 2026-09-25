@@ -102,6 +102,14 @@ export const edgeEnvSchema = z.object({
   STRIPE_API_URL: optionalUrl,
   // Canvas OAuth redirect URI override; defaults to <SUPABASE_URL>/functions/v1/canvas-oauth/callback.
   CANVAS_REDIRECT_URI: optionalUrl,
+  // Google Calendar sync (OAuth web client from Google Cloud Console). Unset = off.
+  GOOGLE_CLIENT_ID: optionalNonEmpty,
+  GOOGLE_CLIENT_SECRET: optionalNonEmpty,
+  // Defaults to <SUPABASE_URL>/functions/v1/google-oauth/callback.
+  GOOGLE_REDIRECT_URI: optionalUrl,
+  // Test overrides: a base serving /auth, /token, /revoke; and the Calendar API base.
+  GOOGLE_OAUTH_BASE_URL: optionalUrl,
+  GOOGLE_API_BASE_URL: optionalUrl,
   // PostHog project API key (phc_...) for server-side events. Unset = events wait in the outbox.
   POSTHOG_API_KEY: optionalNonEmpty,
   // PostHog ingestion host; defaults to https://us.i.posthog.com (EU: https://eu.i.posthog.com).

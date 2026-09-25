@@ -445,6 +445,21 @@ verify_jwt = true
 import_map = "./functions/deno.json"
 entrypoint = "./functions/generate-cards/index.ts"
 
+[functions.google-oauth]
+enabled = true
+# The callback is a browser redirect from Google with no Supabase session (the one-time
+# state identifies the user); /start and /disconnect check the JWT in the function.
+verify_jwt = false
+import_map = "./functions/deno.json"
+entrypoint = "./functions/google-oauth/index.ts"
+
+[functions.google-calendar-sync]
+enabled = true
+# Users call it with their JWT (checked in the function); pg_cron with x-cron-secret.
+verify_jwt = false
+import_map = "./functions/deno.json"
+entrypoint = "./functions/google-calendar-sync/index.ts"
+
 [functions.delete-account]
 enabled = true
 verify_jwt = true

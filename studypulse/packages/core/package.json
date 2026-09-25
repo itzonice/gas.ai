@@ -21,7 +21,8 @@
     "./billing": "./src/billing/index.ts",
     "./lms": "./src/lms/index.ts",
     "./analytics": "./src/analytics/index.ts",
-    "./syllabus": "./src/syllabus/index.ts"
+    "./syllabus": "./src/syllabus/index.ts",
+    "./gcal": "./src/gcal/index.ts"
   },
   "scripts": {
     "lint": "eslint .",

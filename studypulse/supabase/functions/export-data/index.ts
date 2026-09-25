@@ -46,6 +46,14 @@ Deno.serve(
         .select(
           "external_user_name, status, connected_at, last_synced_at, lms_institutions(name, base_url)",
         ),
+      db
+        .from("google_calendar_connections")
+        .select("status, push_enabled, read_busy, connected_at, last_synced_at"),
+      db.from("external_busy_times").select("source, starts_at, ends_at").order("starts_at"),
+      db
+        .from("card_generations")
+        .select("course_id, status, card_count, notes_chars, created_at")
+        .order("created_at"),
     ]);
     for (const r of results) if (r.error) throw r.error;
     const [
@@ -60,6 +68,9 @@ Deno.serve(
       notifications,
       organizations,
       lmsConnections,
+      googleCalendar,
+      busyTimes,
+      cardGenerations,
     ] = results;
 
     const uploadRows = (uploads.data ?? []) as { file_path: string | null }[];
@@ -86,6 +97,9 @@ Deno.serve(
       notifications: notifications.data,
       organizations: organizations.data,
       lms_connections: lmsConnections.data,
+      google_calendar: googleCalendar.data,
+      busy_times: busyTimes.data,
+      card_generations: cardGenerations.data,
     };
     const date = body.generated_at.slice(0, 10);
     return new Response(JSON.stringify(body, null, 2), {

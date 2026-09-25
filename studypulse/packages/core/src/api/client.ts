@@ -549,6 +549,42 @@ export function createApiClient(db: Db) {
           body: connectionId ? { connection_id: validate(uuidSchema, connectionId) } : {},
         });
       },
+      /** The user's Google Calendar connection, or null. */
+      async googleCalendar() {
+        const { data, error } = await db
+          .from("google_calendar_connections")
+          .select("status, push_enabled, read_busy, last_error, connected_at, last_synced_at")
+          .maybeSingle();
+        if (error) throw fromPostgrestError(error);
+        return data;
+      },
+      /** Google's consent page to send the user to. */
+      async connectGoogleCalendar(): Promise<string> {
+        const { url } = await invoke<{ url: string }>("google-oauth/start");
+        return url;
+      },
+      /** Pushes blocks and deadlines and reads busy times now (at most once a minute). */
+      async syncGoogleCalendar() {
+        return invoke<Record<string, unknown>>("google-calendar-sync");
+      },
+      /** Turns pushing events or reading busy times on or off. */
+      async setGoogleCalendarOptions(options: { pushEnabled?: boolean; readBusy?: boolean }) {
+        const patch = {
+          ...(options.pushEnabled === undefined ? {} : { push_enabled: options.pushEnabled }),
+          ...(options.readBusy === undefined ? {} : { read_busy: options.readBusy }),
+        };
+        const { data: auth } = await db.auth.getUser();
+        if (!auth.user) throw new ApiError(401, "unauthorized", "Sign in first");
+        const { error } = await db
+          .from("google_calendar_connections")
+          .update(patch)
+          .eq("user_id", auth.user.id);
+        if (error) throw fromPostgrestError(error);
+      },
+      /** Disconnects and revokes access at Google. The StudyPulse calendar stays in Google. */
+      async disconnectGoogleCalendar(): Promise<void> {
+        await invoke("google-oauth/disconnect");
+      },
       /** Disconnects and revokes access at Canvas. Synced courses stay. */
       async disconnectCanvas(connectionId: string): Promise<void> {
         await invoke("canvas-oauth/disconnect", {

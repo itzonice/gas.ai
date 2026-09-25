@@ -79,6 +79,16 @@ export async function replanUser(
   });
   if (reviewError) throw reviewError;
 
+  // Busy time from the student's own calendar (Google Calendar sync): plans go around it.
+  const { data: busyRows, error: busyError } = await db
+    .from("external_busy_times")
+    .select("starts_at, ends_at")
+    .eq("user_id", userId)
+    .gt("ends_at", now.toISOString())
+    .lt("starts_at", horizonEnd.toISOString());
+  if (busyError) throw busyError;
+  const busy = busyRows.map((b) => ({ startsAt: b.starts_at, endsAt: b.ends_at }));
+
   // 1b. Closed-note practice quizzes: weekly per course, twice weekly in the two weeks
   //     before an exam, placed after the day's reviews. Exams up to two weeks past the
   //     horizon still ramp up quizzes inside it.
@@ -119,7 +129,7 @@ export async function replanUser(
       now,
       horizonDays: PLAN_HORIZON_DAYS,
       startTime: profile.study_start_time.slice(0, 5),
-      busy: reviews.map((r) => ({ startsAt: r.startsAt, endsAt: r.endsAt })),
+      busy: [...busy, ...reviews.map((r) => ({ startsAt: r.startsAt, endsAt: r.endsAt }))],
     },
   );
   const { data: practiceBlocks, error: practiceError } = await db.rpc("replace_practice_plan", {
@@ -225,6 +235,7 @@ export async function replanUser(
     dayStartTime: profile.study_start_time.slice(0, 5),
     capacity: (date) => byWeekday?.[dayOfWeek(date)] ?? daily,
     existing,
+    busy,
   });
 
   const { data: inserted, error: replaceError } = await db.rpc("replace_study_plan", {

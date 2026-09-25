@@ -37,10 +37,11 @@ Related: [security audit](security-audit.md), [analytics](analytics.md),
 - [ ] Vault secrets for scheduled jobs (SQL editor):
       `select vault.create_secret('https://<ref>.supabase.co', 'project_url');`
       `select vault.create_secret('<same value as CRON_SECRET>', 'cron_secret');`
-- [ ] All 11 cron jobs present and active (`select jobname, schedule, active from cron.job;`):
+- [ ] All 13 cron jobs present and active (`select jobname, schedule, active from cron.job;`):
       send-reminders, send-email-digests, nightly-replan, process-replan-requests,
-      canvas-sync, flush-analytics, ai-cost-monitor, refresh-plan-tiers,
-      cleanup-notification-dedupe, cleanup-push-tokens, cleanup-analytics-events.
+      canvas-sync, google-calendar-sync, create-card-tasks, flush-analytics,
+      ai-cost-monitor, refresh-plan-tiers, cleanup-notification-dedupe, cleanup-push-tokens,
+      cleanup-analytics-events.
 - [ ] Storage: bucket `syllabi` exists, private, 20 MB limit (created by migrations).
 - [ ] **Auth** (Authentication → Settings), per the security audit:
   - [ ] Site URL = the production web origin; redirect allowlist = production web origin
@@ -50,9 +51,10 @@ Related: [security audit](security-audit.md), [analytics](analytics.md),
   - [ ] Custom SMTP (Resend) so auth emails come from your domain; review rate limits.
   - [ ] JWT expiry 3600 s; refresh token rotation on.
 - [ ] Database: SSL enforcement on; network restrictions if you have fixed admin IPs.
-- [ ] **Edge functions deployed**: `supabase functions deploy` (deploys all 19; config in
+- [ ] **Edge functions deployed**: `supabase functions deploy` (deploys all 21; config in
       `supabase/config.toml`). Confirm `verify_jwt` matches config for each
-      (webhooks, cron, calendar-feed, email-unsubscribe, and canvas-oauth are `false`).
+      (webhooks, cron, calendar-feed, email-unsubscribe, canvas-oauth, google-oauth, and
+      google-calendar-sync are `false`).
 - [ ] **Function secrets** (`supabase secrets set --env-file prod.env`; never commit it):
 
       | Group | Variables |
@@ -64,6 +66,7 @@ Related: [security audit](security-audit.md), [analytics](analytics.md),
       | Email | `RESEND_API_KEY`, `EMAIL_FROM`, `EMAIL_UNSUBSCRIBE_SECRET` (random, 32+) |
       | Stripe | `STRIPE_SECRET_KEY` (live), `STRIPE_PRICE_MONTHLY`, `STRIPE_PRICE_YEARLY`, `STRIPE_WEBHOOK_SECRET`, optional `STRIPE_STUDENT_COUPON_ID`, `STUDENT_EMAIL_DOMAINS` |
       | RevenueCat | `REVENUECAT_WEBHOOK_AUTH` (random, 24+) |
+      | Google Calendar | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` |
       | Alerts | `AI_COST_ALERT_USER_CENTS`, `AI_COST_ALERT_TOTAL_CENTS`, `ALERT_WEBHOOK_URL` |
 
       Generate VAPID keys once with `pnpm --filter @studypulse/core vapid:keys`. Leave all
@@ -80,6 +83,11 @@ Related: [security audit](security-audit.md), [analytics](analytics.md),
       created with **no** public promotion code; Stripe Tax if selling where required.
 - [ ] Canvas schools you'll support registered with their developer keys:
       `select public.lms_register_institution('<name>', 'https://<canvas host>', '<client id>', '<client secret>');`
+- [ ] Google Calendar sync: an OAuth web client in Google Cloud Console with redirect URI
+      `https://<ref>.supabase.co/functions/v1/google-oauth/callback`, the Calendar API
+      enabled, and the consent screen listing the two scopes (`calendar.app.created`,
+      `calendar.freebusy`). Both are sensitive scopes: submit for Google's verification
+      early (it takes weeks; until then, only listed test users can connect).
 - [ ] Smoke test in production with a real account: sign up, upload a syllabus, commit,
       start and stop a session, receive a reminder, subscribe with a Stripe test clock or a
       real card then refund it, export data, delete the account.

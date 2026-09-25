@@ -40,6 +40,11 @@ export interface SchedulerOptions {
   horizonDays?: number;
   /** Blocks that stay where they are (locked or done) and use up time. */
   existing?: readonly ExistingBlock[];
+  /**
+   * Time the student is busy elsewhere (e.g. their Google Calendar). Blocks are placed
+   * around it; unlike `existing`, it doesn't use up the day's study minutes.
+   */
+  busy?: readonly { startsAt: string; endsAt: string }[];
 }
 
 export interface PlannedBlock {
@@ -108,7 +113,22 @@ export function scheduleStudyBlocks(
     dayStartTime = "16:00",
     horizonDays = 28,
     existing = [],
+    busy = [],
   } = options;
+  const busyRanges = busy
+    .map((b) => ({ start: Date.parse(b.startsAt), end: Date.parse(b.endsAt) }))
+    .filter((b) => b.end > b.start)
+    .sort((a, b) => a.start - b.start);
+  /** The first instant at or after `from` where `minutes` fit without touching busy time. */
+  const nextFree = (from: Date, minutes: number): Date => {
+    let start = from.getTime();
+    for (const b of busyRanges) {
+      if (b.end <= start) continue;
+      if (b.start >= start + minutes * 60_000) break;
+      start = b.end;
+    }
+    return new Date(start);
+  };
   const today = localDate(now, timezone);
 
   // Build the day slots in the horizon, subtracting time already taken.
@@ -210,6 +230,7 @@ export function scheduleStudyBlocks(
       (a, b) => Date.parse(a.task.dueAt) - Date.parse(b.task.dueAt),
     );
     let cursor = day.cursor;
+    const dayEnd = zonedTimeToUtc(addDays(day.date, 1), "00:00", timezone);
     for (const { task, minutes } of list) {
       let left = minutes;
       while (left > 0) {
@@ -217,8 +238,15 @@ export function scheduleStudyBlocks(
           left > MAX_BLOCK_MINUTES && left - MAX_BLOCK_MINUTES >= MIN_BLOCK_MINUTES
             ? MAX_BLOCK_MINUTES
             : left;
-        const startsAt = cursor;
+        const startsAt = nextFree(cursor, length);
         const endsAt = new Date(startsAt.getTime() + length * 60_000);
+        // Busy time pushed this past midnight: what's left doesn't fit today.
+        if (busyRanges.length > 0 && endsAt > dayEnd) {
+          const entry = unscheduled.find((u) => u.assignmentId === task.assignmentId);
+          if (entry) entry.minutes += left;
+          else unscheduled.push({ assignmentId: task.assignmentId, minutes: left });
+          break;
+        }
         blocks.push({
           assignmentId: task.assignmentId,
           courseId: task.courseId,

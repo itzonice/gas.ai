@@ -27,6 +27,45 @@ const daysOf = (blocks: { assignmentId: string; startsAt: string }[], id: string
   ].sort();
 
 describe("scheduleStudyBlocks", () => {
+  it("places blocks around busy calendar time without using up study minutes", () => {
+    const r = scheduleStudyBlocks(
+      [task({ assignmentId: "hw", dueAt: at("2027-03-05", "23:59"), minutesRemaining: 120 })],
+      {
+        timezone: tz,
+        now,
+        capacity: () => 120,
+        // Friday 4:30-6:00 PM is taken (a shift at work).
+        busy: [{ startsAt: at("2027-03-05", "16:30"), endsAt: at("2027-03-05", "18:00") }],
+      },
+    );
+    expect(r.unscheduled).toEqual([]);
+    const friday = r.blocks.filter((b) => localDate(new Date(b.startsAt), tz) === "2027-03-05");
+    expect(friday.map((b) => [b.startsAt, b.minutes])).toEqual([
+      [at("2027-03-05", "18:00"), 90],
+      [at("2027-03-05", "19:40"), 30],
+    ]);
+    for (const b of r.blocks) {
+      expect(
+        Date.parse(b.endsAt) <= Date.parse(at("2027-03-05", "16:30")) ||
+          Date.parse(b.startsAt) >= Date.parse(at("2027-03-05", "18:00")),
+      ).toBe(true);
+    }
+  });
+
+  it("reports what busy time pushes past midnight as unscheduled", () => {
+    const r = scheduleStudyBlocks(
+      [task({ assignmentId: "hw", dueAt: at("2027-03-01", "23:59"), minutesRemaining: 60 })],
+      {
+        timezone: tz,
+        now,
+        capacity: () => 120,
+        busy: [{ startsAt: at("2027-03-01", "16:00"), endsAt: at("2027-03-01", "23:30") }],
+      },
+    );
+    expect(r.blocks).toEqual([]);
+    expect(r.unscheduled).toEqual([{ assignmentId: "hw", minutes: 60 }]);
+  });
+
   it("schedules backward from the due date, ending before it", () => {
     const r = scheduleStudyBlocks(
       [task({ assignmentId: "hw", dueAt: at("2027-03-05", "23:59"), minutesRemaining: 60 })],

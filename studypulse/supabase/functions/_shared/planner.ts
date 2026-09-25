@@ -11,7 +11,11 @@ import {
   priority,
   type TaskKind,
 } from "@studypulse/core/priority/index.ts";
-import { buildReviewPlan } from "@studypulse/core/review/index.ts";
+import {
+  buildPracticeQuizPlan,
+  buildReviewPlan,
+  EXAM_RAMP_DAYS,
+} from "@studypulse/core/review/index.ts";
 import { scheduleStudyBlocks, type ScheduleResult } from "@studypulse/core/scheduler/index.ts";
 import { addDays, dayOfWeek, localDate, zonedTimeToUtc } from "@studypulse/core/time/index.ts";
 
@@ -23,6 +27,7 @@ export interface ReplanSummary extends ScheduleResult {
   timezone: string;
   inserted: number;
   reviewBlocks: number;
+  practiceBlocks: number;
 }
 
 export async function replanUser(
@@ -73,6 +78,60 @@ export async function replanUser(
     })),
   });
   if (reviewError) throw reviewError;
+
+  // 1b. Closed-note practice quizzes: weekly per course, twice weekly in the two weeks
+  //     before an exam, placed after the day's reviews. Exams up to two weeks past the
+  //     horizon still ramp up quizzes inside it.
+  const rampEnd = zonedTimeToUtc(
+    addDays(today, PLAN_HORIZON_DAYS + 1 + EXAM_RAMP_DAYS),
+    "00:00",
+    tz,
+  );
+  const [coursesRes, upcomingExamsRes] = await Promise.all([
+    db
+      .from("courses")
+      .select("id, term_start, term_end")
+      .eq("user_id", userId)
+      .is("archived_at", null),
+    db
+      .from("assignments")
+      .select("course_id, due_at, courses!inner(user_id, archived_at)")
+      .eq("courses.user_id", userId)
+      .is("courses.archived_at", null)
+      .eq("kind", "exam")
+      .in("status", ["todo", "in_progress"])
+      .gt("due_at", now.toISOString())
+      .lt("due_at", rampEnd.toISOString()),
+  ]);
+  if (coursesRes.error) throw coursesRes.error;
+  if (upcomingExamsRes.error) throw upcomingExamsRes.error;
+  const practice = buildPracticeQuizPlan(
+    (coursesRes.data ?? []).map((c) => ({
+      courseId: c.id,
+      termStart: c.term_start,
+      termEnd: c.term_end,
+    })),
+    (upcomingExamsRes.data ?? []).flatMap((e) =>
+      e.due_at ? [{ courseId: e.course_id, dueAt: e.due_at }] : [],
+    ),
+    {
+      timezone: tz,
+      now,
+      horizonDays: PLAN_HORIZON_DAYS,
+      startTime: profile.study_start_time.slice(0, 5),
+      busy: reviews.map((r) => ({ startsAt: r.startsAt, endsAt: r.endsAt })),
+    },
+  );
+  const { data: practiceBlocks, error: practiceError } = await db.rpc("replace_practice_plan", {
+    p_user_id: userId,
+    p_from: now.toISOString(),
+    p_blocks: practice.map((p) => ({
+      course_id: p.courseId,
+      starts_at: p.startsAt,
+      ends_at: p.endsAt,
+    })),
+  });
+  if (practiceError) throw practiceError;
 
   // 2. Everything the scheduler needs.
   const [assignmentsRes, sessionsRes, blocksRes] = await Promise.all([
@@ -188,5 +247,11 @@ export async function replanUser(
     unscheduled: result.unscheduled.length,
     overloaded_days: result.overloadedDays.length,
   });
-  return { ...result, timezone: tz, inserted: inserted ?? 0, reviewBlocks: reviewBlocks ?? 0 };
+  return {
+    ...result,
+    timezone: tz,
+    inserted: inserted ?? 0,
+    reviewBlocks: reviewBlocks ?? 0,
+    practiceBlocks: practiceBlocks ?? 0,
+  };
 }

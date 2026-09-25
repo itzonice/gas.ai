@@ -1642,17 +1642,23 @@ export type Database = {
         Args: { p_date?: string };
         Returns: {
           assignment_id: string;
+          block_kind: Database["public"]["Enums"]["study_block_kind"];
+          block_status: Database["public"]["Enums"]["study_block_status"];
           capacity_minutes: number;
           course_id: string;
           course_name: string;
           due_at: string;
+          ends_at: string;
           grade_share: number;
+          item_id: string;
+          item_type: string;
           kind: Database["public"]["Enums"]["assignment_kind"];
           minutes_remaining: number;
           overdue: boolean;
           planned_minutes: number;
           priority: number;
           rank: number;
+          starts_at: string;
           status: Database["public"]["Enums"]["assignment_status"];
           studied_minutes: number;
           title: string;
@@ -1830,6 +1836,10 @@ export type Database = {
           user_id: string;
         }[];
       };
+      replace_practice_plan: {
+        Args: { p_blocks: Json; p_from: string; p_user_id: string };
+        Returns: number;
+      };
       replace_review_plan: {
         Args: {
           p_assignment_ids: string[];
@@ -1956,7 +1966,7 @@ export type Database = {
       organization_role: "admin" | "student";
       plan_tier: "free" | "pro";
       push_provider: "expo" | "web_push";
-      study_block_kind: "study" | "exam_prep" | "review";
+      study_block_kind: "study" | "exam_prep" | "review" | "practice_quiz";
       study_block_status: "planned" | "done" | "missed";
       subscription_status:
         | "trialing"
@@ -2121,7 +2131,7 @@ export const Constants = {
       organization_role: ["admin", "student"],
       plan_tier: ["free", "pro"],
       push_provider: ["expo", "web_push"],
-      study_block_kind: ["study", "exam_prep", "review"],
+      study_block_kind: ["study", "exam_prep", "review", "practice_quiz"],
       study_block_status: ["planned", "done", "missed"],
       subscription_status: [
         "trialing",

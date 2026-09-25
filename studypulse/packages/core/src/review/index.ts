@@ -80,3 +80,4 @@ export function buildReviewPlan(
   }
   return blocks.sort((a, b) => a.startsAt.localeCompare(b.startsAt));
 }
+export * from "./practice.ts";

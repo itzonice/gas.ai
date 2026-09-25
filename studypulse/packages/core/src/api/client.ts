@@ -3,7 +3,7 @@
 // rejects with an ApiError on any failure.
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@studypulse/db";
-import type { z } from "zod";
+import { z } from "zod";
 
 import {
   billingStatusSchema,
@@ -23,6 +23,7 @@ import {
   startSessionInputSchema,
   stopSessionInputSchema,
   todayFeedInputSchema,
+  todayFeedRowSchema,
   todayOverviewSchema,
   uploadSyllabusFileInputSchema,
   uploadSyllabusInputSchema,
@@ -36,6 +37,7 @@ import {
   type StopSessionInput,
   type BlockStatusInput,
   type TodayFeedInput,
+  type TodayFeedRow,
   type TodayOverview,
   type UploadSyllabusFileInput,
   type UploadSyllabusInput,
@@ -44,7 +46,6 @@ import {
 type Db = SupabaseClient<Database>;
 type Functions = Database["public"]["Functions"];
 
-export type TodayFeedRow = Functions["get_today_feed"]["Returns"][number];
 export type ParseQuota = Functions["get_parse_quota"]["Returns"][number];
 
 /** Validates input, throwing ApiError(400) with field issues. */
@@ -61,6 +62,15 @@ function unwrap<T>(res: { data: T | null; error: { code?: string; message: strin
   if (res.error) throw fromPostgrestError(res.error);
   if (res.data === null) throw new ApiError(404, "not_found", "Not found");
   return res.data;
+}
+
+/** Validates a JSON response from an RPC; a mismatch is a server bug, reported as 502. */
+function parseResponse<S extends z.ZodType>(schema: S, data: unknown): z.output<S> {
+  const parsed = schema.safeParse(data);
+  if (parsed.success) return parsed.data;
+  throw new ApiError(502, "bad_response", "Unexpected response from StudyPulse", {
+    cause: parsed.error,
+  });
 }
 
 /** Edge function error bodies look like { error, message, details?, request_id }. */
@@ -204,18 +214,14 @@ export function createApiClient(db: Db) {
       /** Ranked tasks for the user's local day, capped by their study minutes. */
       async feed(input: TodayFeedInput = {}): Promise<TodayFeedRow[]> {
         const { date } = validate(todayFeedInputSchema, input);
-        return unwrap(await db.rpc("get_today_feed", date ? { p_date: date } : {}));
+        return parseResponse(
+          z.array(todayFeedRowSchema),
+          unwrap(await db.rpc("get_today_feed", date ? { p_date: date } : {})),
+        );
       },
       /** Metric cards, today's reviews, the next exam, and course chips, in one call. */
       async overview(): Promise<TodayOverview> {
-        const data = unwrap(await db.rpc("get_today_overview"));
-        const parsed = todayOverviewSchema.safeParse(data);
-        if (!parsed.success) {
-          throw new ApiError(502, "bad_response", "Unexpected response from StudyPulse", {
-            cause: parsed.error,
-          });
-        }
-        return parsed.data;
+        return parseResponse(todayOverviewSchema, unwrap(await db.rpc("get_today_overview")));
       },
     },
 

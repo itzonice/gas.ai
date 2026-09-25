@@ -23,7 +23,8 @@ export function dueText(dueAt: string | null, timeZone: string, now: Date): stri
 /** "Worth 20% · 45 min left", omitting parts that don't apply. */
 export function taskMeta(row: Pick<TodayFeedRow, "grade_share" | "minutes_remaining">): string {
   const parts: string[] = [];
-  if (row.grade_share > 0) parts.push(`Worth ${formatNumber(row.grade_share)}%`);
+  if (row.grade_share !== null && row.grade_share > 0)
+    parts.push(`Worth ${formatNumber(row.grade_share)}%`);
   if (row.minutes_remaining > 0) parts.push(`${formatMinutes(row.minutes_remaining)} left`);
   return parts.join(" · ");
 }
@@ -39,6 +40,17 @@ export function formatMinutes(minutes: number): string {
 export function timeRange(startsAt: string, endsAt: string, timeZone: string): string {
   const fmt = new Intl.DateTimeFormat("en-US", { timeZone, hour: "numeric", minute: "2-digit" });
   return fmt.formatRange(new Date(startsAt), new Date(endsAt));
+}
+
+/** "Review · 1 h" or "Closed notes · 20 min" for a review item. */
+export function reviewMeta(row: Pick<TodayFeedRow, "block_kind" | "planned_minutes">): string {
+  const label =
+    row.block_kind === "practice_quiz"
+      ? "Closed notes"
+      : row.block_kind === "exam_prep"
+        ? "Exam prep"
+        : "Review";
+  return `${label} · ${formatMinutes(row.planned_minutes)}`;
 }
 
 export function examCountdown(daysUntil: number): string {

@@ -36,6 +36,30 @@ function fakeDb(responses: {
 
 const uploadId = "5b1f3c6e-8d2a-4f7b-9c1e-2a3b4c5d6e7f";
 
+const feedRow = {
+  item_type: "task",
+  item_id: uploadId,
+  assignment_id: uploadId,
+  course_id: uploadId,
+  course_name: "Biology",
+  title: "Midterm",
+  kind: "exam",
+  status: "todo",
+  block_kind: null,
+  block_status: null,
+  starts_at: null,
+  ends_at: null,
+  due_at: "2027-03-05T15:00:00+00:00",
+  grade_share: "30.00", // numeric columns arrive as strings or numbers
+  minutes_remaining: 300,
+  planned_minutes: 60,
+  priority: 67.9,
+  overdue: false,
+  rank: 1,
+  capacity_minutes: 120,
+  studied_minutes: 0,
+};
+
 describe("input validation", () => {
   it("rejects bad input with field issues before any network call", async () => {
     const { api, calls } = fakeDb({});
@@ -86,11 +110,11 @@ describe("calls", () => {
   it("calls the RPCs with the right arguments", async () => {
     const { api, calls } = fakeDb({
       rpc: {
-        get_today_feed: { data: [{ title: "Midterm", rank: 1 }], error: null },
+        get_today_feed: { data: [feedRow], error: null },
         commit_parsed_syllabus: { data: "course-id", error: null },
       },
     });
-    expect(await api.today.feed({ date: "2027-03-01" })).toEqual([{ title: "Midterm", rank: 1 }]);
+    expect(await api.today.feed({ date: "2027-03-01" })).toEqual([{ ...feedRow, grade_share: 30 }]);
     expect(await api.syllabus.commit(uploadId)).toBe("course-id");
     expect(calls).toEqual([
       { kind: "rpc", name: "get_today_feed", args: { p_date: "2027-03-01" } },

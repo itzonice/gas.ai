@@ -44,7 +44,13 @@ const overview: TodayOverview = {
   courses: [{ id: bio, code: "BIO 201", name: "Biology", color: "#1E88E5" }],
 };
 const row = (title: string, rank: number, extra: Partial<TodayFeedRow> = {}): TodayFeedRow => ({
+  item_type: "task",
+  item_id: `00000000-0000-0000-0000-00000000000${rank}`,
   assignment_id: `00000000-0000-0000-0000-00000000000${rank}`,
+  block_kind: null,
+  block_status: null,
+  starts_at: null,
+  ends_at: null,
   capacity_minutes: 120,
   course_id: bio,
   course_name: "Biology",
@@ -61,6 +67,23 @@ const row = (title: string, rank: number, extra: Partial<TodayFeedRow> = {}): To
   title,
   ...extra,
 });
+const review = (title: string, rank: number, extra: Partial<TodayFeedRow> = {}): TodayFeedRow =>
+  row(title, rank, {
+    item_type: "review",
+    item_id: `00000000-0000-0000-0000-0000000000b${rank}`,
+    assignment_id: null,
+    kind: null,
+    status: null,
+    grade_share: null,
+    priority: null,
+    due_at: null,
+    block_kind: "review",
+    block_status: "planned",
+    starts_at: "2027-03-01T21:00:00Z",
+    ends_at: "2027-03-01T21:30:00Z",
+    planned_minutes: 30,
+    ...extra,
+  });
 
 const api = {
   today: { overview: vi.fn(), feed: vi.fn() },
@@ -75,7 +98,17 @@ beforeEach(() => {
   vi.setSystemTime(new Date("2027-03-01T15:00:00Z"));
   vi.clearAllMocks();
   api.today.overview.mockResolvedValue(overview);
-  api.today.feed.mockResolvedValue([row("Lab 1", 1, { overdue: true }), row("Reading", 2)]);
+  api.today.feed.mockResolvedValue([
+    review("Review: Cell biology", 1),
+    review("Closed-note practice quiz", 2, {
+      block_kind: "practice_quiz",
+      starts_at: "2027-03-01T22:00:00Z",
+      ends_at: "2027-03-01T22:20:00Z",
+      planned_minutes: 20,
+    }),
+    row("Lab 1", 3, { overdue: true }),
+    row("Reading", 4),
+  ]);
   api.assignments.update.mockResolvedValue({});
   api.plan.setBlockStatus.mockResolvedValue({});
 });
@@ -108,6 +141,13 @@ describe("TodayScreen", () => {
     expect(titles[1]).toMatch(/^Reading/);
     expect(within(tasks).getByText("Overdue")).toBeInTheDocument();
     expect(within(tasks).getAllByText("Due today at 11:59 PM")).toHaveLength(2);
+    const reviews = screen.getByRole("list", { name: "Reviews due today" });
+    const reviewTitles = within(reviews)
+      .getAllByRole("link")
+      .map((a) => a.textContent);
+    expect(reviewTitles[0]).toMatch(/^Review: Cell biology/);
+    expect(reviewTitles[1]).toMatch(/^Closed-note practice quiz/);
+    expect(within(reviews).getByText("Closed notes · 20 min")).toBeInTheDocument();
   });
 
   it("marks tasks and reviews done through the API", async () => {
@@ -115,12 +155,12 @@ describe("TodayScreen", () => {
     render(<TodayScreen />);
     await user.click(await screen.findByRole("checkbox", { name: "Mark Lab 1 done" }));
     expect(api.assignments.update).toHaveBeenCalledWith({
-      id: "00000000-0000-0000-0000-000000000001",
+      id: "00000000-0000-0000-0000-000000000003",
       status: "done",
     });
     expect(await screen.findByRole("checkbox", { name: "Mark Lab 1 not done" })).toBeChecked();
 
-    await user.click(screen.getByRole("checkbox", { name: "Mark Cell biology done" }));
+    await user.click(screen.getByRole("checkbox", { name: "Mark Review: Cell biology done" }));
     expect(api.plan.setBlockStatus).toHaveBeenCalledWith({
       id: "00000000-0000-0000-0000-0000000000b1",
       status: "done",

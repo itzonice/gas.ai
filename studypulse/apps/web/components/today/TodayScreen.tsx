@@ -1,6 +1,7 @@
 "use client";
 
-// Today: this week's metrics, today's reviews first, then the ranked task list, with the
+// Today: this week's metrics, today's review items first (exam reviews and closed-note
+// practice quizzes), then the ranked task list, with the
 // next exam and a focus shortcut in the right panel. Everything is computed server-side
 // (get_today_overview and get_today_feed); this component only renders and calls the API.
 import type { TodayFeedRow, TodayOverview } from "@studypulse/core/api";
@@ -25,6 +26,7 @@ import {
   examCountdown,
   focusHours,
   formatMinutes,
+  reviewMeta,
   taskMeta,
   timeRange,
 } from "./model";
@@ -70,24 +72,24 @@ export function TodayScreen() {
   );
 
   async function toggleTask(row: TodayFeedRow, done: boolean) {
-    setTaskDone((s) => ({ ...s, [row.assignment_id]: done }));
+    setTaskDone((s) => ({ ...s, [row.item_id]: done }));
     try {
-      await api.assignments.update({ id: row.assignment_id, status: done ? "done" : "todo" });
+      await api.assignments.update({ id: row.item_id, status: done ? "done" : "todo" });
       setMessage(done ? `${row.title} marked done.` : `${row.title} marked not done.`);
     } catch {
-      setTaskDone((s) => ({ ...s, [row.assignment_id]: !done }));
+      setTaskDone((s) => ({ ...s, [row.item_id]: !done }));
       setMessage(`Couldn't update ${row.title}. Try again.`);
     }
   }
 
-  async function toggleReview(review: TodayOverview["reviews"][number], done: boolean) {
-    setReviewDone((s) => ({ ...s, [review.id]: done }));
+  async function toggleReview(review: TodayFeedRow, done: boolean) {
+    setReviewDone((s) => ({ ...s, [review.item_id]: done }));
     try {
-      await api.plan.setBlockStatus({ id: review.id, status: done ? "done" : "planned" });
-      setMessage(done ? `Review of ${review.title} done.` : `Review of ${review.title} reopened.`);
+      await api.plan.setBlockStatus({ id: review.item_id, status: done ? "done" : "planned" });
+      setMessage(done ? `${review.title} done.` : `${review.title} reopened.`);
     } catch {
-      setReviewDone((s) => ({ ...s, [review.id]: !done }));
-      setMessage(`Couldn't update the review of ${review.title}. Try again.`);
+      setReviewDone((s) => ({ ...s, [review.item_id]: !done }));
+      setMessage(`Couldn't update ${review.title}. Try again.`);
     }
   }
 
@@ -140,6 +142,8 @@ export function TodayScreen() {
   }
 
   const { overview, feed } = load;
+  const reviews = feed.filter((r) => r.item_type === "review");
+  const tasks = feed.filter((r) => r.item_type === "task");
   const tz = overview.timezone;
   const courseOf = (id: string) => {
     const c = courses.get(id);
@@ -172,22 +176,24 @@ export function TodayScreen() {
           />
         </MetricGrid>
 
-        {overview.reviews.length > 0 ? (
+        {reviews.length > 0 ? (
           <section className={styles.section} aria-labelledby="reviews-heading">
             <h2 id="reviews-heading" className={styles.sectionHeading}>
               Reviews due today
             </h2>
             <TaskList label="Reviews due today">
-              {overview.reviews.map((review) => (
+              {reviews.map((review) => (
                 <TaskRow
-                  key={review.id}
-                  id={review.id}
+                  key={review.item_id}
+                  id={review.item_id}
                   title={review.title}
-                  href={`/focus?block=${review.id}`}
+                  href={`/focus?block=${review.item_id}`}
                   course={courseOf(review.course_id)}
-                  dueText={timeRange(review.starts_at, review.ends_at, tz)}
-                  meta={`${review.kind === "exam_prep" ? "Exam prep" : "Review"} · ${formatMinutes(review.minutes)}`}
-                  done={reviewDone[review.id] ?? review.status === "done"}
+                  {...(review.starts_at && review.ends_at
+                    ? { dueText: timeRange(review.starts_at, review.ends_at, tz) }
+                    : {})}
+                  meta={reviewMeta(review)}
+                  done={reviewDone[review.item_id] ?? review.block_status === "done"}
                   onToggleDone={(done) => void toggleReview(review, done)}
                 />
               ))}
@@ -199,28 +205,28 @@ export function TodayScreen() {
           <h2 id="tasks-heading" className={styles.sectionHeading}>
             Up next
           </h2>
-          {feed.length > 0 ? (
+          {tasks.length > 0 ? (
             <>
               <p className={styles.sectionNote}>
                 Ranked by grade weight and due date, sized to your study time today.
               </p>
               <TaskList label="Up next, highest priority first">
-                {feed.map((row) => (
+                {tasks.map((row) => (
                   <TaskRow
-                    key={row.assignment_id}
-                    id={row.assignment_id}
+                    key={row.item_id}
+                    id={row.item_id}
                     title={row.title}
-                    href={`/courses/${row.course_id}?assignment=${row.assignment_id}`}
+                    href={`/courses/${row.course_id}?assignment=${row.item_id}`}
                     course={courseOf(row.course_id)}
                     dueText={dueText(row.due_at, tz, now)}
                     overdue={row.overdue}
                     meta={taskMeta(row)}
-                    done={taskDone[row.assignment_id] ?? row.status === "done"}
+                    done={taskDone[row.item_id] ?? row.status === "done"}
                     onToggleDone={(done) => void toggleTask(row, done)}
                     menuItems={[
                       {
                         label: "Focus on this",
-                        href: `/focus?start=1&assignment=${row.assignment_id}`,
+                        href: `/focus?start=1&assignment=${row.item_id}`,
                       },
                       { label: "Open course", href: `/courses/${row.course_id}` },
                     ]}

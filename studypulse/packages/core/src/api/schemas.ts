@@ -55,6 +55,38 @@ export type UploadSyllabusFileInput = z.input<typeof uploadSyllabusFileInputSche
 export const todayFeedInputSchema = z.object({ date: isoDateSchema.optional() }).default({});
 export type TodayFeedInput = z.infer<typeof todayFeedInputSchema>;
 
+const numeric = z.coerce.number();
+
+/**
+ * One row of get_today_feed(): review items (item_type "review": exam reviews, exam prep,
+ * practice quizzes) come first, then ranked tasks. Review rows have no assignment kind,
+ * status, grade share, or priority; practice quizzes have no assignment.
+ */
+export const todayFeedRowSchema = z.object({
+  item_type: z.enum(["review", "task"]),
+  item_id: uuidSchema,
+  assignment_id: uuidSchema.nullable(),
+  course_id: uuidSchema,
+  course_name: z.string(),
+  title: z.string(),
+  kind: z.enum(ASSIGNMENT_KINDS).nullable(),
+  status: z.enum(["todo", "in_progress", "done", "skipped"]).nullable(),
+  block_kind: z.enum(["study", "review", "exam_prep", "practice_quiz"]).nullable(),
+  block_status: z.enum(["planned", "done", "missed"]).nullable(),
+  starts_at: z.string().nullable(),
+  ends_at: z.string().nullable(),
+  due_at: z.string().nullable(),
+  grade_share: numeric.nullable(),
+  minutes_remaining: z.number().int(),
+  planned_minutes: z.number().int(),
+  priority: numeric.nullable(),
+  overdue: z.boolean(),
+  rank: z.number().int(),
+  capacity_minutes: z.number().int(),
+  studied_minutes: z.number().int(),
+});
+export type TodayFeedRow = z.infer<typeof todayFeedRowSchema>;
+
 /** Response of get_today_overview(): the Today screen's metrics, reviews, and next exam. */
 export const todayOverviewSchema = z.object({
   timezone: z.string(),

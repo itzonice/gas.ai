@@ -15,15 +15,20 @@ insert into public.study_blocks (id, user_id, course_id, assignment_id, starts_a
   ('b0000000-0000-0000-0000-0000000000f1', :'u', 'c0000000-0000-0000-0000-0000000000f1',
    'a0000000-0000-0000-0000-0000000000f1', now() + interval '1 hour', now() + interval '1 hour 45 minutes', 'study');
 
--- Local midnight today in Kolkata, as a timestamptz.
+-- Local midnight today in Kolkata, as a timestamptz. The session crossing midnight ends 20
+-- minutes into today, or (in the first minutes after local midnight) a few whole minutes
+-- before now, so it never overlaps the session started below. now() is fixed for the
+-- whole transaction.
 create temp table t as
-select ((now() at time zone 'Asia/Kolkata')::date)::timestamp at time zone 'Asia/Kolkata' as midnight;
+select midnight,
+  least(midnight + interval '20 minutes', date_trunc('minute', now() - interval '6 minutes')) as crossing_end
+from (select ((now() at time zone 'Asia/Kolkata')::date)::timestamp at time zone 'Asia/Kolkata' as midnight) m;
 grant select on t to authenticated;
 
 -- Yesterday (a session crossing midnight: 20 of its minutes are today), 2 and 3 days ago,
 -- then a gap, then 5 days ago. The other user's session never counts.
 insert into public.study_sessions (user_id, course_id, assignment_id, started_at, ended_at)
-select :'u'::uuid, 'c0000000-0000-0000-0000-0000000000f1'::uuid, null::uuid, midnight - interval '30 minutes', midnight + interval '20 minutes' from t
+select :'u'::uuid, 'c0000000-0000-0000-0000-0000000000f1'::uuid, null::uuid, midnight - interval '30 minutes', crossing_end from t
 union all select :'u', 'c0000000-0000-0000-0000-0000000000f1', 'a0000000-0000-0000-0000-0000000000f1',
   midnight - interval '2 days' + interval '12 hours', midnight - interval '2 days' + interval '13 hours' from t
 union all select :'u', 'c0000000-0000-0000-0000-0000000000f1', null,
@@ -38,8 +43,9 @@ select tests.authenticate_as(:'u');
 create temp table f1 as select public.get_focus_overview() as j;
 select is((select (j ->> 'streak_days')::int from f1), 3,
   'streak counts back from yesterday when nothing is logged today yet, and stops at a gap');
-select is((select (j ->> 'today_minutes')::int from f1), 20,
-  'only the part of a session inside the local day counts toward today');
+select is((select (j ->> 'today_minutes')::int from f1),
+  (select greatest(0, extract(epoch from crossing_end - midnight) / 60)::int from t),
+  'only the part of a session inside the local day counts toward today (20 minutes, except just after midnight)');
 select is((select j ->> 'today' from f1), (now() at time zone 'Asia/Kolkata')::date::text, 'today is the local date');
 select ok((select j -> 'running' = 'null'::jsonb from f1), 'nothing running');
 select is((select jsonb_array_length(j -> 'history') from f1), 4, 'history lists the caller''s sessions of a minute or more');
@@ -53,8 +59,9 @@ select is(public.get_focus_overview(p_assignment_id => 'a0000000-0000-0000-0000-
   'BIO 201', 'a linked assignment brings its course');
 
 -- Start studying now: today joins the streak and the running session counts toward today.
+-- (Never before local midnight, so it is today's session even just after midnight.)
 select public.start_study_session('50000000-0000-0000-0000-0000000000f1', 'c0000000-0000-0000-0000-0000000000f1',
-  'a0000000-0000-0000-0000-0000000000f1', now() - interval '5 minutes');
+  'a0000000-0000-0000-0000-0000000000f1', (select greatest(now() - interval '5 minutes', midnight) from t));
 create temp table f2 as select public.get_focus_overview() as j;
 select is((select (j ->> 'streak_days')::int from f2), 4, 'studying today extends the streak');
 select is((select j -> 'running' ->> 'title' from f2), 'Lab 3', 'the running session is returned');

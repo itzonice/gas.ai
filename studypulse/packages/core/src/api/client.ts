@@ -23,6 +23,7 @@ import {
   stopSessionInputSchema,
   todayFeedInputSchema,
   todayOverviewSchema,
+  uploadSyllabusFileInputSchema,
   uploadSyllabusInputSchema,
   uuidSchema,
   type CreateAssignmentInput,
@@ -33,6 +34,7 @@ import {
   type BlockStatusInput,
   type TodayFeedInput,
   type TodayOverview,
+  type UploadSyllabusFileInput,
   type UploadSyllabusInput,
 } from "./schemas.ts";
 
@@ -124,18 +126,57 @@ export function createApiClient(db: Db) {
     return res.data as T;
   }
 
+  /** Starts parsing a syllabus (file already in storage, pasted text, or a URL). */
+  async function uploadSyllabus(input: UploadSyllabusInput) {
+    return await invoke<{ upload_id: string; status: string }>("upload-syllabus", {
+      body: validate(uploadSyllabusInputSchema, input),
+    });
+  }
+
   return {
     syllabus: {
-      /** Starts parsing a syllabus (file already in storage, pasted text, or a URL). */
-      async upload(input: UploadSyllabusInput) {
-        return await invoke<{ upload_id: string; status: string }>("upload-syllabus", {
-          body: validate(uploadSyllabusInputSchema, input),
+      upload: uploadSyllabus,
+      /**
+       * Puts a PDF or photo in the caller's folder of the syllabi bucket, then starts
+       * parsing it. The server checks the file's bytes again.
+       */
+      async uploadFile(file: Blob, input: Omit<UploadSyllabusFileInput, "type" | "size">) {
+        const valid = validate(uploadSyllabusFileInputSchema, {
+          ...input,
+          type: file.type,
+          size: file.size,
+        });
+        const { data: auth } = await db.auth.getUser();
+        if (!auth.user) throw new ApiError(401, "unauthorized", "Sign in to upload a syllabus");
+        const safeName = valid.filename.replace(/[^A-Za-z0-9._-]+/g, "_").slice(-100);
+        const path = `${auth.user.id}/${crypto.randomUUID()}-${safeName}`;
+        const { error } = await db.storage
+          .from("syllabi")
+          .upload(path, file, { contentType: valid.type, upsert: false });
+        if (error) {
+          throw new ApiError(503, "upload_failed", "Couldn't upload the file. Try again.", {
+            cause: error,
+          });
+        }
+        return await uploadSyllabus({
+          source: "file",
+          file_path: path,
+          original_filename: valid.filename,
+          ...(valid.term_start ? { term_start: valid.term_start } : {}),
+          ...(valid.term_end ? { term_end: valid.term_end } : {}),
         });
       },
       /** The caller's upload, including status and parse_result once parsed. */
       async get(uploadId: string) {
         const id = validate(uuidSchema, uploadId);
-        return unwrap(await db.from("syllabus_uploads").select("*").eq("id", id).maybeSingle());
+        const { data, error } = await db
+          .from("syllabus_uploads")
+          .select("*")
+          .eq("id", id)
+          .maybeSingle();
+        if (error) throw fromPostgrestError(error);
+        if (!data) throw new ApiError(404, "not_found", "Syllabus upload not found");
+        return data;
       },
       /** Commits a reviewed parse into a course. Returns the course id. */
       async commit(uploadId: string, payload?: CommitPayload) {

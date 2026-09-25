@@ -122,6 +122,21 @@ describe("calls", () => {
     });
   });
 
+  it("rejects unsupported or oversized syllabus files before uploading", async () => {
+    const { api, calls } = fakeDb({});
+    await expect(
+      api.syllabus.uploadFile(new Blob(["x"], { type: "image/heic" }), { filename: "a.heic" }),
+    ).rejects.toMatchObject({
+      status: 400,
+      issues: [{ path: "type", message: "Upload a PDF or a photo (PNG, JPEG, or WebP)" }],
+    });
+    const big = { type: "application/pdf", size: 21 * 1024 * 1024 } as Blob;
+    await expect(api.syllabus.uploadFile(big, { filename: "a.pdf" })).rejects.toMatchObject({
+      issues: [{ path: "size", message: "The file is larger than 20 MB" }],
+    });
+    expect(calls).toEqual([]);
+  });
+
   it("rejects an unknown block status before any call", async () => {
     const { api, calls } = fakeDb({});
     await expect(

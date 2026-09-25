@@ -2,6 +2,7 @@
 // errors in the client and keep web and mobile in agreement.
 import { z } from "zod";
 
+import { SYLLABUS_MAX_BYTES } from "../parser/file-type.ts";
 import { ASSIGNMENT_KINDS } from "../parser/prompts/v1/schema.ts";
 
 export const isoDateSchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Use YYYY-MM-DD");
@@ -32,6 +33,23 @@ export const uploadSyllabusInputSchema = z.discriminatedUnion("source", [
   }),
 ]);
 export type UploadSyllabusInput = z.infer<typeof uploadSyllabusInputSchema>;
+
+/** A syllabus file picked on the device, before it goes to storage. */
+export const SYLLABUS_UPLOAD_TYPES = ["application/pdf", "image/png", "image/jpeg", "image/webp"];
+export const uploadSyllabusFileInputSchema = z.object({
+  filename: z.string().trim().min(1).max(255),
+  type: z.enum(SYLLABUS_UPLOAD_TYPES, {
+    error: "Upload a PDF or a photo (PNG, JPEG, or WebP)",
+  }),
+  size: z
+    .number()
+    .int()
+    .positive("The file is empty")
+    .max(SYLLABUS_MAX_BYTES, "The file is larger than 20 MB"),
+  term_start: isoDateSchema.optional(),
+  term_end: isoDateSchema.optional(),
+});
+export type UploadSyllabusFileInput = z.input<typeof uploadSyllabusFileInputSchema>;
 
 export const todayFeedInputSchema = z.object({ date: isoDateSchema.optional() }).default({});
 export type TodayFeedInput = z.infer<typeof todayFeedInputSchema>;

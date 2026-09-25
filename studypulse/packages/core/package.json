@@ -20,7 +20,8 @@
     "./notify": "./src/notify/index.ts",
     "./billing": "./src/billing/index.ts",
     "./lms": "./src/lms/index.ts",
-    "./analytics": "./src/analytics/index.ts"
+    "./analytics": "./src/analytics/index.ts",
+    "./syllabus": "./src/syllabus/index.ts"
   },
   "scripts": {
     "lint": "eslint .",

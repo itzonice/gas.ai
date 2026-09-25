@@ -360,3 +360,8 @@
   font-size: var(--sp-type-label-size);
   line-height: var(--sp-type-label-line-height);
 }
+.fieldTextArea {
+  min-height: 160px;
+  resize: vertical;
+  line-height: var(--sp-type-body-large-line-height);
+}

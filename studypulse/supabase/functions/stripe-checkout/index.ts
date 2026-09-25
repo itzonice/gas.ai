@@ -149,6 +149,7 @@ Deno.serve(
         idempotencyKey: `checkout-${user.id}-${interval}-${promotionCodeId ?? "none"}-${String(minute)}`,
         ...(promotionCodeId ? { promotionCodeId } : {}),
         ...(termsVersion ? { termsVersion } : {}),
+        automaticTax: e.STRIPE_AUTOMATIC_TAX === "true",
       },
       options,
     );

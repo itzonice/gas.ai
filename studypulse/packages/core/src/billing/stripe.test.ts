@@ -103,6 +103,18 @@ describe("createCheckoutSession", () => {
     });
   });
 
+  it("turns on Stripe Tax so the total with tax shows before payment (S26)", async () => {
+    const fetchMock = mockFetch({ id: "cs_1", url: "https://checkout.stripe.com/c/pay/cs_1" });
+    await createCheckoutSession(
+      { ...input, automaticTax: true },
+      { apiKey: "k", fetch: fetchMock },
+    );
+    expect(form(fetchMock.mock.calls[0]![1])).toMatchObject({
+      "automatic_tax[enabled]": "true",
+      "customer_update[address]": "auto",
+    });
+  });
+
   it("pre-applies a promotion code instead of showing the field", async () => {
     const fetchMock = mockFetch({ id: "cs_1", url: "https://checkout.stripe.com/c/pay/cs_1" });
     await createCheckoutSession(

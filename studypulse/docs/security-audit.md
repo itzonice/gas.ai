@@ -461,3 +461,18 @@ Every call to Anthropic, Stripe, Expo, Resend, Google, and PostHog goes through
 - **Sentry:** it already scrubs personal data (S3/S14); the launch checklist adds the
   project-level IP and retention settings.
 - **Tests:** the core inventory test, a PostHog event test, and SQL test 660.
+
+## S26: No dark patterns at checkout or cancel
+
+- **No pre-selected plan.** Monthly and yearly start unselected, monthly listed first.
+  Checkout won't start until one is chosen ("Choose monthly or yearly billing first"),
+  and until then the header shows both prices.
+- **Total with tax before paying.** The page says the total, including any tax, is shown
+  on the checkout page before payment. With `STRIPE_AUTOMATIC_TAX=true`, Checkout turns
+  on Stripe Tax (`automatic_tax`, `customer_update[address]=auto`). There are no add-ons,
+  and nothing else is added.
+- **Cancel.** One click from Settings to the Stripe portal (or the store). The copy has
+  no guilt-trips or forced offers (checked for "are you sure", "we'll miss you", urgency
+  words: none). The launch checklist says to keep portal retention coupons off.
+- **Tests:** a web test that nothing is pre-selected and checkout needs a choice, and a
+  core test for the Stripe Tax parameters.

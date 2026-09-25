@@ -139,6 +139,8 @@ export interface CheckoutInput {
   idempotencyKey: string;
   /** The Terms version accepted at checkout, stored on the session and subscription. */
   termsVersion?: string;
+  /** Stripe Tax: collect the address and show the total with tax before payment (S26). */
+  automaticTax?: boolean;
 }
 
 /** A hosted Checkout page for a new subscription; returns its URL. */
@@ -169,6 +171,9 @@ export async function createCheckoutSession(
         user_id: input.userId,
         ...(input.termsVersion ? { terms_version: input.termsVersion } : {}),
       },
+      ...(input.automaticTax
+        ? { automatic_tax: { enabled: true }, customer_update: { address: "auto" } }
+        : {}),
       ...(input.promotionCodeId
         ? { discounts: [{ promotion_code: input.promotionCodeId }] }
         : { allow_promotion_codes: input.allowPromotionCodes ?? true }),

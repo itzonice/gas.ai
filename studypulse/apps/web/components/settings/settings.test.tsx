@@ -256,7 +256,14 @@ describe("UpgradeScreen", () => {
     render(<UpgradeScreen />);
     const button = await screen.findByRole("button", { name: "Continue to checkout" });
     const terms = document.getElementById(button.getAttribute("aria-describedby") ?? "")!;
+    // S26: nothing is pre-selected; both prices are shown until the student picks.
+    expect(screen.getByRole("radio", { name: /Yearly/ })).not.toBeChecked();
+    expect(screen.getByRole("radio", { name: /Monthly/ })).not.toBeChecked();
+    await userEvent.click(screen.getByRole("radio", { name: /Yearly/ }));
     await waitFor(() => expect(terms).toHaveTextContent("$39.99 / year · billed once a year."));
+    expect(terms).toHaveTextContent(
+      "including any tax, is shown on the checkout page before you pay",
+    );
     expect(terms).toHaveTextContent("Renews automatically every year until you cancel.");
     expect(terms).toHaveTextContent("Cancel anytime in Settings → Manage subscription");
     expect(
@@ -272,6 +279,14 @@ describe("UpgradeScreen", () => {
     );
   });
 
+  it("won't start checkout until a billing period is chosen (no pre-selected plan)", async () => {
+    api.features.mockResolvedValue({ ...noFeatures, stripe: true });
+    render(<UpgradeScreen />);
+    await userEvent.click(await screen.findByRole("button", { name: "Continue to checkout" }));
+    expect(await screen.findByRole("alert")).toHaveTextContent("Choose monthly or yearly");
+    expect(api.billing.startCheckout).not.toHaveBeenCalled();
+  });
+
   it("says upgrades are unavailable when billing is off", async () => {
     render(<UpgradeScreen />);
     expect(await screen.findByText(/Upgrades aren.t available right now/)).toBeInTheDocument();
@@ -283,7 +298,8 @@ describe("UpgradeScreen", () => {
     const { ApiError } = await import("@studypulse/core/api");
     api.billing.startCheckout.mockRejectedValue(new ApiError(403, "student_email_required", "no"));
     render(<UpgradeScreen />);
-    await userEvent.click(await screen.findByRole("checkbox", { name: "I'm a student" }));
+    await userEvent.click(await screen.findByRole("radio", { name: /Yearly/ }));
+    await userEvent.click(screen.getByRole("checkbox", { name: "I'm a student" }));
     await userEvent.click(screen.getByRole("button", { name: "Upgrade to Pro" }));
     expect(await screen.findByRole("alert")).toHaveTextContent("confirmed school email");
     expect(api.billing.startCheckout).toHaveBeenCalledWith("yearly", { student: true });

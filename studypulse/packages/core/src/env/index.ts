@@ -108,6 +108,9 @@ export const edgeEnvSchema = z.object({
   STRIPE_SECRET_KEY: optionalNonEmpty,
   STRIPE_PRICE_MONTHLY: optionalNonEmpty,
   STRIPE_PRICE_YEARLY: optionalNonEmpty,
+  // "true" once Stripe Tax is set up: Checkout collects the address and shows the total
+  // including tax before payment (S26).
+  STRIPE_AUTOMATIC_TAX: z.enum(["true", "false"]).optional(),
   // Signing secret of the Stripe webhook endpoint (whsec_...).
   STRIPE_WEBHOOK_SECRET: optionalNonEmpty,
   // Authorization header value RevenueCat sends to revenuecat-webhook (set in its dashboard).

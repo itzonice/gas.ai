@@ -37,7 +37,8 @@ const CHECKOUT_ERRORS: Record<string, string> = {
 export function UpgradeScreen({ returned }: { returned?: "success" | "canceled" }) {
   const api = useApi();
   const [load, setLoad] = useState<Load>({ status: "loading" });
-  const [interval, setBillingInterval] = useState<BillingInterval>("yearly");
+  // Nothing pre-selected (S26): the student picks monthly or yearly.
+  const [interval, setBillingInterval] = useState<BillingInterval | null>(null);
   const [student, setStudent] = useState(false);
   const [promo, setPromo] = useState("");
   const [error, setError] = useState("");
@@ -84,8 +85,13 @@ export function UpgradeScreen({ returned }: { returned?: "success" | "canceled" 
 
   async function checkout(e?: FormEvent) {
     e?.preventDefault();
-    setBusy(true);
     setError("");
+    if (!interval) {
+      setError("Choose monthly or yearly billing first.");
+      document.querySelector<HTMLInputElement>('input[name="interval"]')?.focus();
+      return;
+    }
+    setBusy(true);
     try {
       const url = await api.billing.startCheckout(interval, {
         ...(student ? { student: true } : {}),
@@ -103,7 +109,10 @@ export function UpgradeScreen({ returned }: { returned?: "success" | "canceled" 
   }
 
   const ready = load.status === "ready";
-  const terms = subscriptionTerms(interval, prices[interval]);
+  const terms = interval ? subscriptionTerms(interval, prices[interval]) : null;
+  const monthly = subscriptionTerms("monthly", prices.monthly).price;
+  const yearly = subscriptionTerms("yearly", prices.yearly).price;
+  const both = monthly && yearly ? `${monthly} or ${yearly}. ` : "";
   const pro = ready && load.billing.pro;
   const available = ready && Boolean(load.features?.stripe);
 
@@ -113,7 +122,7 @@ export function UpgradeScreen({ returned }: { returned?: "success" | "canceled" 
         title="StudyPulse Pro"
         description={
           ready && !pro && available
-            ? `More courses, more imports, and every import source. ${terms.price ? `${terms.price}. ` : ""}${terms.renewal} Cancel anytime in Settings.`
+            ? `More courses, more imports, and every import source. ${both}Renews automatically until you cancel; cancel anytime in Settings.`
             : "More courses, more imports, and every import source."
         }
         {...(ready && !pro && available
@@ -201,7 +210,7 @@ export function UpgradeScreen({ returned }: { returned?: "success" | "canceled" 
         <form className={styles.panel} onSubmit={(e) => void checkout(e)} noValidate>
           <fieldset className={styles.fieldset}>
             <legend className={styles.sectionHeading}>Billing</legend>
-            {(["yearly", "monthly"] as const).map((value) => (
+            {(["monthly", "yearly"] as const).map((value) => (
               <label key={value} className={styles.radio}>
                 <input
                   type="radio"
@@ -248,13 +257,24 @@ export function UpgradeScreen({ returned }: { returned?: "success" | "canceled" 
             </p>
           ) : null}
           <div className={styles.note} id="checkout-terms">
+            {terms ? (
+              <p>
+                <strong>
+                  {terms.price
+                    ? `${terms.price} · ${terms.frequency.toLowerCase()}.`
+                    : `${terms.frequency}; the price is shown on the checkout page.`}
+                </strong>{" "}
+                {terms.renewal} {terms.cancel}
+              </p>
+            ) : (
+              <p>
+                <strong>Choose monthly or yearly.</strong> Either renews automatically until you
+                cancel. {subscriptionTerms("monthly", null).cancel}
+              </p>
+            )}
             <p>
-              <strong>
-                {terms.price
-                  ? `${terms.price} · ${terms.frequency.toLowerCase()}.`
-                  : `${terms.frequency}; the price is shown on the checkout page.`}
-              </strong>{" "}
-              {terms.renewal} {terms.cancel}
+              The total, including any tax, is shown on the checkout page before you pay. Nothing
+              else is added.
             </p>
             <p>
               See the <Link href="/refunds">refund policy</Link>. Questions? <SupportEmail />.

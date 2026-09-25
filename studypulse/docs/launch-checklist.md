@@ -139,6 +139,10 @@ Numbers are starting points; raise them as usage grows.
 - [ ] PostHog project settings (S25): "Discard client IP data" on (events already send
       no IP), person profiles only for identified users.
 - [ ] Refund window (S18): replace `[N]` on `/refunds` with the window you'll honor.
+- [ ] Stripe Tax (S26): add tax registrations where required, then set
+      `STRIPE_AUTOMATIC_TAX=true` so Checkout shows the total including tax before payment.
+- [ ] Stripe customer portal (S26): cancellation on, **no retention coupons or forced
+      offers** when canceling; the cancel reason survey (if any) must be skippable.
 - [ ] Stripe: customer portal configured (cancel, update card, invoices); student coupon
       created with **no** public promotion code; Stripe Tax if selling where required.
 - [ ] Canvas schools you'll support registered with their developer keys:

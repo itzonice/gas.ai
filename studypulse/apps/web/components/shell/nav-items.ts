@@ -1,4 +1,4 @@
-import type { IconName } from "./icons";
+import type { IconName } from "../ui/icons";
 
 export interface NavItem {
   href: string;

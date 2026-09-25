@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { Suspense, type ReactNode } from "react";
 
-import { Icon } from "./icons";
+import { Icon } from "../ui/icons";
 import { NavLinks } from "./NavLinks";
 import styles from "./shell.module.css";
 

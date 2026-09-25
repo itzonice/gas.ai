@@ -5,7 +5,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-import { Icon } from "./icons";
+import { Icon } from "../ui/icons";
 import { destinations, isActive, secondaryDestinations, type NavItem } from "./nav-items";
 import styles from "./shell.module.css";
 

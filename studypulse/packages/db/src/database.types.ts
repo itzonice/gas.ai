@@ -37,6 +37,8 @@ export type Database = {
           description: string | null;
           due_at: string | null;
           estimated_minutes: number | null;
+          external_id: string | null;
+          external_updated_at: string | null;
           id: string;
           kind: Database["public"]["Enums"]["assignment_kind"];
           points_earned: number | null;
@@ -45,6 +47,7 @@ export type Database = {
           status: Database["public"]["Enums"]["assignment_status"];
           title: string;
           updated_at: string;
+          user_edited_fields: string[];
         };
         Insert: {
           category_id?: string | null;
@@ -54,6 +57,8 @@ export type Database = {
           description?: string | null;
           due_at?: string | null;
           estimated_minutes?: number | null;
+          external_id?: string | null;
+          external_updated_at?: string | null;
           id?: string;
           kind?: Database["public"]["Enums"]["assignment_kind"];
           points_earned?: number | null;
@@ -62,6 +67,7 @@ export type Database = {
           status?: Database["public"]["Enums"]["assignment_status"];
           title: string;
           updated_at?: string;
+          user_edited_fields?: string[];
         };
         Update: {
           category_id?: string | null;
@@ -71,6 +77,8 @@ export type Database = {
           description?: string | null;
           due_at?: string | null;
           estimated_minutes?: number | null;
+          external_id?: string | null;
+          external_updated_at?: string | null;
           id?: string;
           kind?: Database["public"]["Enums"]["assignment_kind"];
           points_earned?: number | null;
@@ -79,6 +87,7 @@ export type Database = {
           status?: Database["public"]["Enums"]["assignment_status"];
           title?: string;
           updated_at?: string;
+          user_edited_fields?: string[];
         };
         Relationships: [
           {
@@ -174,14 +183,17 @@ export type Database = {
           code: string | null;
           color: string | null;
           created_at: string;
+          external_id: string | null;
           id: string;
           instructor: string | null;
           letter_scale: Json | null;
+          lms_connection_id: string | null;
           name: string;
           target_grade: number | null;
           term_end: string | null;
           term_start: string | null;
           updated_at: string;
+          user_edited_fields: string[];
           user_id: string;
         };
         Insert: {
@@ -189,14 +201,17 @@ export type Database = {
           code?: string | null;
           color?: string | null;
           created_at?: string;
+          external_id?: string | null;
           id?: string;
           instructor?: string | null;
           letter_scale?: Json | null;
+          lms_connection_id?: string | null;
           name: string;
           target_grade?: number | null;
           term_end?: string | null;
           term_start?: string | null;
           updated_at?: string;
+          user_edited_fields?: string[];
           user_id?: string;
         };
         Update: {
@@ -204,17 +219,27 @@ export type Database = {
           code?: string | null;
           color?: string | null;
           created_at?: string;
+          external_id?: string | null;
           id?: string;
           instructor?: string | null;
           letter_scale?: Json | null;
+          lms_connection_id?: string | null;
           name?: string;
           target_grade?: number | null;
           term_end?: string | null;
           term_start?: string | null;
           updated_at?: string;
+          user_edited_fields?: string[];
           user_id?: string;
         };
         Relationships: [
+          {
+            foreignKeyName: "courses_lms_connection_id_fkey";
+            columns: ["lms_connection_id"];
+            isOneToOne: false;
+            referencedRelation: "lms_connections";
+            referencedColumns: ["id"];
+          },
           {
             foreignKeyName: "courses_user_id_fkey";
             columns: ["user_id"];
@@ -291,30 +316,36 @@ export type Database = {
           course_id: string;
           created_at: string;
           drop_lowest: number;
+          external_id: string | null;
           id: string;
           name: string;
           position: number;
           updated_at: string;
+          user_edited_fields: string[];
           weight: number;
         };
         Insert: {
           course_id: string;
           created_at?: string;
           drop_lowest?: number;
+          external_id?: string | null;
           id?: string;
           name: string;
           position?: number;
           updated_at?: string;
+          user_edited_fields?: string[];
           weight: number;
         };
         Update: {
           course_id?: string;
           created_at?: string;
           drop_lowest?: number;
+          external_id?: string | null;
           id?: string;
           name?: string;
           position?: number;
           updated_at?: string;
+          user_edited_fields?: string[];
           weight?: number;
         };
         Relationships: [
@@ -393,6 +424,35 @@ export type Database = {
             columns: ["user_id"];
             isOneToOne: false;
             referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      lms_dismissed_items: {
+        Row: {
+          connection_id: string;
+          dismissed_at: string;
+          external_id: string;
+          item_type: string;
+        };
+        Insert: {
+          connection_id: string;
+          dismissed_at?: string;
+          external_id: string;
+          item_type: string;
+        };
+        Update: {
+          connection_id?: string;
+          dismissed_at?: string;
+          external_id?: string;
+          item_type?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "lms_dismissed_items_connection_id_fkey";
+            columns: ["connection_id"];
+            isOneToOne: false;
+            referencedRelation: "lms_connections";
             referencedColumns: ["id"];
           },
         ];
@@ -1264,6 +1324,10 @@ export type Database = {
         Args: { p_percent: number; p_scale?: Json };
         Returns: string;
       };
+      lms_apply_canvas_sync: {
+        Args: { p_connection_id: string; p_courses: Json };
+        Returns: Json;
+      };
       lms_begin_oauth: {
         Args: {
           p_institution_id: string;
@@ -1286,6 +1350,13 @@ export type Database = {
           user_id: string;
         }[];
       };
+      lms_connections_due: {
+        Args: { p_limit?: number; p_stale?: string };
+        Returns: {
+          connection_id: string;
+          user_id: string;
+        }[];
+      };
       lms_consume_oauth_state: {
         Args: { p_state_hash: string };
         Returns: {
@@ -1305,6 +1376,10 @@ export type Database = {
         }[];
       };
       lms_mark_needs_reauth: {
+        Args: { p_connection_id: string; p_error: string };
+        Returns: undefined;
+      };
+      lms_record_sync_error: {
         Args: { p_connection_id: string; p_error: string };
         Returns: undefined;
       };

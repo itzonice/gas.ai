@@ -512,3 +512,10 @@ enabled = true
 verify_jwt = false
 import_map = "./functions/deno.json"
 entrypoint = "./functions/canvas-oauth/index.ts"
+
+[functions.canvas-sync]
+enabled = true
+# Users call it with their JWT (checked in the function); pg_cron with x-cron-secret.
+verify_jwt = false
+import_map = "./functions/deno.json"
+entrypoint = "./functions/canvas-sync/index.ts"

@@ -4,7 +4,8 @@ delete from auth.users;
 select plan(3);
 
 -- Guard: every public table is the profile itself or reaches it by a cascading FK
--- (user_id -> profiles or course_id -> courses). A new table without one fails here.
+-- (user_id -> profiles, course_id -> courses, or connection_id -> lms_connections, which
+-- itself cascades from profiles). A new table without one fails here.
 -- Exceptions hold no user data: lms_institutions (the schools list).
 select is_empty($$
   select c.relname
@@ -13,7 +14,8 @@ select is_empty($$
     and not exists (
       select 1 from pg_constraint k
       where k.conrelid = c.oid and k.contype = 'f' and k.confdeltype = 'c'
-        and k.confrelid in ('public.profiles'::regclass, 'public.courses'::regclass)
+        and k.confrelid in ('public.profiles'::regclass, 'public.courses'::regclass,
+                            'public.lms_connections'::regclass)
     )
 $$, 'every table cascades from the user');
 

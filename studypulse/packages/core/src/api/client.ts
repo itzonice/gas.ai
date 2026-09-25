@@ -353,6 +353,46 @@ export function createApiClient(db: Db) {
       },
     },
 
+    integrations: {
+      /** Schools with Canvas available (name and URL). */
+      async canvasSchools() {
+        const { data, error } = await db
+          .from("lms_institutions")
+          .select("id, name, base_url")
+          .order("name");
+        if (error) throw fromPostgrestError(error);
+        return data;
+      },
+      /** The user's Canvas connections and their sync state. */
+      async canvasConnections() {
+        const { data, error } = await db
+          .from("lms_connections")
+          .select(
+            "id, institution_id, external_user_name, status, last_error, connected_at, last_synced_at",
+          );
+        if (error) throw fromPostgrestError(error);
+        return data;
+      },
+      /** The Canvas approval page to send the user to. */
+      async connectCanvas(institutionId: string): Promise<string> {
+        const body = { institution_id: validate(uuidSchema, institutionId) };
+        const { url } = await invoke<{ url: string }>("canvas-oauth/start", { body });
+        return url;
+      },
+      /** Syncs now (at most every 5 minutes per connection). */
+      async syncCanvas(connectionId?: string) {
+        return invoke<{ results: Record<string, unknown> }>("canvas-sync", {
+          body: connectionId ? { connection_id: validate(uuidSchema, connectionId) } : {},
+        });
+      },
+      /** Disconnects and revokes access at Canvas. Synced courses stay. */
+      async disconnectCanvas(connectionId: string): Promise<void> {
+        await invoke("canvas-oauth/disconnect", {
+          body: { connection_id: validate(uuidSchema, connectionId) },
+        });
+      },
+    },
+
     billing: {
       /**
        * Starts a Stripe Checkout for Pro (web); redirect to the returned URL. Throws

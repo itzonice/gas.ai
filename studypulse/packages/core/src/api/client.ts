@@ -17,6 +17,8 @@ import { ApiError, fromPostgrestError } from "./errors.ts";
 import {
   blockStatusInputSchema,
   calendarRangeInputSchema,
+  courseTargetInputSchema,
+  coursesOverviewSchema,
   calendarRangeSchema,
   createAssignmentInputSchema,
   exportCardsInputSchema,
@@ -41,6 +43,7 @@ import {
   type BlockStatusInput,
   type CalendarRange,
   type CalendarRangeInput,
+  type CourseTargetInput,
   type TodayFeedInput,
   type TodayFeedRow,
   type TodayOverview,
@@ -227,6 +230,58 @@ export function createApiClient(db: Db) {
       /** Metric cards, today's reviews, the next exam, and course chips, in one call. */
       async overview(): Promise<TodayOverview> {
         return parseResponse(todayOverviewSchema, unwrap(await db.rpc("get_today_overview")));
+      },
+    },
+
+    courses: {
+      /** Active courses with current grade, letter, target, and the next thing due. */
+      async overview() {
+        return parseResponse(coursesOverviewSchema, unwrap(await db.rpc("get_courses_overview")));
+      },
+      /** One course with its grade categories and assignments (soonest due first). */
+      async get(courseId: string) {
+        const id = validate(uuidSchema, courseId);
+        const [course, categories, assignments, profile] = await Promise.all([
+          db
+            .from("courses")
+            .select(
+              "id, name, code, color, instructor, term_start, term_end, target_grade, letter_scale, archived_at",
+            )
+            .eq("id", id)
+            .maybeSingle(),
+          db
+            .from("grade_categories")
+            .select("id, name, weight, drop_lowest, position")
+            .eq("course_id", id)
+            .order("position"),
+          db
+            .from("assignments")
+            .select(
+              "id, title, kind, status, due_at, category_id, points_earned, points_possible, source",
+            )
+            .eq("course_id", id)
+            .order("due_at", { ascending: true, nullsFirst: false }),
+          db.from("profiles").select("timezone").maybeSingle(),
+        ]);
+        for (const res of [course, categories, assignments, profile]) {
+          if (res.error) throw fromPostgrestError(res.error);
+        }
+        if (!course.data) throw new ApiError(404, "not_found", "Course not found");
+        return {
+          course: course.data,
+          categories: categories.data ?? [],
+          assignments: assignments.data ?? [],
+          timezone: profile.data?.timezone ?? "UTC",
+        };
+      },
+      /** The grade the student is aiming for (null to clear it). */
+      async setTarget(input: CourseTargetInput): Promise<void> {
+        const { courseId, targetGrade } = validate(courseTargetInputSchema, input);
+        const { error } = await db
+          .from("courses")
+          .update({ target_grade: targetGrade })
+          .eq("id", courseId);
+        if (error) throw fromPostgrestError(error);
       },
     },
 

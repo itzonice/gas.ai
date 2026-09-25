@@ -1909,6 +1909,7 @@ export type Database = {
           used_today: number;
         }[];
       };
+      get_courses_overview: { Args: never; Returns: Json };
       get_parse_quota: {
         Args: never;
         Returns: {

@@ -130,6 +130,35 @@ export const todayOverviewSchema = z.object({
 });
 export type TodayOverview = z.infer<typeof todayOverviewSchema>;
 
+/** Response of get_courses_overview(): one entry per active course, for the course cards. */
+export const coursesOverviewSchema = z.object({
+  timezone: z.string(),
+  courses: z.array(
+    z.object({
+      id: uuidSchema,
+      name: z.string(),
+      code: z.string().nullable(),
+      color: z.string().nullable(),
+      instructor: z.string().nullable(),
+      target_grade: z.coerce.number().nullable(),
+      current_grade: z.coerce.number().nullable(),
+      letter: z.string().nullable(),
+      open_count: z.number().int(),
+      next_due: z
+        .object({ id: uuidSchema, title: z.string(), kind: z.string(), due_at: z.string() })
+        .nullable(),
+    }),
+  ),
+});
+export type CoursesOverview = z.infer<typeof coursesOverviewSchema>;
+export type CourseCard = CoursesOverview["courses"][number];
+
+export const courseTargetInputSchema = z.object({
+  courseId: uuidSchema,
+  targetGrade: z.number().min(0).max(100).nullable(),
+});
+export type CourseTargetInput = z.infer<typeof courseTargetInputSchema>;
+
 export const calendarRangeInputSchema = z
   .object({ from: isoDateSchema, to: isoDateSchema })
   .refine((r) => r.to >= r.from, { message: "End date is before start date", path: ["to"] });

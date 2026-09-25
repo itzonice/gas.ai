@@ -7,3 +7,4 @@ export * from "./projection.ts";
 export * from "./what-if.ts";
 export * from "./drop-lowest.ts";
 export * from "./letters.ts";
+export * from "./needed-on.ts";

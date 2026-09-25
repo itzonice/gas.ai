@@ -150,14 +150,13 @@ set search_path = ''
 as $$
 declare
   v_user uuid;
-  v_stats jsonb := '{"courses_created":0,"courses_updated":0,"assignments_created":0,"assignments_updated":0,"unchanged":0,"skipped_dismissed":0,"skipped_course_limit":0,"skipped_archived":0}';
+  v_stats jsonb := '{"courses_created":0,"courses_updated":0,"assignments_created":0,"assignments_updated":0,"unchanged":0,"skipped_dismissed":0,"skipped_course_limit":0,"skipped_archived":0}'::jsonb;
   c jsonb;
   g jsonb;
   a jsonb;
   v_course public.courses;
   v_category uuid;
   v_existing public.assignments;
-  v_changed boolean;
   v_kind public.assignment_kind;
 begin
   select user_id into v_user from public.lms_connections where id = p_connection_id and status = 'active';

@@ -7,3 +7,8 @@ export function env(): EdgeEnv {
   cached ??= parseEnv("edge", edgeEnvSchema, Deno.env.toObject());
   return cached;
 }
+
+/** Tests only: re-read Deno.env on the next env() call. */
+export function resetEnvForTests(): void {
+  cached = undefined;
+}

@@ -11,6 +11,16 @@ const optionalNonEmpty = z
   .transform((v) => (v === "" ? undefined : v))
   .optional();
 const optionalUrl = optionalNonEmpty.pipe(url.optional());
+// A Claude model id such as "claude-opus-5"; a typo fails at startup, not on the first upload.
+const optionalModelId = optionalNonEmpty.pipe(
+  z
+    .string()
+    .regex(
+      /^claude-[a-z0-9]+(?:[-.][a-z0-9]+)*$/,
+      'must be a Claude model id, e.g. "claude-opus-5"',
+    )
+    .optional(),
+);
 
 export const appEnvSchema = z.enum(["development", "preview", "production"]);
 export type AppEnv = z.infer<typeof appEnvSchema>;
@@ -56,9 +66,9 @@ export const edgeEnvSchema = z.object({
   SUPABASE_SERVICE_ROLE_KEY: nonEmpty,
   ANTHROPIC_API_KEY: optionalNonEmpty,
   // Model used for syllabus parsing and OCR; defaults to the parser's default model.
-  PARSER_MODEL: optionalNonEmpty,
+  PARSER_MODEL: optionalModelId,
   // Model used to turn notes into cards; defaults to the parser's default model.
-  CARDS_MODEL: optionalNonEmpty,
+  CARDS_MODEL: optionalModelId,
   SENTRY_DSN: optionalUrl,
   // Expo access token, only if push security is enabled for the Expo project.
   EXPO_ACCESS_TOKEN: optionalNonEmpty,

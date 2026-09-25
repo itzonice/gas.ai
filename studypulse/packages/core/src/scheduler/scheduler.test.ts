@@ -27,6 +27,15 @@ const daysOf = (blocks: { assignmentId: string; startsAt: string }[], id: string
   ].sort();
 
 describe("scheduleStudyBlocks", () => {
+  // Fix F12: without Google Calendar there is no busy-time data, and planning is unchanged.
+  it("plans normally with no busy-time data", () => {
+    const tasks = [task({ assignmentId: "a1", dueAt: at("2027-03-05", "23:59") })];
+    const options = { timezone: tz, now, capacity: () => 120 };
+    const withoutBusy = scheduleStudyBlocks(tasks, options);
+    expect(withoutBusy.blocks.length).toBeGreaterThan(0);
+    expect(scheduleStudyBlocks(tasks, { ...options, busy: [] })).toEqual(withoutBusy);
+  });
+
   it("places blocks around busy calendar time without using up study minutes", () => {
     const r = scheduleStudyBlocks(
       [task({ assignmentId: "hw", dueAt: at("2027-03-05", "23:59"), minutesRemaining: 120 })],

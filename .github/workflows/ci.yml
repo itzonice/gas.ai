@@ -65,6 +65,8 @@ jobs:
         run: pnpm exec supabase db lint --level warning --fail-on error
       - name: Run SQL tests
         run: pnpm exec supabase test db
+      - name: Run concurrency tests (two real sessions)
+        run: for t in supabase/tests/concurrency/*.sh; do bash "$t"; done
       - name: Check generated database types are up to date
         run: |
           pnpm db:types

@@ -2,7 +2,14 @@
 import type Anthropic from "@anthropic-ai/sdk";
 
 export type FakeReply =
-  { parsed?: unknown; text?: string; stop_reason?: Anthropic.Beta.BetaStopReason } | Error;
+  | {
+      parsed?: unknown;
+      text?: string;
+      stop_reason?: Anthropic.Beta.BetaStopReason;
+      /** The primary model declined and this fallback model answered (server-side fallback). */
+      fallbackTo?: string;
+    }
+  | Error;
 
 export function fakeClient(replies: FakeReply[]) {
   const calls: Record<string, unknown>[] = [];
@@ -11,12 +18,31 @@ export function fakeClient(replies: FakeReply[]) {
     const reply = replies.shift();
     if (!reply) throw new Error("fakeClient: no more replies");
     if (reply instanceof Error) throw reply;
+    const fallback = reply.fallbackTo
+      ? [
+          {
+            type: "fallback",
+            from: { model: String(params.model) },
+            to: { model: reply.fallbackTo },
+          },
+        ]
+      : [];
     return {
-      model: String(params.model),
+      model: reply.fallbackTo ?? String(params.model),
       stop_reason: reply.stop_reason ?? "end_turn",
       parsed_output: reply.parsed ?? null,
-      content: reply.text === undefined ? [] : [{ type: "text", text: reply.text }],
-      usage: { input_tokens: 100, output_tokens: 50, cache_read_input_tokens: 0 },
+      content: [
+        ...fallback,
+        ...(reply.text === undefined ? [] : [{ type: "text", text: reply.text }]),
+      ],
+      usage: {
+        input_tokens: 100,
+        output_tokens: 50,
+        cache_read_input_tokens: 0,
+        iterations: reply.fallbackTo
+          ? [{ type: "message" }, { type: "fallback_message" }]
+          : [{ type: "message" }],
+      },
     };
   };
   const client = {

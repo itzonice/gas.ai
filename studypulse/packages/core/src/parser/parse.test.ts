@@ -91,4 +91,45 @@ describe("parseSyllabusText", () => {
     expect(error).toBeInstanceOf(AiCallError);
     expect(error).toMatchObject({ kind: "api" });
   });
+
+  it("uses PARSER_MODEL when it's set instead of the default", async () => {
+    const { client, calls } = fakeClient([{ parsed: good }]);
+    const result = await parseSyllabusText(client, "text", ctx, { model: "claude-sonnet-5" });
+    expect(calls[0]!.model).toBe("claude-sonnet-5");
+    expect(result.usage).toMatchObject({ model: "claude-sonnet-5", fallback: false });
+  });
+
+  it("accepts the fallback model's answer when the primary refuses, and records who answered", async () => {
+    const { client, calls } = fakeClient([{ parsed: good, fallbackTo: "claude-opus-4-8" }]);
+    const result = await parseSyllabusText(client, "text", ctx);
+    expect(result.output.course.code).toBe("BIO 201");
+    // One request: the API re-ran it on the fallback model server-side.
+    expect(calls).toHaveLength(1);
+    expect(result.usage).toMatchObject({ model: "claude-opus-4-8", fallback: true });
+  });
+
+  it("reports a refusal when the fallback model also declines", async () => {
+    const { client } = fakeClient([{ stop_reason: "refusal", fallbackTo: "claude-opus-4-8" }]);
+    await expect(parseSyllabusText(client, "text", ctx)).rejects.toMatchObject({
+      kind: "refusal",
+    });
+  });
+
+  it("fails with a clear error naming an unknown model, without retrying", async () => {
+    const notFound = new Anthropic.NotFoundError(
+      404,
+      { type: "error", error: { type: "not_found_error", message: "model: claude-opus-55" } },
+      "model: claude-opus-55",
+      new Headers(),
+    );
+    const { client, calls } = fakeClient([notFound]);
+    const error = await parseSyllabusText(client, "text", ctx, { model: "claude-opus-55" }).catch(
+      (e: unknown) => e,
+    );
+    expect(error).toMatchObject({ kind: "model_not_found" });
+    expect((error as Error).message).toBe(
+      'Unknown AI model "claude-opus-55". Check PARSER_MODEL / CARDS_MODEL (default: claude-opus-5).',
+    );
+    expect(calls).toHaveLength(1);
+  });
 });

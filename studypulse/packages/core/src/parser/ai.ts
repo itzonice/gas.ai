@@ -12,7 +12,14 @@ const FALLBACK_BETA = "server-side-fallback-2026-07-01";
 
 export type Effort = "low" | "medium" | "high";
 
-export type AiFailureKind = "refusal" | "truncated" | "invalid_output" | "timeout" | "api";
+export type AiFailureKind =
+  | "refusal"
+  | "truncated"
+  | "invalid_output"
+  | "timeout"
+  | "api"
+  /** The configured model name doesn't exist (a PARSER_MODEL / CARDS_MODEL typo). */
+  | "model_not_found";
 
 export class AiCallError extends Error {
   readonly kind: AiFailureKind;
@@ -25,7 +32,10 @@ export class AiCallError extends Error {
 }
 
 export interface AiUsage {
+  /** The model that produced the answer (the fallback model if one stepped in). */
   model: string;
+  /** Whether the primary model declined and a fallback model answered instead. */
+  fallback: boolean;
   inputTokens: number;
   outputTokens: number;
   cacheReadTokens: number;
@@ -52,16 +62,26 @@ function systemParam(options: AiCallOptions): string | Anthropic.Beta.BetaTextBl
 }
 
 function usageOf(message: Anthropic.Beta.BetaMessage): AiUsage {
+  const iterations = (message.usage as { iterations?: { type?: string }[] | null }).iterations;
   return {
     model: message.model,
+    fallback: (iterations ?? []).some((i) => i.type === "fallback_message"),
     inputTokens: message.usage.input_tokens,
     outputTokens: message.usage.output_tokens,
     cacheReadTokens: message.usage.cache_read_input_tokens ?? 0,
   };
 }
 
-function toAiError(error: unknown): AiCallError {
+function toAiError(error: unknown, model: string): AiCallError {
   if (error instanceof AiCallError) return error;
+  // A wrong model name is a configuration error: say which name, and don't retry.
+  if (error instanceof Anthropic.NotFoundError && /model/i.test(error.message)) {
+    return new AiCallError(
+      "model_not_found",
+      `Unknown AI model "${model}". Check PARSER_MODEL / CARDS_MODEL (default: ${DEFAULT_PARSER_MODEL}).`,
+      { cause: error },
+    );
+  }
   if (error instanceof Anthropic.APIConnectionTimeoutError) {
     return new AiCallError("timeout", "The AI request timed out", { cause: error });
   }
@@ -89,13 +109,14 @@ export async function callStructured<S extends z.ZodType>(
   options: AiCallOptions & { schema: S; attempts?: number },
 ): Promise<{ data: z.infer<S>; usage: AiUsage }> {
   const { client, schema, attempts = 2 } = options;
+  const model = options.model ?? DEFAULT_PARSER_MODEL;
   let lastError: AiCallError | undefined;
 
   for (let attempt = 1; attempt <= attempts; attempt++) {
     try {
       const message = await client.beta.messages.parse(
         {
-          model: options.model ?? DEFAULT_PARSER_MODEL,
+          model,
           max_tokens: options.maxTokens ?? 16000,
           system: systemParam(options),
           messages: [{ role: "user", content: options.content }],
@@ -116,7 +137,7 @@ export async function callStructured<S extends z.ZodType>(
         `AI output failed validation: ${result.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`).join("; ")}`,
       );
     } catch (error) {
-      const aiError = toAiError(error);
+      const aiError = toAiError(error, model);
       // Only malformed output is worth another try; the SDK already retried transport errors.
       if (aiError.kind !== "invalid_output") throw aiError;
       lastError = aiError;
@@ -127,10 +148,11 @@ export async function callStructured<S extends z.ZodType>(
 
 /** Free-text call, streamed so long outputs (e.g. OCR of many pages) don't time out. */
 export async function callText(options: AiCallOptions): Promise<{ text: string; usage: AiUsage }> {
+  const model = options.model ?? DEFAULT_PARSER_MODEL;
   try {
     const stream = options.client.beta.messages.stream(
       {
-        model: options.model ?? DEFAULT_PARSER_MODEL,
+        model,
         max_tokens: options.maxTokens ?? 64000,
         system: systemParam(options),
         messages: [{ role: "user", content: options.content }],
@@ -148,6 +170,6 @@ export async function callText(options: AiCallOptions): Promise<{ text: string; 
       .join("");
     return { text, usage: usageOf(message) };
   } catch (error) {
-    throw toAiError(error);
+    throw toAiError(error, model);
   }
 }

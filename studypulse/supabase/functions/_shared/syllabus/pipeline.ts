@@ -53,9 +53,12 @@ function aiFailure(error: AiCallError): ParseFailure {
     case "invalid_output":
       return new ParseFailure(GENERIC_FAILURE, "ai_invalid_output");
     case "api":
+    // A misconfigured model is logged with its name (see the caller); users just see
+    // that reading is unavailable.
+    case "model_not_found":
       return new ParseFailure(
         "Syllabus reading is temporarily unavailable. Please try again soon.",
-        "ai_unavailable",
+        error.kind === "api" ? "ai_unavailable" : "ai_model_not_found",
       );
   }
 }
@@ -156,6 +159,10 @@ export async function processSyllabusUpload(uploadId: string, log: Logger): Prom
         env().PARSER_MODEL ? { model: env().PARSER_MODEL } : {},
       );
     } catch (error) {
+      if (error instanceof AiCallError && error.kind === "model_not_found") {
+        // Operators need the model name; users get the generic message.
+        plog.error("parser model not found", { error: error.message });
+      }
       throw error instanceof AiCallError ? aiFailure(error) : error;
     }
 

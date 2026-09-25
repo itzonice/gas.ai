@@ -15,6 +15,23 @@ describe("parseEnv", () => {
     expect(env.SUPABASE_URL).toBe("http://127.0.0.1:54321");
   });
 
+  it("checks PARSER_MODEL and CARDS_MODEL look like Claude model ids", () => {
+    expect(
+      parseEnv("edge", edgeEnvSchema, { ...validEdge, PARSER_MODEL: "claude-sonnet-5" })
+        .PARSER_MODEL,
+    ).toBe("claude-sonnet-5");
+    expect(
+      parseEnv("edge", edgeEnvSchema, { ...validEdge, CARDS_MODEL: "claude-haiku-4-5-20251001" })
+        .CARDS_MODEL,
+    ).toBe("claude-haiku-4-5-20251001");
+    expect(() => parseEnv("edge", edgeEnvSchema, { ...validEdge, PARSER_MODEL: "gpt-5" })).toThrow(
+      'PARSER_MODEL: must be a Claude model id, e.g. "claude-opus-5"',
+    );
+    expect(() =>
+      parseEnv("edge", edgeEnvSchema, { ...validEdge, PARSER_MODEL: "Claude Opus 5" }),
+    ).toThrow(/PARSER_MODEL/);
+  });
+
   it("treats empty optional values as unset", () => {
     const env = parseEnv("edge", edgeEnvSchema, { ...validEdge, SENTRY_DSN: "" });
     expect(env.SENTRY_DSN).toBeUndefined();

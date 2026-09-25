@@ -7,7 +7,8 @@
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "app.studypulse.mobile"
     },
     "android": {
       "adaptiveIcon": {
@@ -29,7 +30,8 @@
           "project": "studypulse-mobile",
           "url": "https://sentry.io/"
         }
-      ]
+      ],
+      ["./plugins/withFamilyControls.js", {}]
     ]
   }
 }

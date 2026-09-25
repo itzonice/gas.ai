@@ -23,3 +23,4 @@ expo-env.d.ts
 *.pem
 coverage/
 npm-debug.log*
+a11y-report.json

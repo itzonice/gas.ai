@@ -4,6 +4,7 @@ import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { CalendarScreen } from "./CalendarScreen";
+import { expectNoAxeViolations } from "@/test/axe";
 
 vi.mock("next/link", () => ({
   default: ({ href, children, ...props }: { href: string; children: React.ReactNode }) => (
@@ -68,6 +69,7 @@ describe("CalendarScreen", () => {
   it("opens on the user's today and describes each day in words", async () => {
     render(<CalendarScreen />);
     const grid = await screen.findByRole("grid", { name: "October 2026" });
+    await expectNoAxeViolations();
     await vi.waitFor(() => {
       expect(selectedCell()).toHaveTextContent("Wednesday, October 14, today. 1 item: 1 due.");
     });

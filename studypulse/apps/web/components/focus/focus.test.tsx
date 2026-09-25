@@ -3,6 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { FocusScreen } from "./FocusScreen";
+import { expectNoAxeViolations } from "@/test/axe";
 
 vi.mock("next/link", () => ({
   default: ({ href, children, ...props }: { href: string; children: React.ReactNode }) => (
@@ -66,6 +67,7 @@ describe("FocusScreen", () => {
     api.sessions.overview.mockResolvedValue(overview());
     render(<FocusScreen />);
     expect(await screen.findByRole("heading", { level: 1, name: "Focus" })).toBeInTheDocument();
+    await expectNoAxeViolations();
     expect(screen.getByText("40")).toBeInTheDocument();
     expect(screen.getByText("days in a row")).toBeInTheDocument();
     const history = screen.getByRole("complementary", { name: "Session history" });

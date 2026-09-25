@@ -6,6 +6,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { ReviewScreen } from "./ReviewScreen";
 import { UploadScreen } from "./UploadScreen";
+import { expectNoAxeViolations } from "@/test/axe";
 
 const push = vi.fn();
 vi.mock("next/navigation", () => ({ useRouter: () => ({ push, replace: push }) }));
@@ -110,6 +111,7 @@ describe("ReviewScreen", () => {
   it("lists low-confidence items first and counts them", async () => {
     render(<ReviewScreen uploadId={uploadId} />);
     const list = await screen.findByRole("list", { name: "Parsed items, needing review first" });
+    await expectNoAxeViolations();
     const rows = within(list).getAllByRole("listitem");
     expect(rows[0]).toHaveTextContent("Quiz week 5");
     expect(rows[0]).toHaveTextContent(

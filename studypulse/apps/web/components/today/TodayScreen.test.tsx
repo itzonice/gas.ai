@@ -4,6 +4,7 @@ import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { TodayScreen } from "./TodayScreen";
+import { expectNoAxeViolations } from "@/test/axe";
 
 vi.mock("next/link", () => ({
   default: ({ href, children, ...props }: { href: string; children: React.ReactNode }) => (
@@ -121,6 +122,7 @@ describe("TodayScreen", () => {
   it("shows the metric cards with status in words", async () => {
     render(<TodayScreen />);
     const metrics = await screen.findByRole("list", { name: "This week" });
+    await expectNoAxeViolations();
     expect(within(metrics).getByText("Due this week").nextSibling).toHaveTextContent("3");
     expect(within(metrics).getByText("1.6")).toBeInTheDocument();
     expect(within(metrics).getByText("At risk: BIO 201")).toBeInTheDocument();

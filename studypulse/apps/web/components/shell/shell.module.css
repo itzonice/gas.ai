@@ -21,6 +21,10 @@
 /* Skip link: first in tab order, visible when focused. */
 .skipLink {
   position: absolute;
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--sp-layout-min-target);
+  box-sizing: border-box;
   left: var(--sp-space-related);
   top: -100px;
   z-index: 100;
@@ -225,7 +229,10 @@
 .footer a {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   min-height: var(--sp-layout-min-target);
+  min-width: var(--sp-layout-min-target);
+  padding: 0 var(--sp-space-half);
   color: inherit;
 }
 

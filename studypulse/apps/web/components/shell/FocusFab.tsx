@@ -12,10 +12,13 @@ import styles from "./shell.module.css";
 export function FocusFab() {
   const pathname = usePathname();
   if (pathname === "/focus" || pathname.startsWith("/focus/")) return null;
+  // In its own landmark so it isn't stray content outside the page regions.
   return (
-    <Link href="/focus?start=1" className={styles.fab}>
-      <Icon name="play" />
-      <span>Start focus</span>
-    </Link>
+    <nav aria-label="Quick action">
+      <Link href="/focus?start=1" className={styles.fab}>
+        <Icon name="play" />
+        <span>Start focus</span>
+      </Link>
+    </nav>
   );
 }

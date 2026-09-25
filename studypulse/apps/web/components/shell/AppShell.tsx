@@ -6,6 +6,7 @@ import { Suspense, type ReactNode } from "react";
 import { Icon } from "../ui/icons";
 import { FocusFab } from "./FocusFab";
 import { NavLinks } from "./NavLinks";
+import { RouteFocus } from "./RouteFocus";
 import styles from "./shell.module.css";
 
 export function AppShell({ children }: { children: ReactNode }) {
@@ -90,6 +91,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       </div>
 
       <FocusFab />
+      <RouteFocus />
     </div>
   );
 }

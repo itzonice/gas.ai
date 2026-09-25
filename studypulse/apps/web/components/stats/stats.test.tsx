@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { barWidth, correlation, statsCsv, summarize } from "./model";
 import { StatsScreen } from "./StatsScreen";
+import { expectNoAxeViolations } from "@/test/axe";
 
 vi.mock("next/link", () => ({
   default: ({ href, children, ...props }: { href: string; children: React.ReactNode }) => (
@@ -122,6 +123,7 @@ describe("StatsScreen", () => {
   it("shows metrics, the summary, and each course's numbers in text", async () => {
     render(<StatsScreen />);
     expect(await screen.findByRole("heading", { level: 1, name: "Stats" })).toBeInTheDocument();
+    await expectNoAxeViolations();
     expect(screen.getByText("1.6")).toBeInTheDocument();
     expect(screen.getByText("82.3%")).toBeInTheDocument();
     const chart = screen.getByRole("list", { name: /Focus time and grade by course/ });

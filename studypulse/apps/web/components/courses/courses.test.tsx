@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { CourseDetailScreen } from "./CourseDetailScreen";
 import { CoursesScreen } from "./CoursesScreen";
+import { expectNoAxeViolations } from "@/test/axe";
 
 vi.mock("next/link", () => ({
   default: ({ href, children, ...props }: { href: string; children: React.ReactNode }) => (
@@ -114,6 +115,7 @@ describe("CoursesScreen", () => {
   it("shows a card per course with its code, grade, target status in words, and next due", async () => {
     render(<CoursesScreen />);
     const list = await screen.findByRole("list", { name: "Courses" });
+    await expectNoAxeViolations();
     const card = within(list).getByRole("link", { name: /BIO 201/ });
     expect(card).toHaveAttribute("href", `/courses/${courseId}`);
     expect(card).toHaveTextContent("78% · C+");
@@ -138,6 +140,7 @@ describe("CourseDetailScreen", () => {
     expect(
       await screen.findByRole("heading", { level: 1, name: "BIO 201 Biology" }),
     ).toBeInTheDocument();
+    await expectNoAxeViolations();
     const metrics = screen.getByRole("list", { name: "Grade" });
     // 0.4 * 90 + 0.6 * 70 = 78
     expect(within(metrics).getByText("Current grade").nextSibling).toHaveTextContent("78% · C+");

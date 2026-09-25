@@ -7,6 +7,7 @@ import { UpgradeScreen } from "@/components/upgrade/UpgradeScreen";
 
 import { deviceSummary, planSummary, prefChanges, profileChanges } from "./model";
 import { SettingsScreen } from "./SettingsScreen";
+import { expectNoAxeViolations } from "@/test/axe";
 
 vi.mock("next/link", () => ({
   default: ({ href, children, ...props }: { href: string; children: React.ReactNode }) => (
@@ -132,6 +133,7 @@ describe("SettingsScreen", () => {
     const twoHours = await screen.findByRole("checkbox", {
       name: "Two hours before something is due",
     });
+    await expectNoAxeViolations();
     await userEvent.click(twoHours);
     await userEvent.clear(screen.getByLabelText("Name"));
     await userEvent.type(screen.getByLabelText("Name"), "Ada L.");
@@ -192,6 +194,7 @@ describe("OnboardingScreen", () => {
     expect(
       await screen.findByText(/Reminders in this browser aren.t available here/),
     ).toBeInTheDocument();
+    await expectNoAxeViolations();
     await userEvent.click(screen.getByRole("button", { name: "Add your first syllabus" }));
     await waitFor(() =>
       expect(api.onboarding.complete).toHaveBeenCalledWith(
@@ -214,6 +217,7 @@ describe("UpgradeScreen", () => {
     Object.defineProperty(window, "location", { value: { assign }, configurable: true });
     render(<UpgradeScreen />);
     const table = await screen.findByRole("table", { name: "Free and Pro compared" });
+    await expectNoAxeViolations();
     expect(table).toHaveTextContent("Active courses3Unlimited");
     await userEvent.click(await screen.findByRole("radio", { name: /Monthly/ }));
     await userEvent.type(screen.getByLabelText("Promo code"), "SPRING");

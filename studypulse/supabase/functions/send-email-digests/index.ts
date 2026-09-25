@@ -11,6 +11,7 @@ import {
   RESEND_BATCH_SIZE,
   sendResendBatch,
   signUnsubscribeToken,
+  unsubscribeHeaders,
   type EmailDigest,
   type ResendEmail,
 } from "@studypulse/core/notify/index.ts";
@@ -128,10 +129,7 @@ Deno.serve(
             html: digest.html,
             text: digest.text,
             // RFC 8058 one-click unsubscribe (required by Gmail and Yahoo for bulk senders).
-            headers: {
-              "List-Unsubscribe": `<${unsubscribeUrl}>`,
-              "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
-            },
+            headers: unsubscribeHeaders(unsubscribeUrl),
             tags: [{ name: "kind", value: "email_digest" }],
           },
         });

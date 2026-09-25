@@ -3,7 +3,15 @@
 // the secret invalidates old links (they then show "link expired", nothing else leaks).
 import { base64UrlDecode, base64UrlEncode } from "./webpush.ts";
 
-const PURPOSE = "email-unsubscribe:v1:";
+/**
+ * What a link unsubscribes from. Each scope signs differently, so a digest link can't be
+ * replayed to change marketing preferences or the other way round (launch safety S15).
+ */
+export type UnsubscribeScope = "digest" | "marketing";
+const PURPOSES: Record<UnsubscribeScope, string> = {
+  digest: "email-unsubscribe:v1:", // unchanged, so links already sent keep working
+  marketing: "email-unsubscribe:marketing:v1:",
+};
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 async function hmacKey(secret: string) {
@@ -17,12 +25,16 @@ async function hmacKey(secret: string) {
   );
 }
 
-export async function signUnsubscribeToken(userId: string, secret: string): Promise<string> {
+export async function signUnsubscribeToken(
+  userId: string,
+  secret: string,
+  scope: UnsubscribeScope = "digest",
+): Promise<string> {
   if (!UUID_RE.test(userId)) throw new Error("user id must be a UUID");
   const signature = await crypto.subtle.sign(
     "HMAC",
     await hmacKey(secret),
-    new TextEncoder().encode(PURPOSE + userId.toLowerCase()),
+    new TextEncoder().encode(PURPOSES[scope] + userId.toLowerCase()),
   );
   return `${userId.toLowerCase()}.${base64UrlEncode(new Uint8Array(signature))}`;
 }
@@ -31,6 +43,7 @@ export async function signUnsubscribeToken(userId: string, secret: string): Prom
 export async function verifyUnsubscribeToken(
   token: string,
   secret: string,
+  scope: UnsubscribeScope = "digest",
 ): Promise<string | null> {
   const [userId, signature, extra] = token.split(".");
   if (!userId || !signature || extra !== undefined || !UUID_RE.test(userId)) return null;
@@ -45,7 +58,7 @@ export async function verifyUnsubscribeToken(
     "HMAC",
     await hmacKey(secret),
     bytes,
-    new TextEncoder().encode(PURPOSE + userId.toLowerCase()),
+    new TextEncoder().encode(PURPOSES[scope] + userId.toLowerCase()),
   );
   return valid ? userId.toLowerCase() : null;
 }

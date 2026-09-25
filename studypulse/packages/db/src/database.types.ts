@@ -1125,6 +1125,8 @@ export type Database = {
           daily_cap: number;
           email_digest_enabled: boolean;
           exam_countdown: boolean;
+          marketing_emails: boolean;
+          marketing_opt_in_at: string | null;
           morning_digest: boolean;
           morning_digest_time: string;
           push_enabled: boolean;
@@ -1141,6 +1143,8 @@ export type Database = {
           daily_cap?: number;
           email_digest_enabled?: boolean;
           exam_countdown?: boolean;
+          marketing_emails?: boolean;
+          marketing_opt_in_at?: string | null;
           morning_digest?: boolean;
           morning_digest_time?: string;
           push_enabled?: boolean;
@@ -1157,6 +1161,8 @@ export type Database = {
           daily_cap?: number;
           email_digest_enabled?: boolean;
           exam_countdown?: boolean;
+          marketing_emails?: boolean;
+          marketing_opt_in_at?: string | null;
           morning_digest?: boolean;
           morning_digest_time?: string;
           push_enabled?: boolean;
@@ -2304,6 +2310,7 @@ export type Database = {
         Args: { p_user_id: string };
         Returns: boolean;
       };
+      unsubscribe_marketing: { Args: { p_user_id: string }; Returns: boolean };
     };
     Enums: {
       assignment_kind:

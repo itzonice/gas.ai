@@ -96,6 +96,10 @@ export const edgeEnvSchema = z.object({
   EMAIL_UNSUBSCRIBE_SECRET: optionalNonEmpty.pipe(z.string().min(32).optional()),
   // Web app origin for links in emails, e.g. https://app.studypulse.app.
   APP_URL: optionalUrl,
+  // Legal name and physical mailing address in every marketing email footer (S15, CAN-SPAM;
+  // a PO box is fine). Marketing email refuses to send without the address.
+  COMPANY_LEGAL_NAME: optionalNonEmpty,
+  COMPANY_POSTAL_ADDRESS: optionalNonEmpty,
   // Stripe (web billing). Unset = checkout and portal endpoints return 503.
   STRIPE_SECRET_KEY: optionalNonEmpty,
   STRIPE_PRICE_MONTHLY: optionalNonEmpty,

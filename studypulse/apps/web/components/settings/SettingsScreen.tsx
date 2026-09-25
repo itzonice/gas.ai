@@ -366,6 +366,12 @@ export function SettingsScreen() {
             checked={prefs.email_digest_enabled}
             onChange={(e) => setN("email_digest_enabled", e.target.checked)}
           />
+          <CheckboxField
+            label="Email me StudyPulse news and study tips"
+            hint="Occasional. Off unless you turn it on; every email has a one-click unsubscribe."
+            checked={prefs.marketing_emails}
+            onChange={(e) => setN("marketing_emails", e.target.checked)}
+          />
         </section>
 
         {error ? (

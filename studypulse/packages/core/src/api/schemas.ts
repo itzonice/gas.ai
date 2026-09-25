@@ -266,6 +266,7 @@ export const settingsSchema = z.object({
   notifications: z.object({
     push_enabled: z.boolean(),
     email_digest_enabled: z.boolean(),
+    marketing_emails: z.boolean(),
     remind_24h: z.boolean(),
     remind_2h: z.boolean(),
     exam_countdown: z.boolean(),
@@ -303,6 +304,7 @@ export const notificationPrefsUpdateSchema = z
   .object({
     push_enabled: z.boolean(),
     email_digest_enabled: z.boolean(),
+    marketing_emails: z.boolean(),
     remind_24h: z.boolean(),
     remind_2h: z.boolean(),
     exam_countdown: z.boolean(),

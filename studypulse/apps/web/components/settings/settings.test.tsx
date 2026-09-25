@@ -57,6 +57,7 @@ const profile = {
 const notifications = {
   push_enabled: true,
   email_digest_enabled: false,
+  marketing_emails: false,
   remind_24h: true,
   remind_2h: true,
   exam_countdown: true,

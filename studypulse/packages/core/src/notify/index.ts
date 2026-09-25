@@ -6,3 +6,4 @@ export * from "./webpush.ts";
 export * from "./email-digest.ts";
 export * from "./resend.ts";
 export * from "./unsubscribe.ts";
+export * from "./email-policy.ts";

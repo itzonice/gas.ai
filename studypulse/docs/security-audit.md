@@ -259,3 +259,25 @@ Every call to Anthropic, Stripe, Expo, Resend, Google, and PostHog goes through
 - **Guard test.** `packages/core/src/launch/third-party.test.ts` fails if app code adds
   hosted fonts, Google Analytics or Tag Manager, a client PostHog SDK, or any replay
   integration. It also checks the CSP.
+
+## S15: Marketing email kept apart from transactional email
+
+- **Every email kind is classified** in `packages/core/src/notify/email-policy.ts`
+  (`EMAIL_KINDS`).
+  - Transactional: the daily digest the student turned on, subscription confirmations,
+    renewal reminders, and account email.
+  - Marketing: product news and tips.
+- **Marketing is opt-in.** `notification_prefs.marketing_emails` is off by default. Opting
+  in stamps `marketing_opt_in_at` (a trigger, so users can't forge it), and opting out
+  clears it. The toggle is in web Settings.
+- **`planMarketingEmail` is the only way to build a marketing email.** It refuses to build
+  one without `COMPANY_POSTAL_ADDRESS` (a PO box is fine) or an https unsubscribe link,
+  adds both to the footer plus the RFC 8058 one-click headers, and returns nothing for
+  students who haven't opted in.
+- **Unsubscribe is separate and immediate.** Links are signed per scope (`digest` or
+  `marketing`), so one can't be used for the other. Leaving marketing never turns off
+  reminders. `unsubscribe_marketing` takes effect at once, and senders read the
+  preference right before each send.
+- **Nothing is sent as marketing yet.** Any future campaign must go through
+  `planMarketingEmail`.
+- **Tests:** core tests (footer, headers, opt-in, token scopes) and SQL test 610.

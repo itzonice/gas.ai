@@ -153,7 +153,9 @@ export default function PrivacyPage() {
       <p>
         Until you delete it or your account. When you delete your account, your data and files are
         removed from our database and storage right away and from backups within [30] days. Payment
-        records we must keep by law are kept by Stripe, Apple, or Google.
+        records we must keep by law are kept by Stripe, Apple, or Google. To stop abuse, we count
+        requests per account and per network address; addresses are stored only as one-way hashes
+        and the counts are deleted within a day.
       </p>
 
       <h2>Your choices and rights</h2>

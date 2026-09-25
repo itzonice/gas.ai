@@ -7,6 +7,7 @@ import { DEADLINE_EVENT_MINUTES, renderIcs, type IcsEvent } from "@studypulse/co
 
 import { createHandler } from "../_shared/handler.ts";
 import { HttpError, requireMethod } from "../_shared/http.ts";
+import { enforce } from "../_shared/rate-limit.ts";
 import { adminClient } from "../_shared/supabase.ts";
 
 const TOKEN_RE = /^[A-Za-z0-9_-]{43}$/;
@@ -27,18 +28,22 @@ function tokenFrom(req: Request): string | null {
 }
 
 Deno.serve(
-  createHandler("calendar-feed", async (req) => {
+  createHandler("calendar-feed", async (req, { log }) => {
     requireMethod(req, "GET", "HEAD");
     const token = tokenFrom(req);
     // Same response for malformed and unknown tokens.
     const notFound = new HttpError(404, "not_found", "Calendar not found");
     if (!token) throw notFound;
 
+    // Calendar apps poll every 15 minutes to a few hours; 60 an hour per token is plenty.
+    const tokenHash = await sha256Hex(token);
+    await enforce(`ics:${tokenHash.slice(0, 32)}`, { limit: 60, windowSeconds: 3600 }, log);
+
     const db = adminClient();
     const { data: profile } = await db
       .from("profiles")
       .select("id")
-      .eq("calendar_token_hash", await sha256Hex(token))
+      .eq("calendar_token_hash", tokenHash)
       .maybeSingle();
     if (!profile) throw notFound;
 

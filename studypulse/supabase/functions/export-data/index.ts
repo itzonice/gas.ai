@@ -1,10 +1,13 @@
 // GET /export-data
 // Everything StudyPulse stores about the caller, as one JSON download. Reads through
 // the caller's RLS, so it can only ever contain their own data. Uploaded syllabus files
-// are included as signed links valid for one hour.
+// are included as signed links valid for 15 minutes.
 import { createHandler } from "../_shared/handler.ts";
 import { requireMethod } from "../_shared/http.ts";
 import { requireUser, userClient } from "../_shared/supabase.ts";
+
+/** Links to the original syllabus files in an export stay valid this long. */
+const SIGNED_URL_SECONDS = 15 * 60;
 
 export const EXPORT_FORMAT_VERSION = 1;
 
@@ -79,7 +82,9 @@ Deno.serve(
     const withLinks = await Promise.all(
       uploadRows.map(async (u) => {
         if (!u.file_path) return { ...u, file_url: null };
-        const { data } = await db.storage.from("syllabi").createSignedUrl(u.file_path, 3600);
+        const { data } = await db.storage
+          .from("syllabi")
+          .createSignedUrl(u.file_path, SIGNED_URL_SECONDS);
         return { ...u, file_url: data?.signedUrl ?? null };
       }),
     );

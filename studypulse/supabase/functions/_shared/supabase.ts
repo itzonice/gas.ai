@@ -3,6 +3,7 @@ import type { Database } from "@studypulse/db";
 
 import { env } from "./env.ts";
 import { HttpError } from "./http.ts";
+import { enforceUserLimit } from "./rate-limit.ts";
 
 export type AdminClient = SupabaseClient<Database>;
 
@@ -39,6 +40,7 @@ export async function requireUser(req: Request): Promise<AuthedUser> {
 
   const { data, error } = await adminClient().auth.getUser(token);
   if (error || !data.user) throw new HttpError(401, "unauthorized", "Invalid or expired token");
+  await enforceUserLimit(data.user.id);
   return {
     id: data.user.id,
     email: data.user.email,

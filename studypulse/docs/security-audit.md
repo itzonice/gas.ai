@@ -177,3 +177,31 @@ Every call to Anthropic, Stripe, Expo, Resend, Google, and PostHog goes through
 - **Tests.** Core unit tests (17), the handler's 503 mapping (Deno), SQL test 580, and a
   live check that a breaker opened in one worker stops a fresh worker from calling the
   provider.
+
+## S10: Rate limits and signed URLs
+
+- **Every edge function** has a per-IP limit, checked in `createHandler` before the
+  function runs. Functions users call also have a per-user limit, checked in `requireUser`
+  after the token is verified, so a forged token can't use up someone else's allowance.
+- **Limits live in one table** (`FUNCTION_LIMITS` in `supabase/functions/_shared/rate-limit.ts`),
+  and a test fails if a function has no entry. Examples:
+  - upload-syllabus and generate-cards: 10 per minute per user.
+  - export-data: 10 per hour per user.
+  - delete-account: 5 per hour per user.
+  - Cron jobs and signed webhooks: 600 per minute per IP (their secret or signature is the
+    real gate).
+- **Over the limit:** `429 rate_limited` with Retry-After.
+- **Counters** are shared by all workers (`public.rate_limit_hit`, fixed windows, service
+  role only). IPs are stored only as SHA-256 hashes, and counters are deleted after a day.
+  If the counter can't be reached, the request is allowed and a warning is logged.
+- **Client IP.** In production the IP comes from Cloudflare's `cf-connecting-ip`, which a
+  client can't set. The local stack falls back to `x-forwarded-for`, which a client can
+  spoof.
+- **ICS feed:** also limited to 60 requests per hour per token, whatever the IP.
+- **Syllabus files:** the bucket stays private (SQL test 590 checks it). The only signed
+  links, in the data export, now expire after 15 minutes instead of an hour.
+- **Tests:** Deno (coverage of every function, IP header order), SQL test 590, and a live
+  run showing each limit returning 429:
+  - per user, across 10 IPs;
+  - per IP, with a second IP unaffected;
+  - per ICS token, across many IPs.

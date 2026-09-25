@@ -23,7 +23,7 @@
     "db:types": "supabase gen types typescript --local > packages/db/src/database.types.ts && prettier --write packages/db/src/database.types.ts",
     "functions:lint": "cd supabase/functions && deno lint . ../tests/e2e",
     "functions:check": "cd supabase/functions && deno check . ../tests/e2e",
-    "functions:test": "cd supabase/functions && deno test --allow-env --allow-net=127.0.0.1,localhost",
+    "functions:test": "cd supabase/functions && deno test --allow-env --allow-net=127.0.0.1,localhost --allow-read=.",
     "test:cross-user": "bash scripts/cross-user.sh",
     "deploy:check": "node packages/core/scripts/deploy-check.ts",
     "secrets:scan": "node scripts/secret-scan.mjs --build"

@@ -9,6 +9,7 @@ import { circuitOpenCause } from "@studypulse/core/resilience/index.ts";
 
 import { corsHeaders } from "./cors.ts";
 import { HttpError } from "./http.ts";
+import { enforceIpLimit, withRateLimitScope } from "./rate-limit.ts";
 import { Sentry } from "./sentry.ts";
 
 export interface RequestContext {
@@ -40,7 +41,10 @@ export function createHandler(functionName: string, handler: ContextHandler) {
       response =
         req.method === "OPTIONS"
           ? new Response(null, { status: 204 })
-          : await handler(req, { requestId, log });
+          : await withRateLimitScope(functionName, log, async () => {
+              await enforceIpLimit(functionName, req, log);
+              return handler(req, { requestId, log });
+            });
     } catch (error) {
       if (error instanceof HttpError) {
         log.info("request rejected", { status: error.status, code: error.code });
@@ -51,7 +55,7 @@ export function createHandler(functionName: string, handler: ContextHandler) {
             details: error.details,
             request_id: requestId,
           },
-          { status: error.status },
+          { status: error.status, ...(error.headers ? { headers: error.headers } : {}) },
         );
       } else if (circuitOpenCause(error)) {
         // A provider is paused after repeated failures (S9): expected, not a bug to report.

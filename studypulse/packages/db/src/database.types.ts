@@ -2152,6 +2152,10 @@ export type Database = {
           provider: string;
         }[];
       };
+      rate_limit_hit: {
+        Args: { p_bucket: string; p_limit: number; p_window_seconds: number };
+        Returns: Json;
+      };
       record_ai_cost_alerts: {
         Args: {
           p_total_threshold_cents: number;

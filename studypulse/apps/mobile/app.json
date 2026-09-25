@@ -5,7 +5,7 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
-    "userInterfaceStyle": "light",
+    "userInterfaceStyle": "automatic",
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "app.studypulse.mobile"
@@ -32,7 +32,9 @@
           "url": "https://sentry.io/"
         }
       ],
-      ["./plugins/withFamilyControls.js", {}]
-    ]
+      ["./plugins/withFamilyControls.js", {}],
+      "expo-router"
+    ],
+    "scheme": "studypulse"
   }
 }

@@ -2,7 +2,7 @@
   "name": "@studypulse/mobile",
   "version": "1.0.0",
   "private": true,
-  "main": "index.ts",
+  "main": "expo-router/entry",
   "scripts": {
     "dev": "expo start",
     "start": "expo start",
@@ -13,13 +13,20 @@
     "test": "node --test plugins/*.test.js"
   },
   "dependencies": {
+    "@expo/vector-icons": "^15.1.1",
     "@sentry/react-native": "~7.11.0",
     "@studypulse/core": "workspace:*",
+    "@studypulse/tokens": "workspace:*",
     "expo": "~57.0.24",
+    "expo-constants": "~57.0.19",
+    "expo-linking": "~57.0.11",
+    "expo-router": "~57.0.23",
     "expo-status-bar": "~57.0.1",
     "react": "19.2.3",
     "react-native": "0.86.3",
-    "react-native-purchases": "~10.10.2"
+    "react-native-purchases": "~10.10.2",
+    "react-native-safe-area-context": "~5.7.0",
+    "react-native-screens": "~4.26.2"
   },
   "devDependencies": {
     "@types/react": "~19.2.2",

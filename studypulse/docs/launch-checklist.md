@@ -44,12 +44,27 @@ Related: [security audit](security-audit.md), [analytics](analytics.md),
       cleanup-analytics-events.
 - [ ] Storage: bucket `syllabi` exists, private, 20 MB limit (created by migrations).
 - [ ] **Auth** (Authentication → Settings), per the security audit:
-  - [ ] Site URL = the production web origin; redirect allowlist = production web origin
-        and the app's deep-link scheme only (remove localhost).
-  - [ ] Email confirmations on; minimum password length 10; leaked-password protection on.
-  - [ ] CAPTCHA (Turnstile or hCaptcha) on sign-up and password reset.
+  - [ ] Site URL = the production web origin; redirect allowlist = production web origin,
+        `<origin>/update-password` (password reset), and the app's deep-link scheme only
+        (remove localhost).
+  - [ ] Email confirmations on (also hides whether an email is registered at sign-up);
+        secure password change on; minimum password length 10; leaked-password protection on.
+  - [ ] Rate limits (launch safety S6): sign-in/sign-up per IP 30 per 5 minutes; one
+        confirmation or reset email per address per 60 s (`max_frequency`).
+  - [ ] Per-account password lockout: enable the Auth hook "Password verification attempt"
+        → `public.hook_password_verification_attempt` (10 wrong passwords in 15 minutes lock
+        sign-in for 15 minutes, worded like a wrong password). Hosted Supabase offers this
+        hook on the Team plan; on other plans, CAPTCHA below is the per-email protection.
+  - [ ] CAPTCHA (Turnstile or hCaptcha) on sign-in, sign-up, and password reset. Known gap
+        until then: the auth API itself answers `422 User already registered` to a direct
+        sign-up call for a registered email (the apps never show it). Closing it fully means
+        a server-side sign-up endpoint with signups disabled on the public API.
   - [ ] Custom SMTP (Resend) so auth emails come from your domain; review rate limits.
   - [ ] JWT expiry 3600 s; refresh token rotation on.
+  - [ ] Ended sessions can't use their tokens (S5): the migration sets
+        `pgrst.db_pre_request = request_guard.require_live_session` on the `authenticator`
+        role. Confirm after deploy: sign in, sign out everywhere, and the old access token
+        gets 401 from `/rest/v1/courses`.
 - [ ] Database: SSL enforcement on; network restrictions if you have fixed admin IPs.
 - [ ] **Edge functions deployed**: `supabase functions deploy` (deploys all 22; config in
       `supabase/config.toml`). Confirm `verify_jwt` matches config for each

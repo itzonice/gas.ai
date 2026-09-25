@@ -79,3 +79,52 @@ headers and fields, and logs never include tokens or emails.
   values, and store `project_url` / `cron_secret` in production Vault.
 - Enable Supabase point-in-time recovery, and restrict the database to SSL connections.
 - Turn on GitHub secret scanning and Dependabot alerts for the repository.
+
+## Launch safety S3–S6 (September 25, 2026)
+
+### S3. Secrets in client bundles
+
+- CI job "Client bundle secret scan" (`pnpm secrets:scan`) builds the web app and the iOS
+  and Android bundles with a unique canary in every server-only variable
+  (`SUPABASE_SERVICE_ROLE_KEY`, `ANTHROPIC_API_KEY`, `STRIPE_SECRET_KEY`, webhook secrets,
+  `VAPID_PRIVATE_KEY`, `GOOGLE_CLIENT_SECRET`, `CRON_SECRET`, deploy tokens, ...), then
+  searches everything a client downloads for the canaries and for real key shapes
+  (service-role JWTs, `sk_live_`/`sk_test_`, `whsec_`, `sk-ant-`). Result: clean.
+- `packages/core/src/launch/public-env.test.ts` fails if any `NEXT_PUBLIC_`/`EXPO_PUBLIC_`
+  variable outside a vetted allowlist appears in code or `.env.example`; each allowlisted
+  variable has the reason it's safe to ship (anon key, public SDK keys, DSN, URLs).
+
+### S4. Pro-gated and limited actions
+
+No check exists only in client code. Clients never decide entitlement; they render the
+server's answer (`billing_status`, `parse_limit_reached`, `course_limit_reached`).
+
+| Limit                                            | Enforced by                                                    | Test         |
+| ------------------------------------------------ | -------------------------------------------------------------- | ------------ |
+| 3 active courses on Free                         | `enforce_course_limit` trigger (insert and un-archive)         | 310, 520     |
+| 3 parses a day, PDF/text only on Free            | parse-limit trigger on `syllabus_uploads`; OCR in `extract.ts` | 110, 520     |
+| 5 / 50 card generations a day                    | `enforce_card_generation_limit` trigger                        | 410          |
+| Pro status                                       | `is_pro()` from `subscriptions` (service-role writes only)     | 310, 520     |
+| Student discount                                 | `stripe-checkout` (confirmed academic email)                   | stripe tests |
+| Plan tier, upload status, AI usage, billing rows | no client write grants                                         | 520          |
+
+### S5. Sign-out
+
+- Web and mobile sign out with `scope: "global"` (every device's refresh tokens revoked),
+  falling back to a local sign-out when offline, and clear StudyPulse's own storage.
+- **Fixed:** access tokens are JWTs that kept working for up to an hour after sign-out
+  (verified: a signed-out token still read `/rest/v1/courses`). PostgREST now runs
+  `request_guard.require_live_session()` before every request and refuses tokens whose
+  session no longer exists (`401 session ended`). Tests: 530 and `lib/sign-out.test.ts`.
+
+### S6. Account enumeration and auth rate limits
+
+- The apps show the same words for a wrong password, an unknown email, and an unconfirmed
+  email; sign-up and reset always answer "if ... we've sent" (`@studypulse/core/auth`).
+- API level, verified locally: sign-in and reset are identical for known and unknown
+  emails. Per IP: 30 sign-in/sign-up requests per 5 minutes. Per email: one confirmation
+  or reset email a minute, and 10 wrong passwords in 15 minutes lock password sign-in
+  for 15 minutes (Auth hook; the locked answer is identical to a wrong password). Test 540.
+- **Remaining gap:** a direct call to the auth API's sign-up endpoint with a registered
+  email gets `422 User already registered` (Supabase Auth behavior). Mitigated by the
+  per-IP limit; close it with CAPTCHA, and fully with a server-side sign-up endpoint.

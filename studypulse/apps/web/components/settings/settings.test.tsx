@@ -21,6 +21,11 @@ vi.mock("next/navigation", () => ({ useRouter: () => ({ replace }) }));
 vi.mock("@/lib/supabase", () => ({
   getSupabase: () => ({ auth: { signOut: vi.fn(() => Promise.resolve({ error: null })) } }),
 }));
+const signOutEverywhere = vi.fn(() => Promise.resolve());
+vi.mock("@/lib/sign-out", () => ({
+  signOutEverywhere: (...args: unknown[]) => signOutEverywhere(...(args as [])),
+  clearAppStorage: vi.fn(),
+}));
 vi.mock("@/lib/web-push", () => ({
   webPushSupported: () => false,
   enableWebPush: vi.fn(),

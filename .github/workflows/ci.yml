@@ -41,6 +41,25 @@ jobs:
       - run: pnpm typecheck
       - run: pnpm test
 
+  secret-scan:
+    name: Client bundle secret scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v5
+      - uses: pnpm/action-setup@v4
+        with:
+          package_json_file: studypulse/package.json
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: studypulse/.nvmrc
+          cache: pnpm
+          cache-dependency-path: studypulse/pnpm-lock.yaml
+      - run: pnpm install --frozen-lockfile
+      # Builds web and mobile with canary values in every server secret, then fails if a
+      # canary or a real-looking secret shows up in anything a client downloads.
+      - run: pnpm secrets:scan
+
   migrations:
     name: Migrations and SQL tests
     runs-on: ubuntu-latest

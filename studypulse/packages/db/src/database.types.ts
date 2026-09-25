@@ -1982,6 +1982,10 @@ export type Database = {
         }[];
       };
       get_today_overview: { Args: never; Returns: Json };
+      hook_password_verification_attempt: {
+        Args: { event: Json };
+        Returns: Json;
+      };
       invalidate_push_tokens: {
         Args: { p_token_ids: string[] };
         Returns: number;

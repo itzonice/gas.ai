@@ -124,6 +124,11 @@ export function SignInForm() {
           {mode === "sign-in" ? "Create an account" : "Sign in instead"}
         </Button>
       </p>
+      {mode === "sign-in" ? (
+        <p className={styles.switch}>
+          <Link href="/reset-password">Forgot your password?</Link>
+        </p>
+      ) : null}
       <p className={styles.legalLinks}>
         <Link href="/terms">Terms of Use</Link>
         <Link href="/privacy">Privacy Policy</Link>

@@ -67,3 +67,10 @@
   align-items: center;
   min-height: var(--sp-layout-min-target);
 }
+
+.switch a {
+  color: var(--sp-color-primary);
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--sp-layout-min-target);
+}

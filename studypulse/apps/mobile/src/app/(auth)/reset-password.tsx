@@ -1,32 +1,32 @@
+// Asks for a reset link; the link opens the web app to choose a new password. Same
+// answer whether or not an account exists for the email (launch safety S6).
 import { authErrorMessage } from "@studypulse/core/auth";
+import { DEFAULT_WEB_ORIGIN } from "@studypulse/core/legal";
 import { Link } from "expo-router";
 import { useState } from "react";
 import { Text } from "react-native";
 
-import { LegalLinks } from "../../components/LegalLinks";
 import { Screen } from "../../components/Screen";
 import { Button } from "../../components/ui/Button";
 import { TextField } from "../../components/ui/TextField";
+import { env } from "../../env";
 import { getSupabase } from "../../lib/supabase";
 import { useAppTheme } from "../../theme";
 
-export default function SignInScreen() {
+export default function ResetPasswordScreen() {
   const theme = useAppTheme();
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState(false);
 
-  async function signIn() {
+  async function send() {
     setBusy(true);
-    setMessage("");
-    const { error } = await getSupabase().auth.signInWithPassword({
-      email: email.trim(),
-      password,
+    const origin = (env.EXPO_PUBLIC_WEB_URL ?? DEFAULT_WEB_ORIGIN).replace(/\/+$/, "");
+    const { error } = await getSupabase().auth.resetPasswordForEmail(email.trim(), {
+      redirectTo: `${origin}/update-password`,
     });
     setBusy(false);
-    // On success the session listener moves on to Today.
-    if (error) setMessage(authErrorMessage("sign-in", error));
+    setMessage(authErrorMessage("reset", error));
   }
 
   return (
@@ -35,7 +35,7 @@ export default function SignInScreen() {
         accessibilityRole="header"
         style={[theme.type.pageTitle, { color: theme.colors.onSurface }]}
       >
-        Sign in
+        Reset your password
       </Text>
       <TextField
         label="Email"
@@ -46,40 +46,25 @@ export default function SignInScreen() {
         value={email}
         onChangeText={setEmail}
       />
-      <TextField
-        label="Password"
-        secureTextEntry
-        autoComplete="current-password"
-        textContentType="password"
-        value={password}
-        onChangeText={setPassword}
-      />
       {message ? (
         <Text
           accessibilityLiveRegion="polite"
-          style={[theme.type.body, { color: theme.colors.error }]}
+          style={[theme.type.body, { color: theme.colors.onSurface }]}
         >
           {message}
         </Text>
       ) : null}
       <Button
-        label={busy ? "Signing in…" : "Sign in"}
+        label={busy ? "Sending…" : "Send reset link"}
         disabled={busy}
-        onPress={() => void signIn()}
+        onPress={() => void send()}
       />
       <Link
-        href="/reset-password"
+        href="/sign-in"
         style={[theme.type.labelLarge, { color: theme.colors.primary, minHeight: 48 }]}
       >
-        Forgot your password?
+        Back to sign in
       </Link>
-      <Link
-        href="/sign-up"
-        style={[theme.type.labelLarge, { color: theme.colors.primary, minHeight: 48 }]}
-      >
-        Create an account
-      </Link>
-      <LegalLinks />
     </Screen>
   );
 }

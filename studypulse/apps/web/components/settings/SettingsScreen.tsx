@@ -26,8 +26,9 @@ import {
   SelectField,
   TextField,
 } from "@/components/ui";
+import { clearAppStorage, signOutEverywhere } from "@/lib/sign-out";
 import { getSupabase } from "@/lib/supabase";
-import { disableWebPush, enableWebPush, webPushSupported } from "@/lib/web-push";
+import { enableWebPush, webPushSupported } from "@/lib/web-push";
 
 import { deviceSummary, planSummary, profileChanges, prefChanges } from "./model";
 import styles from "./settings.module.css";
@@ -146,8 +147,7 @@ export function SettingsScreen() {
   }
 
   async function signOut() {
-    await disableWebPush(api).catch(() => undefined);
-    await getSupabase().auth.signOut();
+    await signOutEverywhere(api);
     router.replace("/sign-in");
   }
 
@@ -463,9 +463,11 @@ function DeleteAccountDialog({ open, onClose }: { open: boolean; onClose: () => 
     setError("");
     try {
       await api.account.delete("DELETE");
+      // The account's sessions are gone with it; forget this browser's copy too.
       await getSupabase()
-        .auth.signOut()
+        .auth.signOut({ scope: "local" })
         .catch(() => undefined);
+      clearAppStorage();
       router.replace("/sign-in?deleted=1");
     } catch (err) {
       setBusy(false);

@@ -24,7 +24,8 @@
     "functions:lint": "cd supabase/functions && deno lint",
     "functions:check": "cd supabase/functions && deno check .",
     "functions:test": "cd supabase/functions && deno test --allow-env --allow-net=127.0.0.1,localhost",
-    "deploy:check": "node packages/core/scripts/deploy-check.ts"
+    "deploy:check": "node packages/core/scripts/deploy-check.ts",
+    "secrets:scan": "node scripts/secret-scan.mjs --build"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.0",

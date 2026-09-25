@@ -5,7 +5,7 @@
   "type": "module",
   "exports": {
     ".": "./src/index.ts",
-    "./css": "./tokens.css",
+    "./tokens.css": "./tokens.css",
     "./native": "./src/native.ts"
   },
   "scripts": {

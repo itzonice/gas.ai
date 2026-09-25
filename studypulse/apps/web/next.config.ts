@@ -39,7 +39,7 @@ const securityHeaders = [
 
 const nextConfig: NextConfig = {
   // Workspace packages ship TypeScript source, so Next compiles them.
-  transpilePackages: ["@studypulse/core", "@studypulse/db"],
+  transpilePackages: ["@studypulse/core", "@studypulse/db", "@studypulse/tokens"],
   poweredByHeader: false,
   headers() {
     return Promise.resolve([{ source: "/:path*", headers: securityHeaders }]);

@@ -12,6 +12,7 @@
   "dependencies": {
     "@sentry/nextjs": "^10.75.3",
     "@studypulse/core": "workspace:*",
+    "@studypulse/tokens": "workspace:*",
     "next": "16.3.6",
     "react": "19.2.3",
     "react-dom": "19.2.3"

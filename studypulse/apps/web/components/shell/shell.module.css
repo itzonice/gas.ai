@@ -1,0 +1,361 @@
+/*
+ * App shell. One DOM, three navigation presentations:
+ *   under 600 px   bottom navigation bar + floating "Start focus"
+ *   600–1023 px    navigation rail (icons with labels)
+ *   1024 px and up persistent 280 px sidebar
+ * Breakpoints match @studypulse/tokens (layout.breakpoints). No fixed heights on anything
+ * that contains text, so layouts hold at 200% text size.
+ */
+
+.shell {
+  min-height: 100dvh;
+  display: grid;
+  grid-template-areas:
+    "appbar"
+    "body";
+  grid-template-rows: auto 1fr;
+  background: var(--sp-color-surface);
+  color: var(--sp-color-on-surface);
+}
+
+/* Skip link: first in tab order, visible when focused. */
+.skipLink {
+  position: absolute;
+  left: var(--sp-space-related);
+  top: -100px;
+  z-index: 100;
+  padding: var(--sp-space-related) var(--sp-space-card);
+  border-radius: var(--sp-radius-control);
+  background: var(--sp-color-inverse-surface);
+  color: var(--sp-color-inverse-on-surface);
+  font: var(--sp-type-label-large-weight) var(--sp-type-label-large-size) /
+    var(--sp-type-label-large-line-height) var(--sp-font-sans);
+  text-decoration: none;
+}
+.skipLink:focus {
+  top: var(--sp-space-related);
+}
+
+.visuallyHidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ------------------------------------------------------------------ app bar */
+
+.appBar {
+  grid-area: appbar;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-space-related);
+  min-height: var(--sp-layout-app-bar-height);
+  padding: var(--sp-space-related) var(--sp-space-card);
+  background: var(--sp-color-surface-container);
+}
+
+.logo {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-space-related);
+  min-height: var(--sp-layout-min-target);
+  padding-inline-end: var(--sp-space-related);
+  border-radius: var(--sp-radius-control);
+  color: var(--sp-color-on-surface);
+  text-decoration: none;
+  font-size: var(--sp-type-section-heading-size);
+  line-height: var(--sp-type-section-heading-line-height);
+  font-weight: var(--sp-type-section-heading-weight);
+}
+
+.search {
+  display: none;
+  position: relative;
+  flex: 1;
+  max-width: 560px;
+  margin-inline: auto;
+}
+.searchIcon {
+  position: absolute;
+  left: var(--sp-space-card);
+  top: 50%;
+  translate: 0 -50%;
+  color: var(--sp-color-on-surface-variant);
+  pointer-events: none;
+}
+.searchInput {
+  width: 100%;
+  min-height: var(--sp-layout-min-target);
+  padding: var(--sp-space-related) var(--sp-space-card) var(--sp-space-related) 52px;
+  border: 1px solid transparent;
+  border-radius: var(--sp-radius-full);
+  background: var(--sp-color-surface-container-highest);
+  color: var(--sp-color-on-surface);
+  font: inherit;
+  font-size: var(--sp-type-body-large-size);
+}
+.searchInput::placeholder {
+  color: var(--sp-color-on-surface-variant);
+}
+
+.appBarActions {
+  display: flex;
+  gap: var(--sp-layout-target-gap);
+  margin-inline-start: auto;
+}
+
+.iconButton {
+  display: inline-grid;
+  place-items: center;
+  width: var(--sp-layout-min-target);
+  height: var(--sp-layout-min-target);
+  border-radius: var(--sp-radius-full);
+  color: var(--sp-color-on-surface-variant);
+}
+.iconButton:hover {
+  background: color-mix(in srgb, var(--sp-color-on-surface) 8%, transparent);
+}
+
+.hideOnPhone {
+  display: none;
+}
+
+/* ------------------------------------------------------------------ navigation */
+
+/* Phones: fixed bottom bar with the five destinations. */
+.nav {
+  position: fixed;
+  inset: auto 0 0;
+  z-index: 10;
+  background: var(--sp-color-surface-container);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.navList {
+  display: flex;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.navList > li {
+  flex: 1;
+  min-width: 0;
+}
+.navSecondary {
+  display: none;
+}
+
+.navLink {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--sp-space-half);
+  min-height: var(--sp-layout-bottom-bar-height);
+  padding: 12px var(--sp-space-half) var(--sp-space-card);
+  color: var(--sp-color-on-surface-variant);
+  text-decoration: none;
+  font-size: var(--sp-type-label-size);
+  line-height: var(--sp-type-label-line-height);
+  font-weight: var(--sp-type-label-weight);
+  text-align: center;
+}
+
+/* M3 active indicator: a pill behind the icon (a shape, not just a color). */
+.navIndicator {
+  display: grid;
+  place-items: center;
+  width: 64px;
+  height: 32px;
+  border-radius: var(--sp-radius-full);
+}
+.navLink:hover .navIndicator {
+  background: color-mix(in srgb, var(--sp-color-on-surface) 8%, transparent);
+}
+.navLink[aria-current="page"] {
+  color: var(--sp-color-on-surface);
+  font-weight: 700;
+}
+.navLink[aria-current="page"] .navIndicator {
+  background: var(--sp-color-secondary-container);
+  color: var(--sp-color-on-secondary-container);
+}
+.navLabel {
+  overflow-wrap: anywhere;
+}
+
+.body {
+  grid-area: body;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  /* Room for the bottom bar and the floating button. */
+  padding-bottom: calc(var(--sp-layout-bottom-bar-height) + 72px + env(safe-area-inset-bottom));
+}
+
+.main {
+  flex: 1;
+  width: 100%;
+  max-width: var(--sp-layout-content-max-width);
+  margin-inline: auto;
+  padding: var(--sp-space-section) var(--sp-space-card);
+  box-sizing: border-box;
+}
+.main:focus {
+  outline: none;
+}
+
+.footer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-space-card);
+  justify-content: center;
+  padding: var(--sp-space-card);
+  color: var(--sp-color-on-surface-variant);
+  font-size: var(--sp-type-label-size);
+}
+.footer a {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--sp-layout-min-target);
+  color: inherit;
+}
+
+/* Phones: "Start focus" floats above the bottom bar. */
+.fab {
+  position: fixed;
+  right: var(--sp-space-card);
+  bottom: calc(
+    var(--sp-layout-bottom-bar-height) + var(--sp-space-card) + env(safe-area-inset-bottom)
+  );
+  z-index: 11;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-space-related);
+  min-height: 56px;
+  padding: var(--sp-space-card) 20px;
+  border-radius: var(--sp-radius-card);
+  background: var(--sp-color-primary);
+  color: var(--sp-color-on-primary);
+  box-shadow: 0 3px 6px color-mix(in srgb, var(--sp-color-shadow) 25%, transparent);
+  text-decoration: none;
+  font-size: var(--sp-type-label-large-size);
+  line-height: var(--sp-type-label-large-line-height);
+  font-weight: var(--sp-type-label-large-weight);
+}
+
+.phoneOnly {
+  display: inline-grid;
+}
+
+/* ------------------------------------------------------------------ tablet: rail */
+
+@media (min-width: 600px) {
+  .shell {
+    grid-template-areas:
+      "appbar appbar"
+      "nav body";
+    grid-template-columns: var(--sp-layout-rail-width) minmax(0, 1fr);
+  }
+
+  .search {
+    display: block;
+  }
+  .hideOnPhone {
+    display: inline-grid;
+  }
+  .phoneOnly,
+  .fab {
+    display: none;
+  }
+
+  .nav {
+    grid-area: nav;
+    position: sticky;
+    top: var(--sp-layout-app-bar-height);
+    align-self: start;
+    display: flex;
+    flex-direction: column;
+    height: calc(100dvh - var(--sp-layout-app-bar-height));
+    overflow-y: auto;
+    padding: var(--sp-space-related) 0;
+    background: var(--sp-color-surface);
+  }
+  .navList {
+    flex-direction: column;
+    gap: var(--sp-space-half);
+  }
+  .navSecondary {
+    display: flex;
+    margin-top: auto;
+  }
+  .navLink {
+    min-height: 56px;
+    padding: var(--sp-space-half) var(--sp-space-half) var(--sp-space-related);
+  }
+  .navIndicator {
+    width: 56px;
+  }
+
+  .body {
+    padding-bottom: 0;
+  }
+  .main {
+    padding: var(--sp-space-section);
+  }
+}
+
+/* ------------------------------------------------------------------ desktop: sidebar */
+
+@media (min-width: 1024px) {
+  .shell {
+    grid-template-columns: var(--sp-layout-sidebar-width) minmax(0, 1fr);
+  }
+  .nav {
+    padding: var(--sp-space-related) 12px var(--sp-space-card);
+  }
+  .navLink {
+    flex-direction: row;
+    gap: 12px;
+    min-height: 56px;
+    padding: 0 var(--sp-space-card) 0 var(--sp-space-card);
+    border-radius: var(--sp-radius-full);
+    font-size: var(--sp-type-label-large-size);
+    line-height: var(--sp-type-label-large-line-height);
+    text-align: start;
+  }
+  /* In the sidebar the whole item is the indicator. */
+  .navIndicator {
+    width: auto;
+    height: auto;
+    background: none !important;
+  }
+  .navLink:hover {
+    background: color-mix(in srgb, var(--sp-color-on-surface) 8%, transparent);
+  }
+  .navLink[aria-current="page"] {
+    background: var(--sp-color-secondary-container);
+    color: var(--sp-color-on-secondary-container);
+  }
+  .main {
+    padding: var(--sp-space-major) var(--sp-space-major) var(--sp-space-section);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .navLink,
+  .navIndicator,
+  .iconButton {
+    transition:
+      background-color var(--sp-motion-short) var(--sp-motion-easing),
+      color var(--sp-motion-short) var(--sp-motion-easing);
+  }
+}

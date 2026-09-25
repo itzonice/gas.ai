@@ -1,6 +1,6 @@
 // StudyPulse design tokens: Material 3 color roles (light and dark from one seed), the
 // vetted course palette, 8 px spacing, radii, the type scale, and layout breakpoints.
-// Web: import "@studypulse/tokens/css" for CSS variables. Expo: "@studypulse/tokens/native".
+// Web: import "@studypulse/tokens/tokens.css" for CSS variables. Expo: "@studypulse/tokens/native".
 import { contrastRatio, parseHex } from "./contrast.ts";
 import { coursePalette, darkColors, lightColors, SEED_COLOR } from "./generated.ts";
 import type { ColorRoles, CourseColor, CourseSwatch, ThemeName } from "./types.ts";

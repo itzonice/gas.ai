@@ -18,6 +18,7 @@ import {
   blockStatusInputSchema,
   calendarRangeInputSchema,
   courseTargetInputSchema,
+  featuresResponseSchema,
   coursesOverviewSchema,
   calendarRangeSchema,
   createAssignmentInputSchema,
@@ -231,6 +232,14 @@ export function createApiClient(db: Db) {
       async overview(): Promise<TodayOverview> {
         return parseResponse(todayOverviewSchema, unwrap(await db.rpc("get_today_overview")));
       },
+    },
+
+    /** Which optional features the server has turned on (billing, email, Google, ...). */
+    async features() {
+      const res = await db.functions.invoke("features", { method: "GET" });
+      const error: unknown = res.error;
+      if (error) throw await functionError(error);
+      return parseResponse(featuresResponseSchema, res.data).features;
     },
 
     courses: {

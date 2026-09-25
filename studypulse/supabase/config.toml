@@ -460,6 +460,13 @@ verify_jwt = false
 import_map = "./functions/deno.json"
 entrypoint = "./functions/google-calendar-sync/index.ts"
 
+[functions.features]
+enabled = true
+# Public on/off flags only (no auth): the apps show unconfigured features as unavailable.
+verify_jwt = false
+import_map = "./functions/deno.json"
+entrypoint = "./functions/features/index.ts"
+
 [functions.delete-account]
 enabled = true
 verify_jwt = true

@@ -51,10 +51,12 @@ Related: [security audit](security-audit.md), [analytics](analytics.md),
   - [ ] Custom SMTP (Resend) so auth emails come from your domain; review rate limits.
   - [ ] JWT expiry 3600 s; refresh token rotation on.
 - [ ] Database: SSL enforcement on; network restrictions if you have fixed admin IPs.
-- [ ] **Edge functions deployed**: `supabase functions deploy` (deploys all 21; config in
+- [ ] **Edge functions deployed**: `supabase functions deploy` (deploys all 22; config in
       `supabase/config.toml`). Confirm `verify_jwt` matches config for each
-      (webhooks, cron, calendar-feed, email-unsubscribe, canvas-oauth, google-oauth, and
-      google-calendar-sync are `false`).
+      (webhooks, cron, calendar-feed, email-unsubscribe, canvas-oauth, google-oauth,
+      google-calendar-sync, and features are `false`).
+- [ ] `pnpm deploy:check --strict` passes (lists every optional integration as on or off;
+      `GET /functions/v1/features` shows what the apps will see).
 - [ ] **Function secrets** (`supabase secrets set --env-file prod.env`; never commit it):
 
       | Group | Variables |

@@ -153,6 +153,19 @@ export const coursesOverviewSchema = z.object({
 export type CoursesOverview = z.infer<typeof coursesOverviewSchema>;
 export type CourseCard = CoursesOverview["courses"][number];
 
+/** Response of the `features` edge function. */
+export const featuresResponseSchema = z.object({
+  features: z.object({
+    ai: z.boolean(),
+    stripe: z.boolean(),
+    revenuecat: z.boolean(),
+    email: z.boolean(),
+    webPush: z.boolean(),
+    googleCalendar: z.boolean(),
+  }),
+});
+export type Features = z.infer<typeof featuresResponseSchema>["features"];
+
 export const courseTargetInputSchema = z.object({
   courseId: uuidSchema,
   targetGrade: z.number().min(0).max(100).nullable(),

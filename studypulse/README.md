@@ -28,6 +28,10 @@ That starts everything and resets the database to the demo data:
 | Test emails    | http://localhost:54324                    |
 | Demo login     | `demo@studypulse.dev` / `studypulse-demo` |
 
+No third-party keys are needed. Stripe, RevenueCat, Resend, web push (VAPID), Google
+Calendar, and the AI parser are off until their variables are set; `pnpm deploy:check`
+lists which are on and what each one needs.
+
 `Ctrl+C` stops the web app and functions; `pnpm db:stop` stops Supabase. The first run
 writes `apps/web/.env.local` and `supabase/functions/.env`; add keys there (for example
 `ANTHROPIC_API_KEY` to parse real syllabi, or Stripe test keys) and they're kept.

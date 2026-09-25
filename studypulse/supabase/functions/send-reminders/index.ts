@@ -25,6 +25,7 @@ import { requireCron } from "../_shared/cron.ts";
 import { createHandler } from "../_shared/handler.ts";
 import { json, requireMethod } from "../_shared/http.ts";
 import { expoOptions, vapidKeys } from "../_shared/push/options.ts";
+import { deliveryTargets, type Token } from "../_shared/push/targets.ts";
 import { checkExpoReceipts } from "../_shared/push/receipts.ts";
 import { adminClient } from "../_shared/supabase.ts";
 
@@ -55,8 +56,6 @@ const assignmentsSchema = z.array(
   }),
 );
 
-const webPushKeysSchema = z.object({ p256dh: z.string(), auth: z.string() });
-
 interface Outgoing {
   userId: string;
   tokenId: string;
@@ -67,28 +66,6 @@ interface ExpoOutgoing extends Outgoing {
 }
 interface WebOutgoing extends Outgoing {
   subscription: WebPushSubscription;
-}
-
-interface Token {
-  id: string;
-  user_id: string;
-  token: string;
-  provider: "expo" | "web_push";
-  web_push_keys: unknown;
-}
-
-/** Expo devices if the user has any; otherwise web push subscriptions (the fallback). */
-function deliveryTargets(tokens: readonly Token[], vapid: VapidKeys | null) {
-  const expo = tokens.filter((t) => t.provider === "expo");
-  const web: { tokenId: string; subscription: WebPushSubscription }[] = [];
-  if (!expo.length && vapid) {
-    for (const t of tokens.filter((x) => x.provider === "web_push")) {
-      const keys = webPushKeysSchema.safeParse(t.web_push_keys);
-      if (keys.success)
-        web.push({ tokenId: t.id, subscription: { endpoint: t.token, ...keys.data } });
-    }
-  }
-  return { expo, web };
 }
 
 /** Runs `fn` over `items` with at most `limit` in flight; results keep input order. */
@@ -162,6 +139,11 @@ Deno.serve(
     const db = adminClient();
     const now = new Date();
     const vapid = vapidKeys();
+    // Once per run: with web push off, web-only users get nothing from this job (the
+    // email digest covers them when it's configured); Expo push is unaffected.
+    if (!vapid) {
+      log.info("web push not configured (VAPID_*); skipping the web push channel this run");
+    }
 
     const receipts = await checkExpoReceipts(db, log).catch((error: unknown) => {
       log.warn("receipt check failed", { error });

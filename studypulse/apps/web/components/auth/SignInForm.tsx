@@ -13,6 +13,7 @@ import { getSupabase, safeNext } from "@/lib/supabase";
 
 import styles from "./auth.module.css";
 import { BirthMonthField, type BirthMonthValue } from "./BirthMonthField";
+import { SupportEmail } from "@/components/legal/SupportEmail";
 import { useSession } from "./SessionProvider";
 
 type Mode = "sign-in" | "sign-up";
@@ -171,6 +172,8 @@ export function SignInForm() {
       <p className={styles.legalLinks}>
         <Link href="/terms">Terms of Use</Link>
         <Link href="/privacy">Privacy Policy</Link>
+        <Link href="/refunds">Refunds</Link>
+        <SupportEmail />
       </p>
     </div>
   );

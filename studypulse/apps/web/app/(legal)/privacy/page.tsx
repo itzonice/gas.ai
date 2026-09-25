@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 
 import { LegalPage, legalStyles as styles } from "@/components/legal/LegalPage";
+import { SupportEmail } from "@/components/legal/SupportEmail";
 
 export const metadata: Metadata = { title: "Privacy Policy" };
 
@@ -71,7 +72,7 @@ export default function PrivacyPage() {
       <p>
         StudyPulse (&quot;we&quot;) is operated by [Company legal name], [address]. This policy
         explains what we collect when you use StudyPulse on the web or in the iOS and Android apps,
-        why, who else handles it, and your choices. Questions: [privacy contact email].
+        why, who else handles it, and your choices. Questions: <SupportEmail />.
       </p>
 
       <h2>What we collect</h2>
@@ -155,7 +156,7 @@ export default function PrivacyPage() {
         after it) asks for your birth month and year; we use it only to check that you are 13 or
         older and don&apos;t keep it. If you are under 13, no account is created, or the one just
         made is deleted at once. If we learn that we have an account for a child under 13, we delete
-        it. If you believe a child under 13 has an account, contact [privacy contact email].
+        it. If you believe a child under 13 has an account, contact <SupportEmail />.
       </p>
 
       <h2>How long we keep it</h2>
@@ -175,8 +176,8 @@ export default function PrivacyPage() {
         <li>Disconnect Canvas or Google Calendar at any time.</li>
         <li>
           Depending on where you live (for example the EU, UK, or California), you may also have
-          rights to access, correct, or object to processing. Contact [privacy contact email]; we
-          answer within 30 days.
+          rights to access, correct, or object to processing. Contact <SupportEmail />; we answer
+          within 30 days.
         </li>
       </ul>
 

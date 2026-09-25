@@ -26,6 +26,7 @@ import {
   SelectField,
   TextField,
 } from "@/components/ui";
+import { SupportEmail } from "@/components/legal/SupportEmail";
 import { clearAppStorage, signOutEverywhere } from "@/lib/sign-out";
 import { getSupabase } from "@/lib/supabase";
 import { enableWebPush, webPushSupported } from "@/lib/web-push";
@@ -427,7 +428,13 @@ export function SettingsScreen() {
           <Button variant="text" href="/privacy">
             Privacy Policy
           </Button>
+          <Button variant="text" href="/refunds">
+            Refund policy
+          </Button>
         </div>
+        <p className={styles.muted}>
+          Need help? Email <SupportEmail />.
+        </p>
       </section>
 
       <section className={styles.section} aria-labelledby="data-heading">

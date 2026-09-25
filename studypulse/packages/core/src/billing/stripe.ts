@@ -391,7 +391,16 @@ const priceSchema = z.looseObject({
 export type StripePrice = z.infer<typeof priceSchema>;
 
 /** One price, to show the real amount next to the subscribe button (launch safety S16). */
-export function retrieveStripePrice(priceId: string, options: StripeOptions): Promise<StripePrice> {
+export async function retrieveStripePrice(
+  priceId: string,
+  options: StripeOptions,
+): Promise<StripePrice> {
   if (!/^price_[A-Za-z0-9]+$/.test(priceId)) throw new Error("not a Stripe price id");
-  return stripeRequest(priceSchema, "GET", `/prices/${priceId}`, {}, options);
+  return stripeRequest(
+    priceSchema,
+    "GET",
+    `/v1/prices/${encodeURIComponent(priceId)}`,
+    {},
+    options,
+  );
 }

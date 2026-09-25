@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { LegalPage } from "@/components/legal/LegalPage";
+import { SupportEmail } from "@/components/legal/SupportEmail";
 
 export const metadata: Metadata = { title: "Terms of Use" };
 
@@ -50,8 +51,9 @@ export default function TermsPage() {
           the end of the paid period.
         </li>
         <li>
-          Refunds for App Store and Google Play purchases are handled by Apple and Google. For web
-          purchases, contact [support email]; a full refund ends Pro immediately.
+          Refunds follow our <Link href="/refunds">refund policy</Link>: App Store and Google Play
+          purchases are refunded by Apple and Google; for web purchases, a full refund ends Pro
+          immediately and a partial refund changes nothing.
         </li>
       </ul>
 
@@ -72,8 +74,8 @@ export default function TermsPage() {
       <h2>Changes and contact</h2>
       <p>
         We will post changes here and give notice in the app or by email before significant changes
-        take effect. These terms are governed by the laws of [jurisdiction]. Contact: [support
-        email].
+        take effect. These terms are governed by the laws of [jurisdiction]. Contact:{" "}
+        <SupportEmail />.
       </p>
     </LegalPage>
   );

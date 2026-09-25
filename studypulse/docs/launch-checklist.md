@@ -122,6 +122,13 @@ Numbers are starting points; raise them as usage grows.
         receipts and "Send emails about upcoming renewals" as a second reminder.
   - [ ] RevenueCat → `.../functions/v1/revenuecat-webhook` with Authorization header =
         `REVENUECAT_WEBHOOK_AUTH`; send a test event and check `billing_events`.
+- [ ] Stripe → Settings → Business → Public details (S19): statement descriptor
+      `STUDYPULSE PRO` (shortened `STUDYPULSE`), support email = `SUPPORT_EMAIL`, support
+      URL = `<web origin>/refunds`, business website. Settings → Emails: turn on successful
+      payment and refund receipts (they show these details). The same address goes in
+      `SUPPORT_EMAIL`, `NEXT_PUBLIC_SUPPORT_EMAIL`, and `EXPO_PUBLIC_SUPPORT_EMAIL`, and
+      someone must watch that inbox.
+- [ ] Refund window (S18): replace `[N]` on `/refunds` with the window you'll honor.
 - [ ] Stripe: customer portal configured (cancel, update card, invoices); student coupon
       created with **no** public promotion code; Stripe Tax if selling where required.
 - [ ] Canvas schools you'll support registered with their developer keys:

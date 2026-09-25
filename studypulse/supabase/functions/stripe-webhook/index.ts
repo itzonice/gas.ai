@@ -15,6 +15,7 @@ import {
   verifyStripeSignature,
   type SubscriptionUpdate,
 } from "@studypulse/core/billing/index.ts";
+import { supportEmail } from "@studypulse/core/legal/index.ts";
 import { sendResendBatch } from "@studypulse/core/notify/index.ts";
 
 import { stripeOptions } from "../_shared/billing.ts";
@@ -85,7 +86,7 @@ Deno.serve(
         ? null
         : billingEmailFromEvent(event, {
             ...(e.APP_URL ? { appUrl: e.APP_URL.replace(/\/+$/, "") } : {}),
-            ...(e.SUPPORT_EMAIL ? { supportEmail: e.SUPPORT_EMAIL } : {}),
+            supportEmail: supportEmail(e.SUPPORT_EMAIL),
           });
     if (email && e.RESEND_API_KEY && e.EMAIL_FROM) {
       await sendResendBatch(

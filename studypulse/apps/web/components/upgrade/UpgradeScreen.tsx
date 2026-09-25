@@ -16,6 +16,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useState, type FormEvent } from "react";
 
 import { useApi } from "@/components/auth/SessionProvider";
+import { SupportEmail } from "@/components/legal/SupportEmail";
 import { Button, CheckboxField, Icon, PageHeader, TextField } from "@/components/ui";
 
 import styles from "./upgrade.module.css";
@@ -254,6 +255,9 @@ export function UpgradeScreen({ returned }: { returned?: "success" | "canceled" 
                   : `${terms.frequency}; the price is shown on the checkout page.`}
               </strong>{" "}
               {terms.renewal} {terms.cancel}
+            </p>
+            <p>
+              See the <Link href="/refunds">refund policy</Link>. Questions? <SupportEmail />.
             </p>
             <p>
               You&apos;ll pay on Stripe&apos;s secure checkout page. By subscribing you agree to the{" "}

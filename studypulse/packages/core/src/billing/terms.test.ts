@@ -69,3 +69,27 @@ describe("billing emails", () => {
     expect(billingEmailFromEvent(invoice("customer.created", {}))).toBeNull();
   });
 });
+
+describe("retrieveStripePrice", () => {
+  it("reads the price from Stripe's /v1/prices endpoint", async () => {
+    const { retrieveStripePrice } = await import("./stripe.ts");
+    const urls: string[] = [];
+    const fake = ((url: string) => {
+      urls.push(url);
+      return Promise.resolve(
+        Response.json({
+          id: "price_Y",
+          unit_amount: 3999,
+          currency: "usd",
+          recurring: { interval: "year" },
+        }),
+      );
+    }) as unknown as typeof fetch;
+    const price = await retrieveStripePrice("price_Y", { apiKey: "sk_test_x", fetch: fake });
+    expect(urls).toEqual(["https://api.stripe.com/v1/prices/price_Y"]);
+    expect(price.unit_amount).toBe(3999);
+    await expect(
+      retrieveStripePrice("../customers", { apiKey: "k", fetch: fake }),
+    ).rejects.toThrow();
+  });
+});

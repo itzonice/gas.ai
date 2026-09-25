@@ -18,6 +18,7 @@ const ALLOWED_PUBLIC = {
   NEXT_PUBLIC_SUPABASE_ANON_KEY: "anon key; RLS decides what it can read",
   NEXT_PUBLIC_SENTRY_DSN: "DSN is a public ingest address",
   NEXT_PUBLIC_VAPID_PUBLIC_KEY: "the public half of the VAPID pair",
+  NEXT_PUBLIC_SUPPORT_EMAIL: "the published support address",
   EXPO_PUBLIC_APP_ENV: "environment name",
   EXPO_PUBLIC_SUPABASE_URL: "project URL",
   EXPO_PUBLIC_SUPABASE_ANON_KEY: "anon key; RLS decides what it can read",
@@ -25,6 +26,7 @@ const ALLOWED_PUBLIC = {
   EXPO_PUBLIC_REVENUECAT_IOS_KEY: "RevenueCat public SDK key",
   EXPO_PUBLIC_REVENUECAT_ANDROID_KEY: "RevenueCat public SDK key",
   EXPO_PUBLIC_WEB_URL: "web app origin",
+  EXPO_PUBLIC_SUPPORT_EMAIL: "the published support address",
 } as const;
 
 const SECRET_LOOKING = /SECRET|SERVICE_ROLE|PRIVATE|PASSWORD|TOKEN|WEBHOOK|ANTHROPIC|STRIPE|RESEND/;

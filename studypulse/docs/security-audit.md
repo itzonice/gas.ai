@@ -324,3 +324,26 @@ Every call to Anthropic, Stripe, Expo, Resend, Google, and PostHog goes through
   renewed every 3 years) and put the registered details on the page.
 - **Tests:** SQL test 620, and a live run of the script against the local stack (file
   deleted, row updated, notice recorded).
+
+## S18–S19: Refund policy, support address, statement descriptor
+
+- **`/refunds`** matches the refund handling in `stripe-webhook`:
+  - a full web refund ends Pro immediately and cancels the subscription;
+  - a partial refund changes nothing;
+  - App Store and Google Play refunds go through Apple and Google.
+  - The refund window is left as a marked `[N]` for the owner to decide.
+- **Where `/refunds` is linked:** the checkout panel on the upgrade page, the Terms,
+  Settings → Legal, the sign-in page's legal links, and the mobile legal links.
+- **Support address:** `supportEmail()` in core. Set it with `NEXT_PUBLIC_SUPPORT_EMAIL` /
+  `EXPO_PUBLIC_SUPPORT_EMAIL` / `SUPPORT_EMAIL`; it defaults to `support@studypulse.app`.
+  It's shown on:
+  - the pricing (upgrade) page;
+  - Settings;
+  - the sign-in and legal pages (Terms, Privacy, Refunds);
+  - the mobile legal links ("Contact support");
+  - every billing email.
+    It replaced the `[support email]` and `[privacy contact email]` placeholders.
+- **Statement descriptor, Stripe public details, and receipts** are dashboard settings,
+  listed in the launch checklist: `STUDYPULSE PRO`, the support email, and the refund URL.
+- **Fixed:** the S16 price lookup used `/prices/…` instead of `/v1/prices/…` and would
+  have failed against real Stripe. A test now pins the URL.

@@ -264,6 +264,12 @@ describe("UpgradeScreen", () => {
     ).toBeInTheDocument();
     await userEvent.click(screen.getByRole("radio", { name: /Monthly/ }));
     expect(terms).toHaveTextContent("$4.99 / month · billed every month.");
+    // S18–S19: the refund policy and a working support address are right there too.
+    expect(screen.getByRole("link", { name: "refund policy" })).toHaveAttribute("href", "/refunds");
+    expect(screen.getByRole("link", { name: "support@studypulse.app" })).toHaveAttribute(
+      "href",
+      "mailto:support@studypulse.app",
+    );
   });
 
   it("says upgrades are unavailable when billing is off", async () => {

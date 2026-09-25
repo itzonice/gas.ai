@@ -290,6 +290,87 @@ export type Database = {
           },
         ];
       };
+      card_generations: {
+        Row: {
+          ai_usage: Json;
+          assignment_id: string | null;
+          card_count: number;
+          course_id: string;
+          created_at: string;
+          error: string | null;
+          id: string;
+          notes_chars: number;
+          prompt_version: string | null;
+          status: string;
+          updated_at: string;
+          user_id: string;
+        };
+        Insert: {
+          ai_usage?: Json;
+          assignment_id?: string | null;
+          card_count?: number;
+          course_id: string;
+          created_at?: string;
+          error?: string | null;
+          id?: string;
+          notes_chars: number;
+          prompt_version?: string | null;
+          status?: string;
+          updated_at?: string;
+          user_id: string;
+        };
+        Update: {
+          ai_usage?: Json;
+          assignment_id?: string | null;
+          card_count?: number;
+          course_id?: string;
+          created_at?: string;
+          error?: string | null;
+          id?: string;
+          notes_chars?: number;
+          prompt_version?: string | null;
+          status?: string;
+          updated_at?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "card_generations_assignment_id_fkey";
+            columns: ["assignment_id"];
+            isOneToOne: false;
+            referencedRelation: "assignment_grade_shares";
+            referencedColumns: ["assignment_id"];
+          },
+          {
+            foreignKeyName: "card_generations_assignment_id_fkey";
+            columns: ["assignment_id"];
+            isOneToOne: false;
+            referencedRelation: "assignments";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "card_generations_course_id_fkey";
+            columns: ["course_id"];
+            isOneToOne: false;
+            referencedRelation: "courses";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "card_generations_course_id_fkey";
+            columns: ["course_id"];
+            isOneToOne: false;
+            referencedRelation: "weekly_focus_by_course";
+            referencedColumns: ["course_id"];
+          },
+          {
+            foreignKeyName: "card_generations_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       course_meetings: {
         Row: {
           course_id: string;
@@ -1536,6 +1617,14 @@ export type Database = {
           email: string;
           timezone: string;
           user_id: string;
+        }[];
+      };
+      get_card_quota: {
+        Args: never;
+        Returns: {
+          daily_limit: number;
+          remaining: number;
+          used_today: number;
         }[];
       };
       get_parse_quota: {

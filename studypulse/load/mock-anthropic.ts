@@ -1,5 +1,5 @@
-// Mock Claude Messages API for load tests: returns a canned syllabus extraction after a
-// realistic delay, so load tests exercise everything except the real model (and never
+// Mock Claude Messages API for load tests: returns a canned syllabus extraction (or, for
+// the notes-to-cards prompt, canned cards) after a realistic delay, so load tests exercise everything except the real model (and never
 // spend money). Run: deno run --allow-net --allow-env load/mock-anthropic.ts
 // Then point the functions at it: ANTHROPIC_BASE_URL=http://127.0.0.1:8199
 const port = Number(Deno.env.get("MOCK_PORT") ?? 8199);
@@ -67,6 +67,26 @@ const output = {
   ],
 };
 
+const cards = {
+  cards: [
+    { question: "What makes ATP in the cell?", answer: "Mitochondria", topic: "Energy" },
+    {
+      question: "What gradient does ATP synthase use?",
+      answer: "The proton gradient across the inner membrane",
+      topic: "Energy",
+    },
+    { question: "What makes ATP in the cell", answer: "Duplicate", topic: null },
+  ],
+  skipped_reason: null,
+};
+
+/** The system prompt as text, whether sent as a string or as cached blocks. */
+function systemText(system: unknown): string {
+  if (typeof system === "string") return system;
+  if (Array.isArray(system)) return system.map((b: { text?: string }) => b.text ?? "").join("");
+  return "";
+}
+
 let calls = 0;
 Deno.serve({ port }, async (req) => {
   if (new URL(req.url).pathname === "/__stats") return Response.json({ calls });
@@ -78,7 +98,14 @@ Deno.serve({ port }, async (req) => {
     type: "message",
     role: "assistant",
     model: body.model,
-    content: [{ type: "text", text: JSON.stringify(output) }],
+    content: [
+      {
+        type: "text",
+        text: JSON.stringify(
+          systemText(body.system).includes("retrieval-practice flashcards") ? cards : output,
+        ),
+      },
+    ],
     stop_reason: "end_turn",
     stop_sequence: null,
     usage: {

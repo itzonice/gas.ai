@@ -137,6 +137,29 @@ describe("calls", () => {
     expect(calls).toEqual([]);
   });
 
+  it("sends notes to generate-cards with snake_case fields", async () => {
+    const { api, calls } = fakeDb({
+      invoke: {
+        "generate-cards": {
+          data: { cards: [], skipped_reason: "x", task_completed: false },
+          error: null,
+        },
+      },
+    });
+    const notes = "Mitochondria make ATP through oxidative phosphorylation in the cell.";
+    await api.cards.generate({ courseId: uploadId, notes, maxCards: 8 });
+    expect(calls).toEqual([
+      {
+        kind: "invoke",
+        name: "generate-cards",
+        args: { method: "POST", body: { course_id: uploadId, notes, max_cards: 8 } },
+      },
+    ]);
+    await expect(api.cards.generate({ courseId: uploadId, notes: "short" })).rejects.toMatchObject({
+      status: 400,
+    });
+  });
+
   it("rejects an unknown block status before any call", async () => {
     const { api, calls } = fakeDb({});
     await expect(

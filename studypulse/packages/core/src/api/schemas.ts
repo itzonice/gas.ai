@@ -2,6 +2,7 @@
 // errors in the client and keep web and mobile in agreement.
 import { z } from "zod";
 
+import { MAX_CARD_COUNT, MAX_NOTES_CHARS, MIN_NOTES_CHARS } from "../cards/notes.ts";
 import { SYLLABUS_MAX_BYTES } from "../parser/file-type.ts";
 import { ASSIGNMENT_KINDS } from "../parser/prompts/v1/schema.ts";
 
@@ -103,6 +104,25 @@ export const exportCardsInputSchema = z.object({
   format: z.enum(["anki", "quizlet"]).default("anki"),
 });
 export type ExportCardsInput = z.input<typeof exportCardsInputSchema>;
+
+export const generateCardsRequestSchema = z.object({
+  courseId: uuidSchema,
+  /** A "Make 5–20 cards" task (or any assignment) the cards belong to. */
+  assignmentId: uuidSchema.optional(),
+  notes: z
+    .string()
+    .trim()
+    .min(MIN_NOTES_CHARS, "Add a few more lines of notes first")
+    .max(MAX_NOTES_CHARS, "Notes are too long; split them into parts"),
+  maxCards: z.number().int().min(1).max(MAX_CARD_COUNT).optional(),
+});
+export type GenerateCardsRequest = z.input<typeof generateCardsRequestSchema>;
+
+export interface GeneratedCardsResponse {
+  cards: { id: string; front: string; back: string; tags: string[] }[];
+  skipped_reason: string | null;
+  task_completed: boolean;
+}
 
 export const startSessionInputSchema = z.object({
   /** Client-generated id; reuse it when retrying so the start is idempotent. */

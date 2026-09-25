@@ -50,7 +50,7 @@ Related: [security audit](security-audit.md), [analytics](analytics.md),
   - [ ] Custom SMTP (Resend) so auth emails come from your domain; review rate limits.
   - [ ] JWT expiry 3600 s; refresh token rotation on.
 - [ ] Database: SSL enforcement on; network restrictions if you have fixed admin IPs.
-- [ ] **Edge functions deployed**: `supabase functions deploy` (deploys all 18; config in
+- [ ] **Edge functions deployed**: `supabase functions deploy` (deploys all 19; config in
       `supabase/config.toml`). Confirm `verify_jwt` matches config for each
       (webhooks, cron, calendar-feed, email-unsubscribe, and canvas-oauth are `false`).
 - [ ] **Function secrets** (`supabase secrets set --env-file prod.env`; never commit it):
@@ -58,7 +58,7 @@ Related: [security audit](security-audit.md), [analytics](analytics.md),
       | Group | Variables |
       |---|---|
       | Core | `APP_ENV=production`, `APP_URL`, `CRON_SECRET` (random, 32+ chars) |
-      | AI | `ANTHROPIC_API_KEY`, optional `PARSER_MODEL` |
+      | AI | `ANTHROPIC_API_KEY`, optional `PARSER_MODEL` and `CARDS_MODEL` |
       | Errors / analytics | `SENTRY_DSN`, `POSTHOG_API_KEY`, `POSTHOG_HOST` |
       | Push | `EXPO_ACCESS_TOKEN` (if push security on), `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT` |
       | Email | `RESEND_API_KEY`, `EMAIL_FROM`, `EMAIL_UNSUBSCRIBE_SECRET` (random, 32+) |

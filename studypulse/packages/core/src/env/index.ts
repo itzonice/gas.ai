@@ -57,6 +57,8 @@ export const edgeEnvSchema = z.object({
   ANTHROPIC_API_KEY: optionalNonEmpty,
   // Model used for syllabus parsing and OCR; defaults to the parser's default model.
   PARSER_MODEL: optionalNonEmpty,
+  // Model used to turn notes into cards; defaults to the parser's default model.
+  CARDS_MODEL: optionalNonEmpty,
   SENTRY_DSN: optionalUrl,
   // Expo access token, only if push security is enabled for the Expo project.
   EXPO_ACCESS_TOKEN: optionalNonEmpty,

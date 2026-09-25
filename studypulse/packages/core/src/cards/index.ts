@@ -71,3 +71,5 @@ export function exportCards(
         extension: "tsv",
       };
 }
+
+export * from "./notes.ts";

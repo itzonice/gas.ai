@@ -439,6 +439,12 @@ verify_jwt = true
 import_map = "./functions/deno.json"
 entrypoint = "./functions/export-cards/index.ts"
 
+[functions.generate-cards]
+enabled = true
+verify_jwt = true
+import_map = "./functions/deno.json"
+entrypoint = "./functions/generate-cards/index.ts"
+
 [functions.delete-account]
 enabled = true
 verify_jwt = true

@@ -17,6 +17,7 @@ import {
   blockStatusInputSchema,
   createAssignmentInputSchema,
   exportCardsInputSchema,
+  generateCardsRequestSchema,
   registerPushTokenInputSchema,
   updateAssignmentInputSchema,
   startSessionInputSchema,
@@ -28,6 +29,8 @@ import {
   uuidSchema,
   type CreateAssignmentInput,
   type ExportCardsInput,
+  type GenerateCardsRequest,
+  type GeneratedCardsResponse,
   type UpdateAssignmentInput,
   type StartSessionInput,
   type StopSessionInput,
@@ -404,6 +407,28 @@ export function createApiClient(db: Db) {
     },
 
     cards: {
+      /**
+       * Turns notes into question cards and saves them to the course (so exports include
+       * them). Passing a "Make 5–20 cards" task marks it done.
+       */
+      async generate(input: GenerateCardsRequest): Promise<GeneratedCardsResponse> {
+        const valid = validate(generateCardsRequestSchema, input);
+        return await invoke<GeneratedCardsResponse>("generate-cards", {
+          body: {
+            course_id: valid.courseId,
+            notes: valid.notes,
+            ...(valid.assignmentId ? { assignment_id: valid.assignmentId } : {}),
+            ...(valid.maxCards ? { max_cards: valid.maxCards } : {}),
+          },
+        });
+      },
+      /** Card generations left today. */
+      async quota() {
+        const rows = unwrap(await db.rpc("get_card_quota"));
+        const row = rows[0];
+        if (!row) throw new ApiError(404, "not_found", "No quota found");
+        return row;
+      },
       /** Downloads a course's flashcards as an Anki CSV or Quizlet TSV. */
       async export(input: ExportCardsInput): Promise<Blob> {
         const { courseId, format } = validate(exportCardsInputSchema, input);

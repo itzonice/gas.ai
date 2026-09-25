@@ -1922,6 +1922,14 @@ export type Database = {
         }[];
       };
       get_courses_overview: { Args: never; Returns: Json };
+      get_focus_overview: {
+        Args: {
+          p_assignment_id?: string;
+          p_block_id?: string;
+          p_history?: number;
+        };
+        Returns: Json;
+      };
       get_parse_quota: {
         Args: never;
         Returns: {

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Suspense, type ReactNode } from "react";
 
 import { Icon } from "../ui/icons";
+import { FocusFab } from "./FocusFab";
 import { NavLinks } from "./NavLinks";
 import styles from "./shell.module.css";
 
@@ -88,11 +89,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         </footer>
       </div>
 
-      {/* Phones: the focus timer stays one tap away. */}
-      <Link href="/focus?start=1" className={styles.fab}>
-        <Icon name="play" />
-        <span>Start focus</span>
-      </Link>
+      <FocusFab />
     </div>
   );
 }

@@ -153,6 +153,75 @@ export const coursesOverviewSchema = z.object({
 export type CoursesOverview = z.infer<typeof coursesOverviewSchema>;
 export type CourseCard = CoursesOverview["courses"][number];
 
+const focusCourseFields = {
+  course_id: uuidSchema,
+  course_code: z.string().nullable(),
+  course_name: z.string(),
+  course_color: z.string().nullable(),
+};
+
+/** Response of get_focus_overview(): metric cards, the running session, and history. */
+export const focusOverviewSchema = z.object({
+  timezone: z.string(),
+  today: isoDateSchema,
+  today_minutes: z.number().int(),
+  streak_days: z.number().int(),
+  running: z
+    .object({
+      id: uuidSchema,
+      started_at: z.string(),
+      assignment_id: uuidSchema.nullable(),
+      title: z.string(),
+      ...focusCourseFields,
+    })
+    .nullable(),
+  linked: z
+    .object({
+      block_id: uuidSchema.nullable(),
+      block_kind: z.string().nullable(),
+      block_minutes: z.number().int().nullable(),
+      assignment_id: uuidSchema.nullable(),
+      title: z.string(),
+      due_at: z.string().nullable(),
+      ...focusCourseFields,
+    })
+    .nullable(),
+  choices: z.array(
+    z.object({
+      assignment_id: uuidSchema,
+      title: z.string(),
+      due_at: z.string().nullable(),
+      ...focusCourseFields,
+    }),
+  ),
+  courses: z.array(
+    z.object({
+      id: uuidSchema,
+      code: z.string().nullable(),
+      name: z.string(),
+      color: z.string().nullable(),
+    }),
+  ),
+  history: z.array(
+    z.object({
+      id: uuidSchema,
+      started_at: z.string(),
+      ended_at: z.string(),
+      minutes: z.number().int(),
+      assignment_id: uuidSchema.nullable(),
+      title: z.string(),
+      ...focusCourseFields,
+    }),
+  ),
+});
+export type FocusOverview = z.infer<typeof focusOverviewSchema>;
+
+export const focusOverviewInputSchema = z.object({
+  assignmentId: uuidSchema.optional(),
+  blockId: uuidSchema.optional(),
+});
+export type FocusOverviewInput = z.infer<typeof focusOverviewInputSchema>;
+
 /** Response of the `features` edge function. */
 export const featuresResponseSchema = z.object({
   features: z.object({

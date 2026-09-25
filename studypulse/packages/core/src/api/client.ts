@@ -20,6 +20,8 @@ import {
   courseTargetInputSchema,
   featuresResponseSchema,
   coursesOverviewSchema,
+  focusOverviewInputSchema,
+  focusOverviewSchema,
   calendarRangeSchema,
   createAssignmentInputSchema,
   exportCardsInputSchema,
@@ -39,6 +41,7 @@ import {
   type GenerateCardsRequest,
   type GeneratedCardsResponse,
   type UpdateAssignmentInput,
+  type FocusOverviewInput,
   type StartSessionInput,
   type StopSessionInput,
   type BlockStatusInput,
@@ -381,6 +384,22 @@ export function createApiClient(db: Db) {
     },
 
     sessions: {
+      /**
+       * The Focus screen in one call: today's minutes and streak (user's timezone), the
+       * running session, what the timer is linked to, things to link it to, and history.
+       */
+      async overview(input: FocusOverviewInput = {}) {
+        const { assignmentId, blockId } = validate(focusOverviewInputSchema, input);
+        return parseResponse(
+          focusOverviewSchema,
+          unwrap(
+            await db.rpc("get_focus_overview", {
+              ...(assignmentId ? { p_assignment_id: assignmentId } : {}),
+              ...(blockId ? { p_block_id: blockId } : {}),
+            }),
+          ),
+        );
+      },
       /**
        * Starts a study session. Pass a client-generated id (e.g. crypto.randomUUID())
        * and persist it before calling, so a retry after a lost response is idempotent.

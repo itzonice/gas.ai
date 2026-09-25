@@ -4,6 +4,7 @@
 import { z } from "zod";
 
 import { ASSIGNMENT_KINDS } from "./prompts/v1/schema.ts";
+import { MEETING_KINDS, WEEKDAYS } from "./prompts/v2/schema.ts";
 
 export const assignmentFlagsSchema = z.object({
   /** Date computed from a week number, weekday, or class meeting, not printed. */
@@ -56,6 +57,14 @@ export const parsedCategorySchema = z.object({
   drop_lowest: z.number().int().min(0).nullable(),
 });
 
+export const parsedMeetingSchema = z.object({
+  weekday: z.enum(WEEKDAYS),
+  start_time: z.string(),
+  end_time: z.string(),
+  kind: z.enum(MEETING_KINDS),
+  location: z.string().nullable(),
+});
+
 export const parseResultSchema = z.object({
   prompt_version: z.string(),
   model: z.string(),
@@ -71,6 +80,8 @@ export const parseResultSchema = z.object({
   assignments: z.array(parsedAssignmentSchema),
   dropped: z.array(droppedAssignmentSchema),
   grading_scale: z.array(z.object({ letter: z.string(), min_percent: z.number().min(0).max(100) })),
+  /** Weekly class meetings (prompt v2 on); results from v1 have none. */
+  meetings: z.array(parsedMeetingSchema).default([]),
   warnings: z.array(parseWarningSchema),
   /** Counts of confidence levels and flags, for the review screen header. */
   summary: z.object({
@@ -89,6 +100,7 @@ export const parseResultSchema = z.object({
 
 export type AssignmentFlags = z.infer<typeof assignmentFlagsSchema>;
 export type ParsedAssignment = z.infer<typeof parsedAssignmentSchema>;
+export type ParsedMeeting = z.infer<typeof parsedMeetingSchema>;
 export type ParsedCategory = z.infer<typeof parsedCategorySchema>;
 export type ParseResult = z.infer<typeof parseResultSchema>;
 export type ParseWarning = z.infer<typeof parseWarningSchema>;

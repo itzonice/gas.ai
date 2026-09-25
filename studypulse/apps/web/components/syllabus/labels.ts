@@ -1,4 +1,4 @@
-import type { AssignmentKind, ReviewItem } from "@studypulse/core/syllabus";
+import type { AssignmentKind, ParsedMeeting, ReviewItem } from "@studypulse/core/syllabus";
 
 export const KIND_LABELS: Record<AssignmentKind, string> = {
   assignment: "Assignment",
@@ -28,4 +28,47 @@ export function itemDateText(item: Pick<ReviewItem, "due_date" | "due_time">): s
     minute: "2-digit",
   }).format(new Date(Date.UTC(2000, 0, 1, h, m)));
   return `${day} at ${time}`;
+}
+
+const WEEKDAY_NAMES: Record<ParsedMeeting["weekday"], string> = {
+  mon: "Monday",
+  tue: "Tuesday",
+  wed: "Wednesday",
+  thu: "Thursday",
+  fri: "Friday",
+  sat: "Saturday",
+  sun: "Sunday",
+};
+
+const MEETING_KIND_LABELS: Record<ParsedMeeting["kind"], string> = {
+  lecture: "Lecture",
+  lab: "Lab",
+  discussion: "Discussion",
+  other: "Class",
+};
+
+const clockFormat = new Intl.DateTimeFormat("en-US", {
+  timeZone: "UTC",
+  hour: "numeric",
+  minute: "2-digit",
+});
+const at = (hhmm: string) => {
+  const [h = 0, m = 0] = hhmm.split(":").map(Number);
+  return new Date(Date.UTC(2000, 0, 1, h, m));
+};
+const clock = (hhmm: string) => clockFormat.format(at(hhmm));
+
+/** "Tuesday, 10:00–10:50 AM · Lecture · Hall 1". */
+export function meetingText(m: ParsedMeeting): string {
+  const parts = [
+    `${WEEKDAY_NAMES[m.weekday]}, ${clockFormat.formatRange(at(m.start_time), at(m.end_time))}`,
+    MEETING_KIND_LABELS[m.kind],
+    m.location,
+  ];
+  return parts.filter(Boolean).join(" · ");
+}
+
+/** Short name for a remove button: "Tuesday 10:00 AM lecture". */
+export function meetingName(m: ParsedMeeting): string {
+  return `${WEEKDAY_NAMES[m.weekday]} ${clock(m.start_time)} ${MEETING_KIND_LABELS[m.kind].toLowerCase()}`;
 }

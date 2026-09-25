@@ -4,7 +4,7 @@ import { describe, expect, it } from "vitest";
 import { AiCallError } from "./ai.ts";
 import { fakeClient } from "./fake-client.ts";
 import { parseSyllabusText } from "./parse.ts";
-import type { AiSyllabusV1 } from "./prompts/index.ts";
+import type { AiSyllabusV2 } from "./prompts/index.ts";
 
 const ctx = {
   timezone: "America/Chicago",
@@ -13,7 +13,7 @@ const ctx = {
   termEnd: "2027-05-08",
 };
 
-const good: AiSyllabusV1 = {
+const good: AiSyllabusV2 = {
   course: {
     name: "Cell Biology",
     code: "BIO 201",
@@ -25,6 +25,7 @@ const good: AiSyllabusV1 = {
   assignments: [],
   grading_scale: [],
   warnings: [],
+  meetings: [],
 };
 
 describe("parseSyllabusText", () => {
@@ -33,7 +34,7 @@ describe("parseSyllabusText", () => {
     const result = await parseSyllabusText(client, "--- Page 1 ---\nBIO 201", ctx);
 
     expect(result.output.course.code).toBe("BIO 201");
-    expect(result.promptVersion).toBe("syllabus-v1");
+    expect(result.promptVersion).toBe("syllabus-v2");
     expect(result.usage).toMatchObject({ inputTokens: 100, outputTokens: 50 });
 
     const call = calls[0]!;

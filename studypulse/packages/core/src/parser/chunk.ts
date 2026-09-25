@@ -2,7 +2,7 @@
 // A whole syllabus fits in the model's context; chunking bounds the size of each
 // response (a long schedule can have hundreds of items) and lets chunks run in parallel.
 import { categoryTokens } from "./categories.ts";
-import type { AiSyllabusV1 } from "./prompts/v1/schema.ts";
+import type { AiSyllabus } from "./prompts/index.ts";
 
 /** Texts at or below this size are parsed in one call. */
 export const CHUNK_THRESHOLD_CHARS = 40_000;
@@ -142,8 +142,8 @@ const categoryKey = (name: string) => categoryTokens(name).join(" ") || name.toL
  * unioned by normalized name (weighted entries win), assignments concatenated (dedupe
  * and category matching run later in postProcess), warnings de-duplicated.
  */
-export function mergeChunkResults(results: readonly AiSyllabusV1[]): AiSyllabusV1 {
-  const first = <T>(pick: (r: AiSyllabusV1) => T | null): T | null => {
+export function mergeChunkResults(results: readonly AiSyllabus[]): AiSyllabus {
+  const first = <T>(pick: (r: AiSyllabus) => T | null): T | null => {
     for (const r of results) {
       const v = pick(r);
       if (v !== null && v !== "") return v;
@@ -152,7 +152,7 @@ export function mergeChunkResults(results: readonly AiSyllabusV1[]): AiSyllabusV
   };
 
   const warnings = new Set<string>();
-  const categories = new Map<string, AiSyllabusV1["categories"][number]>();
+  const categories = new Map<string, AiSyllabus["categories"][number]>();
   for (const r of results) {
     for (const c of r.categories) {
       const key = categoryKey(c.name);
@@ -180,5 +180,13 @@ export function mergeChunkResults(results: readonly AiSyllabusV1[]): AiSyllabusV
     assignments: results.flatMap((r) => r.assignments),
     grading_scale: results.find((r) => r.grading_scale.length > 0)?.grading_scale ?? [],
     warnings: [...warnings],
+    // The meeting schedule usually appears once; keep each weekday/time/kind once.
+    meetings: [
+      ...new Map(
+        results
+          .flatMap((r) => r.meetings ?? [])
+          .map((m) => [`${m.weekday} ${m.start_time} ${m.kind}`, m] as const),
+      ).values(),
+    ],
   };
 }

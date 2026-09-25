@@ -131,6 +131,7 @@ export type Database = {
       assignments: {
         Row: {
           category_id: string | null;
+          class_date: string | null;
           completed_at: string | null;
           course_id: string;
           created_at: string;
@@ -141,6 +142,7 @@ export type Database = {
           external_updated_at: string | null;
           id: string;
           kind: Database["public"]["Enums"]["assignment_kind"];
+          meeting_id: string | null;
           points_earned: number | null;
           points_possible: number | null;
           source: string;
@@ -151,6 +153,7 @@ export type Database = {
         };
         Insert: {
           category_id?: string | null;
+          class_date?: string | null;
           completed_at?: string | null;
           course_id: string;
           created_at?: string;
@@ -161,6 +164,7 @@ export type Database = {
           external_updated_at?: string | null;
           id?: string;
           kind?: Database["public"]["Enums"]["assignment_kind"];
+          meeting_id?: string | null;
           points_earned?: number | null;
           points_possible?: number | null;
           source?: string;
@@ -171,6 +175,7 @@ export type Database = {
         };
         Update: {
           category_id?: string | null;
+          class_date?: string | null;
           completed_at?: string | null;
           course_id?: string;
           created_at?: string;
@@ -181,6 +186,7 @@ export type Database = {
           external_updated_at?: string | null;
           id?: string;
           kind?: Database["public"]["Enums"]["assignment_kind"];
+          meeting_id?: string | null;
           points_earned?: number | null;
           points_possible?: number | null;
           source?: string;
@@ -210,6 +216,13 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "weekly_focus_by_course";
             referencedColumns: ["course_id"];
+          },
+          {
+            foreignKeyName: "assignments_meeting_fkey";
+            columns: ["meeting_id", "course_id"];
+            isOneToOne: false;
+            referencedRelation: "course_meetings";
+            referencedColumns: ["id", "course_id"];
           },
         ];
       };
@@ -274,6 +287,57 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "profiles";
             referencedColumns: ["id"];
+          },
+        ];
+      };
+      course_meetings: {
+        Row: {
+          course_id: string;
+          created_at: string;
+          end_time: string;
+          id: string;
+          kind: string;
+          location: string | null;
+          start_time: string;
+          updated_at: string;
+          weekday: number;
+        };
+        Insert: {
+          course_id: string;
+          created_at?: string;
+          end_time: string;
+          id?: string;
+          kind?: string;
+          location?: string | null;
+          start_time: string;
+          updated_at?: string;
+          weekday: number;
+        };
+        Update: {
+          course_id?: string;
+          created_at?: string;
+          end_time?: string;
+          id?: string;
+          kind?: string;
+          location?: string | null;
+          start_time?: string;
+          updated_at?: string;
+          weekday?: number;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "course_meetings_course_id_fkey";
+            columns: ["course_id"];
+            isOneToOne: false;
+            referencedRelation: "courses";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "course_meetings_course_id_fkey";
+            columns: ["course_id"];
+            isOneToOne: false;
+            referencedRelation: "weekly_focus_by_course";
+            referencedColumns: ["course_id"];
           },
         ];
       };
@@ -919,6 +983,7 @@ export type Database = {
       profiles: {
         Row: {
           calendar_token_hash: string | null;
+          card_tasks_enabled: boolean;
           created_at: string;
           daily_study_minutes: number;
           display_name: string | null;
@@ -932,6 +997,7 @@ export type Database = {
         };
         Insert: {
           calendar_token_hash?: string | null;
+          card_tasks_enabled?: boolean;
           created_at?: string;
           daily_study_minutes?: number;
           display_name?: string | null;
@@ -945,6 +1011,7 @@ export type Database = {
         };
         Update: {
           calendar_token_hash?: string | null;
+          card_tasks_enabled?: boolean;
           created_at?: string;
           daily_study_minutes?: number;
           display_name?: string | null;

@@ -69,6 +69,9 @@ const result: ParseResult = {
     }),
   ],
   dropped: [],
+  meetings: [
+    { weekday: "tue", start_time: "10:00", end_time: "10:50", kind: "lecture", location: "Hall 1" },
+  ],
   grading_scale: [],
   warnings: [],
   summary: {
@@ -169,6 +172,20 @@ describe("ReviewScreen", () => {
     expect(api.syllabus.commit).not.toHaveBeenCalled();
     await user.click(within(alert).getByRole("button", { name: /Untitled item/ }));
     expect(screen.getByRole("dialog")).toBeInTheDocument();
+  });
+
+  it("lists class meetings and lets the student remove one before saving", async () => {
+    const user = userEvent.setup();
+    render(<ReviewScreen uploadId={uploadId} />);
+    const meetings = await screen.findByRole("list", { name: "Class meetings" });
+    expect(meetings).toHaveTextContent(/Tuesday, 10:00\s?–\s?10:50\sAM · Lecture · Hall 1/);
+    await user.click(
+      within(meetings).getByRole("button", { name: "Remove Tuesday 10:00 AM lecture" }),
+    );
+    expect(screen.getByText("No class times found in this syllabus.")).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Save to calendar" }));
+    const [, payload] = api.syllabus.commit.mock.calls[0] as [string, { meetings: unknown[] }];
+    expect(payload.meetings).toEqual([]);
   });
 
   it("renaming a category moves its items with it", async () => {

@@ -102,6 +102,26 @@ describe("dedupeAssignments", () => {
 });
 
 describe("postProcess", () => {
+  it("keeps valid class meetings once and warns about impossible ones", () => {
+    const lecture = {
+      weekday: "mon" as const,
+      start_time: "10:00",
+      end_time: "10:50",
+      kind: "lecture" as const,
+      location: "  Hall 1 ",
+    };
+    const out = postProcess(
+      {
+        ...syllabus([]),
+        meetings: [lecture, { ...lecture }, { ...lecture, weekday: "wed", end_time: "09:00" }],
+      },
+      ctx,
+    );
+    expect(out.meetings).toEqual([{ ...lecture, location: "Hall 1" }]);
+    expect(out.warnings.map((w) => w.code)).toContain("meetings_dropped");
+    expect(postProcess(syllabus([]), ctx).meetings).toEqual([]);
+  });
+
   it("drops items outside the term (beyond the grace window) and records them", () => {
     const result = postProcess(
       syllabus([

@@ -71,6 +71,9 @@ const result: ParseResult = {
     }),
   ],
   dropped: [],
+  meetings: [
+    { weekday: "tue", start_time: "10:00", end_time: "10:50", kind: "lecture", location: null },
+  ],
   grading_scale: [
     { letter: "B", min_percent: 80 },
     { letter: "A", min_percent: 90 },
@@ -140,6 +143,9 @@ describe("syllabus review draft", () => {
     expect(byTitle["HW 1"]).toBe("2027-01-20T15:00:00.000Z"); // 9:00 AM CST
     expect(byTitle["Quiz week 5"]).toBe("2027-02-13T05:59:00.000Z"); // default 11:59 PM
     expect(byTitle["Final project"]).toBeNull();
+    expect(out.payload.meetings).toEqual([
+      { weekday: "tue", start_time: "10:00", end_time: "10:50", kind: "lecture", location: null },
+    ]);
   });
 
   it("ties validation issues back to the item or category", () => {

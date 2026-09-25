@@ -8,7 +8,7 @@ import {
   toUtc,
   type DatedAssignment,
 } from "./dates.ts";
-import type { AiSyllabusV1 } from "./prompts/v1/schema.ts";
+import type { AiSyllabus } from "./prompts/index.ts";
 import type { DroppedAssignment, ParseResult, ParseWarning, ParsedAssignment } from "./result.ts";
 
 export interface PostProcessContext {
@@ -44,7 +44,7 @@ function toParsedAssignment(a: DatedAssignment): ParsedAssignment {
   };
 }
 
-export function postProcess(output: AiSyllabusV1, ctx: PostProcessContext): ParseResult {
+export function postProcess(output: AiSyllabus, ctx: PostProcessContext): ParseResult {
   const warnings: ParseWarning[] = output.warnings.map((message) => ({
     code: "model_note",
     message,
@@ -119,6 +119,25 @@ export function postProcess(output: AiSyllabusV1, ctx: PostProcessContext): Pars
   }
   warnings.push(...weightWarnings(categories));
 
+  // Class meetings: drop impossible times and duplicates.
+  const meetings = [
+    ...new Map(
+      (output.meetings ?? [])
+        .filter((m) => m.end_time > m.start_time)
+        .map((m) => [`${m.weekday} ${m.start_time} ${m.kind}`, m] as const),
+    ).values(),
+  ].map((m) => {
+    const location = m.location?.trim() ?? "";
+    return { ...m, location: location === "" ? null : location };
+  });
+  if ((output.meetings ?? []).length > meetings.length) {
+    warnings.push({
+      code: "meetings_dropped",
+      message:
+        "Some class meeting times didn't make sense and were left out. Check your class schedule.",
+    });
+  }
+
   return {
     prompt_version: ctx.promptVersion,
     model: ctx.model,
@@ -128,6 +147,7 @@ export function postProcess(output: AiSyllabusV1, ctx: PostProcessContext): Pars
     assignments: scored,
     dropped,
     grading_scale: output.grading_scale,
+    meetings,
     warnings,
     summary,
   };

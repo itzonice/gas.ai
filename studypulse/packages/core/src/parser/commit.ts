@@ -5,6 +5,7 @@ import { z } from "zod";
 
 import { letterScaleSchema } from "../grades/letters.ts";
 import { ASSIGNMENT_KINDS } from "./prompts/v1/schema.ts";
+import { MEETING_KINDS, WEEKDAYS } from "./prompts/v2/schema.ts";
 import type { ParseResult } from "./result.ts";
 
 const isoDate = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
@@ -46,6 +47,23 @@ export const commitPayloadSchema = z
         }),
       )
       .max(500),
+    meetings: z
+      .array(
+        z
+          .object({
+            weekday: z.enum(WEEKDAYS),
+            start_time: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/, "Use HH:MM"),
+            end_time: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/, "Use HH:MM"),
+            kind: z.enum(MEETING_KINDS),
+            location: z.string().trim().max(200).nullable(),
+          })
+          .refine((m) => m.end_time > m.start_time, {
+            message: "Class ends before it starts",
+            path: ["end_time"],
+          }),
+      )
+      .max(30)
+      .optional(),
   })
   .superRefine((payload, ctx) => {
     const names = payload.categories.map((c) => c.name.trim().toLowerCase());
@@ -114,5 +132,6 @@ export function toCommitPayload(result: ParseResult): CommitPayload {
       due_at: a.due_at,
       points_possible: a.points_possible,
     })),
+    meetings: result.meetings.map((m) => ({ ...m })),
   };
 }

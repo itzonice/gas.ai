@@ -4,7 +4,7 @@ import { betaZodOutputFormat } from "@anthropic-ai/sdk/helpers/beta/zod";
 import { describe, expect, it } from "vitest";
 import { z } from "zod";
 
-import { CURRENT_PROMPT, PROMPTS, aiSyllabusSchemaV1 } from "./index.ts";
+import { CURRENT_PROMPT, PROMPTS, aiSyllabusSchemaV1, aiSyllabusSchemaV2 } from "./index.ts";
 
 function everyObject(node: unknown, visit: (obj: Record<string, unknown>) => void): void {
   if (Array.isArray(node))
@@ -23,18 +23,36 @@ function everyObject(node: unknown, visit: (obj: Record<string, unknown>) => voi
 describe("prompt registry", () => {
   it("keys each prompt by its own version string", () => {
     for (const [key, prompt] of Object.entries(PROMPTS)) expect(prompt.version).toBe(key);
-    expect(CURRENT_PROMPT.version).toBe("syllabus-v1");
+    expect(CURRENT_PROMPT.version).toBe("syllabus-v2");
   });
 
-  it("checked-in schema.json matches the zod schema (run `pnpm parser:schema`)", () => {
-    const onDisk: unknown = JSON.parse(
-      readFileSync(new URL("./v1/schema.json", import.meta.url), "utf8"),
-    );
-    expect(onDisk).toEqual(z.toJSONSchema(aiSyllabusSchemaV1));
+  it.each([
+    ["v1", aiSyllabusSchemaV1],
+    ["v2", aiSyllabusSchemaV2],
+  ] as const)(
+    "checked-in %s/schema.json matches the zod schema (run `pnpm parser:schema`)",
+    (dir, schema) => {
+      const onDisk: unknown = JSON.parse(
+        readFileSync(new URL(`./${dir}/schema.json`, import.meta.url), "utf8"),
+      );
+      expect(onDisk).toEqual(z.toJSONSchema(schema));
+    },
+  );
+
+  it("v2 adds class meetings to v1 without changing v1", () => {
+    const v1 = PROMPTS["syllabus-v1"].system;
+    const v2 = PROMPTS["syllabus-v2"].system;
+    expect(v1).not.toContain("Class meetings");
+    expect(v2).toContain("Class meetings:");
+    expect(v2.replace(/Class meetings:[^\n]*\n\n/, "")).toBe(v1);
+    expect(Object.keys(aiSyllabusSchemaV2.shape)).toEqual([
+      ...Object.keys(aiSyllabusSchemaV1.shape),
+      "meetings",
+    ]);
   });
 
   it("converts to a structured-output format with closed objects", () => {
-    const format = betaZodOutputFormat(aiSyllabusSchemaV1);
+    const format = betaZodOutputFormat(aiSyllabusSchemaV2);
     expect(format.type).toBe("json_schema");
     let objects = 0;
     everyObject(format.schema, (obj) => {

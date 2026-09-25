@@ -6,10 +6,10 @@ import { chunkSyllabus, mergeChunkResults, syllabusPreamble } from "./chunk.ts";
 import {
   CURRENT_PROMPT,
   PROMPTS,
+  type AiSyllabus,
   type PromptContext,
   type PromptVersion,
 } from "./prompts/index.ts";
-import type { AiSyllabusV1 } from "./prompts/v1/schema.ts";
 
 export interface ParseOptions {
   model?: string;
@@ -21,7 +21,7 @@ export interface ParseOptions {
 }
 
 export interface ParseCallResult {
-  output: AiSyllabusV1;
+  output: AiSyllabus;
   promptVersion: PromptVersion;
   usage: AiUsage;
 }
@@ -71,7 +71,7 @@ async function mapLimit<T, R>(
 }
 
 export interface SyllabusParseResult {
-  output: AiSyllabusV1;
+  output: AiSyllabus;
   promptVersion: PromptVersion;
   /** One entry per model call (one per chunk). */
   usage: AiUsage[];

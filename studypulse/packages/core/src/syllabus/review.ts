@@ -48,6 +48,8 @@ export interface ReviewDraft {
   categories: ReviewCategory[];
   items: ReviewItem[];
   letter_scale: CommitPayload["course"]["letter_scale"];
+  /** Weekly class meetings; after each one, StudyPulse adds a card-making task. */
+  meetings: NonNullable<CommitPayload["meetings"]>;
   timezone: string;
 }
 
@@ -115,6 +117,7 @@ export function toReviewDraft(result: ParseResult): ReviewDraft {
       })),
     ),
     letter_scale: toCommitPayload(result).course.letter_scale ?? null,
+    meetings: result.meetings.map((m) => ({ ...m })),
     timezone: result.timezone,
   };
 }
@@ -158,6 +161,7 @@ export function draftToPayload(
         : null,
       points_possible: i.points_possible,
     })),
+    meetings: draft.meetings,
   };
   const parsed = commitPayloadSchema.safeParse(candidate);
   if (parsed.success) return { ok: true, payload: parsed.data };

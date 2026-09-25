@@ -32,7 +32,7 @@ import {
   TextField,
 } from "@/components/ui";
 
-import { itemDateText, KIND_LABELS } from "./labels";
+import { itemDateText, KIND_LABELS, meetingName, meetingText } from "./labels";
 import { ParseProgress } from "./ParseProgress";
 import { ReviewDrawer } from "./ReviewDrawer";
 import styles from "./syllabus.module.css";
@@ -459,6 +459,40 @@ function ReviewEditor({ row, result }: { row: UploadRow; result: ParseResult }) 
               Add category
             </Button>
           </div>
+        </section>
+
+        <section className={styles.section} aria-labelledby="meetings-heading">
+          <h2 id="meetings-heading" className={styles.sectionHeading}>
+            Class meetings
+          </h2>
+          <p className={styles.note}>
+            After each class, StudyPulse adds a 20-minute task to make 5–20 cards, due within a day.
+          </p>
+          {draft.meetings.length > 0 ? (
+            <ul className={styles.categoryList} aria-label="Class meetings">
+              {draft.meetings.map((m, index) => (
+                <li key={`${m.weekday}-${m.start_time}-${m.kind}`} className={styles.meetingRow}>
+                  <span>{meetingText(m)}</span>
+                  <button
+                    type="button"
+                    className={styles.iconButton}
+                    aria-label={`Remove ${meetingName(m)}`}
+                    onClick={() => {
+                      setDraft((d) => ({
+                        ...d,
+                        meetings: d.meetings.filter((_, i) => i !== index),
+                      }));
+                      setMessage(`${meetingName(m)} removed.`);
+                    }}
+                  >
+                    <Icon name="delete" />
+                  </button>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className={styles.note}>No class times found in this syllabus.</p>
+          )}
         </section>
 
         <section className={styles.section} aria-labelledby="items-heading">

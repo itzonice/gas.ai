@@ -62,6 +62,9 @@ const output = {
   ],
   grading_scale: [],
   warnings: [],
+  meetings: [
+    { weekday: "tue", start_time: "10:00", end_time: "11:15", kind: "lecture", location: null },
+  ],
 };
 
 let calls = 0;

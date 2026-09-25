@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { chunkSyllabus, isHeading, mergeChunkResults, syllabusPreamble } from "./chunk.ts";
 import { fakeClient } from "./fake-client.ts";
 import { parseSyllabus } from "./parse.ts";
-import type { AiSyllabusV1 } from "./prompts/index.ts";
+import type { AiSyllabus } from "./prompts/index.ts";
 
 const para = (n: number, label: string) =>
   Array.from(
@@ -82,16 +82,33 @@ describe("chunkSyllabus", () => {
   });
 });
 
-const result = (overrides: Partial<AiSyllabusV1>): AiSyllabusV1 => ({
+const result = (overrides: Partial<AiSyllabus>): AiSyllabus => ({
   course: { name: "", code: null, instructor: null, term_start: null, term_end: null },
   categories: [],
   assignments: [],
   grading_scale: [],
   warnings: [],
+  meetings: [],
   ...overrides,
 });
 
 describe("mergeChunkResults", () => {
+  it("keeps each class meeting once across chunks", () => {
+    const m = {
+      weekday: "tue" as const,
+      start_time: "09:00",
+      end_time: "10:15",
+      kind: "lecture" as const,
+      location: null,
+    };
+    const merged = mergeChunkResults([
+      result({ meetings: [m] }),
+      result({ meetings: [m, { ...m, kind: "lab" }] }),
+      result({}),
+    ]);
+    expect(merged.meetings).toEqual([m, { ...m, kind: "lab" }]);
+  });
+
   it("takes course fields from the first chunk that has them and unions categories", () => {
     const merged = mergeChunkResults([
       result({

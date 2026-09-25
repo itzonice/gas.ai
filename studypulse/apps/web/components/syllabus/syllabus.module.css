@@ -238,6 +238,15 @@
     grid-column: 1 / -1;
   }
 }
+.meetingRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-space-related);
+  padding: var(--sp-space-half) var(--sp-space-half) var(--sp-space-half) var(--sp-space-card);
+  border-radius: var(--sp-radius-card);
+  background: var(--sp-color-surface-container-low);
+}
 .weightTotal {
   display: flex;
   flex-wrap: wrap;

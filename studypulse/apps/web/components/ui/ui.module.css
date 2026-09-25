@@ -1,0 +1,467 @@
+/* Shared component styles. Token variables only; 48 px targets; focus rings come from the
+   global :focus-visible rule. */
+
+.visuallyHidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ------------------------------------------------------------------ buttons */
+
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-space-related);
+  min-height: var(--sp-layout-min-target);
+  min-width: var(--sp-layout-min-target);
+  padding: var(--sp-space-related) var(--sp-space-section);
+  border: 0;
+  border-radius: var(--sp-radius-full);
+  font: inherit;
+  font-size: var(--sp-type-label-large-size);
+  line-height: var(--sp-type-label-large-line-height);
+  font-weight: var(--sp-type-label-large-weight);
+  text-decoration: none;
+  cursor: pointer;
+}
+.button:disabled,
+.button[aria-disabled="true"] {
+  cursor: not-allowed;
+  opacity: 0.38;
+}
+.filled {
+  background: var(--sp-color-primary);
+  color: var(--sp-color-on-primary);
+}
+.filled:hover {
+  background: color-mix(in srgb, var(--sp-color-primary) 92%, var(--sp-color-on-primary));
+}
+.tonal {
+  background: var(--sp-color-secondary-container);
+  color: var(--sp-color-on-secondary-container);
+}
+.text {
+  background: transparent;
+  color: var(--sp-color-primary);
+  padding-inline: 12px;
+}
+.danger {
+  background: var(--sp-color-error);
+  color: var(--sp-color-on-error);
+}
+.text:hover,
+.tonal:hover {
+  background: color-mix(
+    in srgb,
+    var(--sp-color-on-surface) 8%,
+    var(--sp-color-secondary-container)
+  );
+}
+.iconButton {
+  display: inline-grid;
+  place-items: center;
+  width: var(--sp-layout-min-target);
+  height: var(--sp-layout-min-target);
+  padding: 0;
+  border: 0;
+  border-radius: var(--sp-radius-full);
+  background: transparent;
+  color: var(--sp-color-on-surface-variant);
+  cursor: pointer;
+}
+.iconButton:hover,
+.iconButton[aria-expanded="true"] {
+  background: color-mix(in srgb, var(--sp-color-on-surface) 8%, transparent);
+}
+
+/* ------------------------------------------------------------------ page header */
+
+.pageHeader {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--sp-space-card);
+}
+.pageTitle {
+  font-size: var(--sp-type-page-title-size);
+  line-height: var(--sp-type-page-title-line-height);
+  font-weight: var(--sp-type-page-title-weight);
+}
+.pageDescription {
+  margin: var(--sp-space-related) 0 0;
+  color: var(--sp-color-on-surface-variant);
+}
+.pageActions {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-layout-target-gap);
+}
+
+/* ------------------------------------------------------------------ metric cards */
+
+.metricGrid {
+  display: grid;
+  gap: var(--sp-space-related);
+  grid-template-columns: minmax(0, 1fr);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+@media (min-width: 600px) {
+  .metricGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (min-width: 1024px) {
+  .metricGrid {
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  }
+}
+.metricCard {
+  display: grid;
+  gap: var(--sp-space-half);
+  padding: var(--sp-space-card);
+  border-radius: var(--sp-radius-card);
+  background: var(--sp-color-surface-container);
+}
+.metricLabel {
+  color: var(--sp-color-on-surface-variant);
+  font-size: var(--sp-type-label-large-size);
+  line-height: var(--sp-type-label-large-line-height);
+  font-weight: var(--sp-type-label-large-weight);
+}
+.metricValue {
+  font-size: var(--sp-type-page-title-size);
+  line-height: var(--sp-type-page-title-line-height);
+  font-weight: var(--sp-type-page-title-weight);
+  font-variant-numeric: tabular-nums;
+}
+.metricDetail {
+  color: var(--sp-color-on-surface-variant);
+  font-size: var(--sp-type-body-size);
+  line-height: var(--sp-type-body-line-height);
+}
+.statusError {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-space-half);
+  color: var(--sp-color-error);
+  font-weight: var(--sp-type-label-large-weight);
+}
+
+/* ------------------------------------------------------------------ course chip */
+
+.courseChip {
+  display: inline-flex;
+  align-items: center;
+  max-width: 100%;
+  padding: 2px var(--sp-space-related);
+  border-radius: var(--sp-radius-control);
+  font-size: var(--sp-type-label-size);
+  line-height: var(--sp-type-label-line-height);
+  font-weight: var(--sp-type-label-weight);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ------------------------------------------------------------------ task list */
+
+.taskList {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-radius: var(--sp-radius-card);
+  background: var(--sp-color-surface-container-low);
+  /* No overflow: hidden here, or row menus would be clipped; round the end rows instead. */
+}
+.taskRow:first-child {
+  border-top-left-radius: var(--sp-radius-card);
+  border-top-right-radius: var(--sp-radius-card);
+}
+.taskRow:last-child {
+  border-bottom-left-radius: var(--sp-radius-card);
+  border-bottom-right-radius: var(--sp-radius-card);
+}
+.taskRow {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-space-half);
+  padding-inline: var(--sp-space-related) var(--sp-space-half);
+  border-left: var(--sp-layout-course-stripe) solid var(--stripe, transparent);
+}
+.taskRow + .taskRow {
+  border-top: 1px solid var(--sp-color-outline-variant);
+}
+.checkboxTarget {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: var(--sp-layout-min-target);
+  height: var(--sp-layout-min-target);
+  border-radius: var(--sp-radius-full);
+  cursor: pointer;
+}
+.checkboxTarget:hover {
+  background: color-mix(in srgb, var(--sp-color-on-surface) 8%, transparent);
+}
+.checkbox {
+  width: 20px;
+  height: 20px;
+  margin: 0;
+  accent-color: var(--sp-color-primary);
+  cursor: pointer;
+}
+.taskLink {
+  flex: 1;
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+  min-height: var(--sp-layout-min-target);
+  padding: 12px var(--sp-space-related);
+  border-radius: var(--sp-radius-control);
+  color: var(--sp-color-on-surface);
+  text-decoration: none;
+}
+.taskLink:hover {
+  background: color-mix(in srgb, var(--sp-color-on-surface) 6%, transparent);
+}
+.taskTitle {
+  font-size: var(--sp-type-card-title-size);
+  line-height: var(--sp-type-card-title-line-height);
+  font-weight: var(--sp-type-card-title-weight);
+  overflow-wrap: anywhere;
+}
+.taskDone .taskTitle {
+  text-decoration: line-through;
+  color: var(--sp-color-on-surface-variant);
+}
+.taskMeta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-space-half) var(--sp-space-related);
+  color: var(--sp-color-on-surface-variant);
+  font-size: var(--sp-type-body-size);
+  line-height: var(--sp-type-body-line-height);
+}
+
+/* ------------------------------------------------------------------ empty state */
+
+.emptyState {
+  display: grid;
+  justify-items: center;
+  gap: var(--sp-space-related);
+  padding: var(--sp-space-major) var(--sp-space-card);
+  border-radius: var(--sp-radius-card);
+  background: var(--sp-color-surface-container-low);
+  text-align: center;
+}
+.emptyIcon {
+  color: var(--sp-color-on-surface-variant);
+}
+.emptyTitle {
+  font-size: var(--sp-type-section-heading-size);
+  line-height: var(--sp-type-section-heading-line-height);
+  font-weight: var(--sp-type-section-heading-weight);
+}
+.emptyBody {
+  max-width: 48ch;
+  margin: 0;
+  color: var(--sp-color-on-surface-variant);
+}
+
+/* ------------------------------------------------------------------ overflow menu */
+
+.menuWrap {
+  position: relative;
+  flex: none;
+}
+.menu {
+  position: absolute;
+  right: 0;
+  top: calc(100% + var(--sp-space-half));
+  z-index: 20;
+  min-width: 200px;
+  margin: 0;
+  padding: var(--sp-space-related) 0;
+  border-radius: var(--sp-radius-control);
+  background: var(--sp-color-surface-container);
+  box-shadow: 0 2px 6px color-mix(in srgb, var(--sp-color-shadow) 25%, transparent);
+  list-style: none;
+}
+.menuItem {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-height: var(--sp-layout-min-target);
+  padding: 0 var(--sp-space-card);
+  border: 0;
+  background: none;
+  color: var(--sp-color-on-surface);
+  font: inherit;
+  font-size: var(--sp-type-body-large-size);
+  text-align: start;
+  text-decoration: none;
+  cursor: pointer;
+}
+.menuItem:hover,
+.menuItem:focus-visible {
+  background: color-mix(in srgb, var(--sp-color-on-surface) 8%, transparent);
+  outline-offset: -2px;
+}
+.menuItemDestructive {
+  color: var(--sp-color-error);
+}
+
+/* ------------------------------------------------------------------ text field */
+
+.field {
+  display: grid;
+  gap: var(--sp-space-half);
+}
+.fieldLabel {
+  font-size: var(--sp-type-label-large-size);
+  line-height: var(--sp-type-label-large-line-height);
+  font-weight: var(--sp-type-label-large-weight);
+}
+.fieldInput {
+  min-height: var(--sp-layout-min-target);
+  padding: 12px var(--sp-space-card);
+  border: 1px solid var(--sp-color-outline);
+  border-radius: var(--sp-radius-control);
+  background: var(--sp-color-surface);
+  color: var(--sp-color-on-surface);
+  font: inherit;
+  font-size: var(--sp-type-body-large-size);
+  box-sizing: border-box;
+  width: 100%;
+}
+.fieldInput[aria-invalid="true"] {
+  border: 2px solid var(--sp-color-error);
+}
+.fieldHint {
+  color: var(--sp-color-on-surface-variant);
+  font-size: var(--sp-type-label-size);
+  line-height: var(--sp-type-label-line-height);
+}
+.fieldError {
+  composes: statusError;
+  font-size: var(--sp-type-label-size);
+  line-height: var(--sp-type-label-line-height);
+}
+.fieldTextArea {
+  min-height: 160px;
+  resize: vertical;
+  line-height: var(--sp-type-body-large-line-height);
+}
+
+/* ------------------------------------------------------------------ dialog */
+
+.dialog {
+  box-sizing: border-box;
+  max-width: 100vw;
+  padding: 0;
+  border: 0;
+  background: var(--sp-color-surface-container-low);
+  color: var(--sp-color-on-surface);
+}
+.dialog::backdrop {
+  background: color-mix(in srgb, var(--sp-color-scrim) 32%, transparent);
+}
+/* Side sheet from the right; full screen on phones. */
+.dialogSide {
+  width: min(480px, 100vw);
+  height: 100dvh;
+  max-height: 100dvh;
+  margin: 0 0 0 auto;
+  border-radius: var(--sp-radius-sheet) 0 0 var(--sp-radius-sheet);
+}
+/* Centered card; a bottom sheet on phones. */
+.dialogCenter {
+  width: min(560px, calc(100vw - 2 * var(--sp-space-card)));
+  max-height: calc(100dvh - 2 * var(--sp-space-section));
+  border-radius: var(--sp-radius-sheet);
+}
+@media (max-width: 599px) {
+  .dialogSide {
+    width: 100vw;
+    border-radius: 0;
+  }
+  .dialogCenter {
+    width: 100vw;
+    max-height: 90dvh;
+    margin: auto 0 0;
+    border-radius: var(--sp-radius-sheet) var(--sp-radius-sheet) 0 0;
+  }
+}
+.dialogInner {
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  height: 100%;
+  max-height: inherit;
+}
+.dialogHeader {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--sp-space-related);
+  padding: var(--sp-space-card) var(--sp-space-card) var(--sp-space-related) var(--sp-space-section);
+}
+.dialogTitle {
+  flex: 1;
+  padding-top: 10px;
+  font-size: var(--sp-type-section-heading-size);
+  line-height: var(--sp-type-section-heading-line-height);
+  font-weight: var(--sp-type-section-heading-weight);
+  overflow-wrap: anywhere;
+}
+.dialogBody {
+  display: grid;
+  align-content: start;
+  gap: var(--sp-space-card);
+  padding: var(--sp-space-related) var(--sp-space-section) var(--sp-space-section);
+  overflow-y: auto;
+}
+.dialogFooter {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--sp-space-related);
+  padding: var(--sp-space-card) var(--sp-space-section);
+  border-top: 1px solid var(--sp-color-outline-variant);
+}
+
+/* Checkbox fields: the whole label row is the tap target. */
+.checkField {
+  display: grid;
+}
+.checkLabel {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: var(--sp-layout-min-target);
+  padding: 0 var(--sp-space-related);
+  margin: 0 calc(-1 * var(--sp-space-related));
+  border-radius: var(--sp-radius-control);
+  cursor: pointer;
+}
+.checkLabel:hover {
+  background: color-mix(in srgb, var(--sp-color-on-surface) 8%, transparent);
+}
+.checkLabel:has(input:disabled) {
+  color: var(--sp-color-on-surface-variant);
+  cursor: not-allowed;
+}
+.checkHint {
+  padding-left: 32px;
+}

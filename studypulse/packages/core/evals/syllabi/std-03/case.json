@@ -1,0 +1,99 @@
+{
+  "description": "HIST 110 Modern World History, Summer 2027, prose layout, America/Denver",
+  "tags": ["standard", "prose"],
+  "input": {
+    "timezone": "America/Denver",
+    "today": "2027-05-28",
+    "term_start": null,
+    "term_end": null
+  },
+  "expected": {
+    "course": {
+      "name": "Modern World History",
+      "code": "HIST 110"
+    },
+    "categories": [
+      {
+        "name": "Essays",
+        "weight": 40
+      },
+      {
+        "name": "Midterm",
+        "weight": 20
+      },
+      {
+        "name": "Final Exam",
+        "weight": 25
+      },
+      {
+        "name": "Reading Responses",
+        "weight": 15
+      }
+    ],
+    "assignments": [
+      {
+        "title": "Essay 1",
+        "kind": "project",
+        "due_date": "2027-06-13",
+        "due_time": "23:59",
+        "category": "Essays"
+      },
+      {
+        "title": "Reading Response 1",
+        "kind": "discussion",
+        "due_date": "2027-06-16",
+        "due_time": null,
+        "category": "Reading Responses"
+      },
+      {
+        "title": "Essay 2",
+        "kind": "project",
+        "due_date": "2027-06-24",
+        "due_time": "23:59",
+        "category": "Essays"
+      },
+      {
+        "title": "Midterm Exam",
+        "kind": "exam",
+        "due_date": "2027-07-01",
+        "due_time": "09:00",
+        "category": "Midterm"
+      },
+      {
+        "title": "Reading Response 2",
+        "kind": "discussion",
+        "due_date": "2027-07-01",
+        "due_time": "23:59",
+        "category": "Reading Responses"
+      },
+      {
+        "title": "Essay 3",
+        "kind": "project",
+        "due_date": "2027-07-06",
+        "due_time": null,
+        "category": "Essays"
+      },
+      {
+        "title": "Reading Response 3",
+        "kind": "discussion",
+        "due_date": "2027-07-16",
+        "due_time": "23:59",
+        "category": "Reading Responses"
+      },
+      {
+        "title": "Essay 4",
+        "kind": "project",
+        "due_date": "2027-07-17",
+        "due_time": "23:59",
+        "category": "Essays"
+      },
+      {
+        "title": "Final Exam",
+        "kind": "exam",
+        "due_date": "2027-07-30",
+        "due_time": "14:00",
+        "category": "Final Exam"
+      }
+    ]
+  }
+}

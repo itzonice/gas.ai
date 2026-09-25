@@ -1,0 +1,123 @@
+{
+  "description": "CHEM 241 Organic Chemistry I, Fall 2026, table layout, Europe/London",
+  "tags": ["standard", "table"],
+  "input": {
+    "timezone": "Europe/London",
+    "today": "2026-08-20",
+    "term_start": null,
+    "term_end": null
+  },
+  "expected": {
+    "course": {
+      "name": "Organic Chemistry I",
+      "code": "CHEM 241"
+    },
+    "categories": [
+      {
+        "name": "Projects",
+        "weight": 40
+      },
+      {
+        "name": "Exams",
+        "weight": 40
+      },
+      {
+        "name": "Homework",
+        "weight": 20
+      }
+    ],
+    "assignments": [
+      {
+        "title": "Homework 1",
+        "kind": "assignment",
+        "due_date": "2026-09-09",
+        "due_time": "23:59",
+        "category": "Homework"
+      },
+      {
+        "title": "Project 1",
+        "kind": "project",
+        "due_date": "2026-09-16",
+        "due_time": null,
+        "category": "Projects"
+      },
+      {
+        "title": "Exam 1",
+        "kind": "exam",
+        "due_date": "2026-09-23",
+        "due_time": "10:30",
+        "category": "Exams"
+      },
+      {
+        "title": "Homework 2",
+        "kind": "assignment",
+        "due_date": "2026-09-24",
+        "due_time": "23:59",
+        "category": "Homework"
+      },
+      {
+        "title": "Project 2",
+        "kind": "project",
+        "due_date": "2026-10-08",
+        "due_time": "23:59",
+        "category": "Projects"
+      },
+      {
+        "title": "Homework 3",
+        "kind": "assignment",
+        "due_date": "2026-10-10",
+        "due_time": null,
+        "category": "Homework"
+      },
+      {
+        "title": "Exam 2",
+        "kind": "exam",
+        "due_date": "2026-10-21",
+        "due_time": "14:00",
+        "category": "Exams"
+      },
+      {
+        "title": "Homework 4",
+        "kind": "assignment",
+        "due_date": "2026-10-26",
+        "due_time": "23:59",
+        "category": "Homework"
+      },
+      {
+        "title": "Project 3",
+        "kind": "project",
+        "due_date": "2026-10-31",
+        "due_time": "23:59",
+        "category": "Projects"
+      },
+      {
+        "title": "Homework 5",
+        "kind": "assignment",
+        "due_date": "2026-11-10",
+        "due_time": "23:59",
+        "category": "Homework"
+      },
+      {
+        "title": "Project 4",
+        "kind": "project",
+        "due_date": "2026-11-23",
+        "due_time": "23:59",
+        "category": "Projects"
+      },
+      {
+        "title": "Exam 3",
+        "kind": "exam",
+        "due_date": "2026-11-23",
+        "due_time": "10:30",
+        "category": "Exams"
+      },
+      {
+        "title": "Homework 6",
+        "kind": "assignment",
+        "due_date": "2026-11-26",
+        "due_time": "23:59",
+        "category": "Homework"
+      }
+    ]
+  }
+}

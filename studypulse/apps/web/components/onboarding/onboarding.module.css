@@ -1,0 +1,109 @@
+.card {
+  display: grid;
+  gap: var(--sp-space-card);
+  width: min(100%, 560px);
+  padding: var(--sp-space-major) var(--sp-space-card);
+  border-radius: var(--sp-radius-sheet);
+  background: var(--sp-color-surface-container);
+}
+
+.title {
+  font-size: var(--sp-type-page-title-size);
+  line-height: var(--sp-type-page-title-line-height);
+  font-weight: var(--sp-type-page-title-weight);
+}
+
+.lead,
+.muted {
+  margin: 0;
+  color: var(--sp-color-on-surface-variant);
+}
+
+.steps {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-space-related);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.step,
+.stepCurrent,
+.stepDone {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: var(--sp-radius-full);
+  font-size: var(--sp-type-label-large-size);
+  color: var(--sp-color-on-surface-variant);
+  border: 1px solid var(--sp-color-outline);
+}
+
+.stepCurrent {
+  border-color: transparent;
+  background: var(--sp-color-secondary-container);
+  color: var(--sp-color-on-secondary-container);
+  font-weight: var(--sp-type-label-large-weight);
+}
+
+.stepDone {
+  border-color: transparent;
+  color: var(--sp-color-on-surface);
+}
+
+.form {
+  display: grid;
+  gap: var(--sp-space-card);
+}
+
+.stepHeading {
+  font-size: var(--sp-type-section-heading-size);
+  line-height: var(--sp-type-section-heading-line-height);
+  font-weight: var(--sp-type-section-heading-weight);
+}
+
+.reminders {
+  display: grid;
+  gap: var(--sp-space-card);
+  justify-items: start;
+}
+
+.reminders p {
+  margin: 0;
+}
+
+.success {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-space-related);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--sp-space-related);
+  margin-top: var(--sp-space-related);
+}
+
+.finish {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--sp-space-related);
+}
+
+.alert {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-space-related);
+  margin: 0;
+  padding: 12px var(--sp-space-card);
+  border-radius: var(--sp-radius-control);
+  background: var(--sp-color-error-container);
+  color: var(--sp-color-on-error-container);
+}

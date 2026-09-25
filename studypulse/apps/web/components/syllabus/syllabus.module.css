@@ -1,0 +1,423 @@
+/* Syllabus upload and review. Token variables only; 48 px targets. */
+
+.content {
+  display: grid;
+  gap: var(--sp-space-section);
+  min-width: 0;
+}
+
+.section {
+  display: grid;
+  gap: 12px;
+}
+.sectionHeading {
+  font-size: var(--sp-type-section-heading-size);
+  line-height: var(--sp-type-section-heading-line-height);
+  font-weight: var(--sp-type-section-heading-weight);
+}
+.note {
+  margin: 0;
+  color: var(--sp-color-on-surface-variant);
+}
+
+.alertSlot:focus {
+  outline: none;
+}
+.alert {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-space-related);
+  margin: 0;
+  padding: 12px var(--sp-space-card);
+  border-radius: var(--sp-radius-control);
+  background: var(--sp-color-error-container);
+  color: var(--sp-color-on-error-container);
+}
+.alert a {
+  color: inherit;
+  font-weight: 700;
+}
+.issueList {
+  flex-basis: 100%;
+  margin: 0;
+  padding-inline-start: var(--sp-space-section);
+}
+
+/* ------------------------------------------------------------------ upload form */
+
+.form {
+  display: grid;
+  gap: var(--sp-space-section);
+  max-width: 720px;
+}
+.legend {
+  padding: 0;
+  margin-bottom: var(--sp-space-related);
+  font-size: var(--sp-type-card-title-size);
+  line-height: var(--sp-type-card-title-line-height);
+  font-weight: var(--sp-type-card-title-weight);
+}
+.sourcePicker,
+.terms {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  min-width: 0;
+}
+.sourcePicker {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: var(--sp-space-related);
+}
+.sourcePicker .legend {
+  grid-column: 1 / -1;
+}
+.sourceOption {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  min-height: var(--sp-layout-min-target);
+  padding: 12px var(--sp-space-card);
+  border: 1px solid var(--sp-color-outline-variant);
+  border-radius: var(--sp-radius-card);
+  background: var(--sp-color-surface-container-low);
+  cursor: pointer;
+}
+.sourceOption:has(input:checked) {
+  border: 2px solid var(--sp-color-primary);
+  background: var(--sp-color-secondary-container);
+  color: var(--sp-color-on-secondary-container);
+}
+.sourceOption input {
+  width: 20px;
+  height: 20px;
+  margin: 2px 0 0;
+  accent-color: var(--sp-color-primary);
+}
+.sourceLabel {
+  display: block;
+  font-weight: var(--sp-type-label-large-weight);
+}
+.sourceHint {
+  display: block;
+  color: var(--sp-color-on-surface-variant);
+  font-size: var(--sp-type-body-size);
+  line-height: var(--sp-type-body-line-height);
+}
+.sourceOption:has(input:checked) .sourceHint {
+  color: inherit;
+}
+
+.field {
+  display: grid;
+  gap: var(--sp-space-half);
+}
+.fieldError {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-space-half);
+  color: var(--sp-color-error);
+  font-size: var(--sp-type-label-size);
+  font-weight: var(--sp-type-label-large-weight);
+}
+
+/* The real file input stays in the tab order but is invisible; the label is the target. */
+.fileInput {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+}
+.dropZone {
+  display: grid;
+  justify-items: center;
+  gap: var(--sp-space-related);
+  padding: var(--sp-space-major) var(--sp-space-card);
+  border: 2px dashed var(--sp-color-outline);
+  border-radius: var(--sp-radius-card);
+  background: var(--sp-color-surface-container-low);
+  color: var(--sp-color-on-surface);
+  text-align: center;
+  cursor: pointer;
+}
+.dropZone:hover,
+.dropZoneActive {
+  border-color: var(--sp-color-primary);
+  background: var(--sp-color-secondary-container);
+  color: var(--sp-color-on-secondary-container);
+}
+.fileInput:focus-visible + .dropZone {
+  outline: var(--sp-focus-ring-width) solid var(--sp-color-primary);
+  outline-offset: var(--sp-focus-ring-offset);
+}
+.fileInput[aria-invalid="true"] + .dropZone {
+  border-color: var(--sp-color-error);
+}
+.dropTitle {
+  font-size: var(--sp-type-card-title-size);
+  font-weight: var(--sp-type-card-title-weight);
+  overflow-wrap: anywhere;
+}
+
+.termFields {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--sp-space-card);
+  margin-top: var(--sp-space-related);
+}
+
+/* ------------------------------------------------------------------ progress */
+
+.progress {
+  display: grid;
+  gap: var(--sp-space-card);
+  max-width: 720px;
+  padding: var(--sp-space-section);
+  border-radius: var(--sp-radius-card);
+  background: var(--sp-color-surface-container);
+}
+.progressText {
+  margin: 0;
+}
+.progressTrack {
+  height: 4px;
+  border-radius: var(--sp-radius-full);
+  background: var(--sp-color-secondary-container);
+  overflow: hidden;
+}
+.progressBar {
+  width: 40%;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--sp-color-primary);
+}
+@media (prefers-reduced-motion: no-preference) {
+  .progressBar {
+    animation: slide 1.6s ease-in-out infinite;
+  }
+}
+@keyframes slide {
+  from {
+    translate: -100% 0;
+  }
+  to {
+    translate: 250% 0;
+  }
+}
+
+/* ------------------------------------------------------------------ review */
+
+.fieldGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: var(--sp-space-card);
+}
+
+.categoryList {
+  display: grid;
+  gap: var(--sp-space-related);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.categoryRow {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) minmax(0, 1fr) var(--sp-layout-min-target);
+  align-items: end;
+  gap: var(--sp-space-related);
+  padding: 12px var(--sp-space-card);
+  border-radius: var(--sp-radius-card);
+  background: var(--sp-color-surface-container-low);
+}
+@media (max-width: 599px) {
+  .categoryRow {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+  .categoryRow > :first-child {
+    grid-column: 1 / -1;
+  }
+}
+.meetingRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-space-related);
+  padding: var(--sp-space-half) var(--sp-space-half) var(--sp-space-half) var(--sp-space-card);
+  border-radius: var(--sp-radius-card);
+  background: var(--sp-color-surface-container-low);
+}
+.weightTotal {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-space-related);
+}
+.warn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-space-half);
+  color: var(--sp-color-on-surface);
+  font-weight: var(--sp-type-label-large-weight);
+}
+
+.iconButton {
+  display: inline-grid;
+  place-items: center;
+  width: var(--sp-layout-min-target);
+  height: var(--sp-layout-min-target);
+  padding: 0;
+  border: 0;
+  border-radius: var(--sp-radius-full);
+  background: transparent;
+  color: var(--sp-color-on-surface-variant);
+  cursor: pointer;
+}
+.iconButton:hover {
+  background: color-mix(in srgb, var(--sp-color-on-surface) 8%, transparent);
+}
+
+/* Item list: a plain list; the row button opens the drawer, the checkbox and menu sit
+   outside it as their own targets. */
+.itemList {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-radius: var(--sp-radius-card);
+  background: var(--sp-color-surface-container-low);
+}
+.item {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-space-half);
+  padding-inline: var(--sp-space-related) var(--sp-space-half);
+}
+.item + .item {
+  border-top: 1px solid var(--sp-color-outline-variant);
+}
+.itemFlagged {
+  border-left: var(--sp-layout-course-stripe) solid var(--sp-color-tertiary);
+}
+.itemExcluded .itemTitle {
+  text-decoration: line-through;
+  color: var(--sp-color-on-surface-variant);
+}
+.itemButton {
+  flex: 1;
+  min-width: 0;
+  display: grid;
+  gap: var(--sp-space-half);
+  min-height: var(--sp-layout-min-target);
+  padding: 12px var(--sp-space-related);
+  border: 0;
+  border-radius: var(--sp-radius-control);
+  background: transparent;
+  color: var(--sp-color-on-surface);
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+.itemButton:hover {
+  background: color-mix(in srgb, var(--sp-color-on-surface) 6%, transparent);
+}
+.itemTitle {
+  font-size: var(--sp-type-card-title-size);
+  line-height: var(--sp-type-card-title-line-height);
+  font-weight: var(--sp-type-card-title-weight);
+  overflow-wrap: anywhere;
+}
+.itemMeta {
+  color: var(--sp-color-on-surface-variant);
+  font-size: var(--sp-type-body-size);
+  line-height: var(--sp-type-body-line-height);
+}
+.flag {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-space-half);
+  justify-self: start;
+  padding: 2px var(--sp-space-related);
+  border-radius: var(--sp-radius-control);
+  background: var(--sp-color-tertiary-container);
+  color: var(--sp-color-on-tertiary-container);
+  font-size: var(--sp-type-label-large-size);
+  line-height: var(--sp-type-label-large-line-height);
+  font-weight: var(--sp-type-label-large-weight);
+}
+.checked {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-space-half);
+  color: var(--sp-color-on-surface-variant);
+  font-size: var(--sp-type-label-large-size);
+}
+.checkboxTarget {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: var(--sp-layout-min-target);
+  height: var(--sp-layout-min-target);
+  border-radius: var(--sp-radius-full);
+  cursor: pointer;
+}
+.checkboxTarget input {
+  width: 20px;
+  height: 20px;
+  margin: 0;
+  accent-color: var(--sp-color-primary);
+  cursor: pointer;
+}
+
+/* Right panel: the original text, scrollable and keyboard-focusable. */
+.panel {
+  display: grid;
+  gap: var(--sp-space-related);
+  padding: var(--sp-space-card);
+  border-radius: var(--sp-radius-card);
+  background: var(--sp-color-surface-container);
+}
+.panelTitle {
+  font-size: var(--sp-type-card-title-size);
+  line-height: var(--sp-type-card-title-line-height);
+  font-weight: var(--sp-type-card-title-weight);
+}
+.sourceText {
+  max-height: 60vh;
+  overflow: auto;
+  margin: 0;
+  padding: var(--sp-space-related);
+  border-radius: var(--sp-radius-control);
+  background: var(--sp-color-surface);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font: inherit;
+  font-size: var(--sp-type-body-size);
+  line-height: var(--sp-type-body-line-height);
+}
+
+/* ------------------------------------------------------------------ drawer contents */
+
+.quote {
+  margin: 0;
+  padding: var(--sp-space-related) var(--sp-space-card);
+  border-left: 4px solid var(--sp-color-outline);
+  background: var(--sp-color-surface);
+  border-radius: 0 var(--sp-radius-control) var(--sp-radius-control) 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.reasons {
+  display: grid;
+  gap: var(--sp-space-half);
+  margin: 0;
+  padding: 12px var(--sp-space-card);
+  border-radius: var(--sp-radius-control);
+  background: var(--sp-color-tertiary-container);
+  color: var(--sp-color-on-tertiary-container);
+  list-style: none;
+}
+.twoUp {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: var(--sp-space-card);
+}

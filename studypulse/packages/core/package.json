@@ -1,0 +1,58 @@
+{
+  "name": "@studypulse/core",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./analytics": "./src/analytics/index.ts",
+    "./api": "./src/api/index.ts",
+    "./auth": "./src/auth/index.ts",
+    "./billing": "./src/billing/index.ts",
+    "./cards": "./src/cards/index.ts",
+    "./env": "./src/env/index.ts",
+    "./gcal": "./src/gcal/index.ts",
+    "./grades": "./src/grades/index.ts",
+    "./ics": "./src/ics/index.ts",
+    "./legal": "./src/legal/index.ts",
+    "./lms": "./src/lms/index.ts",
+    "./notify": "./src/notify/index.ts",
+    "./observability": "./src/observability/index.ts",
+    "./resilience": "./src/resilience/index.ts",
+    "./parser": "./src/parser/index.ts",
+    "./plans": "./src/plans/index.ts",
+    "./privacy": "./src/privacy/index.ts",
+    "./priority": "./src/priority/index.ts",
+    "./resources": "./src/resources/index.ts",
+    "./review": "./src/review/index.ts",
+    "./scheduler": "./src/scheduler/index.ts",
+    "./syllabus": "./src/syllabus/index.ts",
+    "./time": "./src/time/index.ts"
+  },
+  "scripts": {
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "parser:schema": "node scripts/gen-parser-schema.ts && prettier --write src/parser/prompts",
+    "eval:generate": "node scripts/gen-eval-cases.ts && prettier --write evals/syllabi",
+    "eval": "node scripts/eval-parser.ts",
+    "priority:parity": "node scripts/gen-priority-parity.ts",
+    "grades:parity": "node scripts/gen-grade-parity.ts",
+    "vapid:keys": "node scripts/gen-vapid-keys.ts"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "0.128.0",
+    "@studypulse/db": "workspace:*",
+    "@supabase/supabase-js": "^2.117.1",
+    "unpdf": "1.8.1",
+    "zod": "^4.6.5"
+  },
+  "devDependencies": {
+    "@vitest/coverage-v8": "^5.0.1",
+    "fast-check": "^4.10.2",
+    "typescript": "~6.0.3",
+    "vitest": "^5.0.1"
+  }
+}

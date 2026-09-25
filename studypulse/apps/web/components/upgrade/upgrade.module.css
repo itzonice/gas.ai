@@ -1,0 +1,115 @@
+.content {
+  display: grid;
+  gap: var(--sp-space-section);
+  max-width: 840px;
+  min-width: 0;
+}
+
+.tableCard {
+  border-radius: var(--sp-radius-card);
+  overflow: hidden;
+  background: var(--sp-color-surface-container);
+}
+
+.compare {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.caption {
+  padding: var(--sp-space-card) var(--sp-space-card) 0;
+  text-align: start;
+  font-size: var(--sp-type-section-heading-size);
+  line-height: var(--sp-type-section-heading-line-height);
+  font-weight: var(--sp-type-section-heading-weight);
+  caption-side: top;
+}
+
+.compare th,
+.compare td {
+  padding: 12px var(--sp-space-card);
+  text-align: start;
+  vertical-align: top;
+  border-top: 1px solid var(--sp-color-outline-variant);
+}
+
+.compare thead th {
+  border-top: 0;
+  font-weight: var(--sp-type-card-title-weight);
+}
+
+.compare tbody th {
+  font-weight: normal;
+  color: var(--sp-color-on-surface-variant);
+}
+
+.panel {
+  display: grid;
+  gap: var(--sp-space-card);
+  padding: var(--sp-space-card);
+  border-radius: var(--sp-radius-card);
+  background: var(--sp-color-surface-container);
+}
+
+.sectionHeading {
+  padding: 0;
+  font-size: var(--sp-type-section-heading-size);
+  line-height: var(--sp-type-section-heading-line-height);
+  font-weight: var(--sp-type-section-heading-weight);
+}
+
+.fieldset {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.fieldset legend {
+  margin-bottom: var(--sp-space-related);
+}
+
+.radio {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: var(--sp-layout-min-target);
+  cursor: pointer;
+}
+
+.radio input {
+  width: 20px;
+  height: 20px;
+  margin: 0;
+  accent-color: var(--sp-color-primary);
+}
+
+.hint,
+.note {
+  margin: 0;
+  color: var(--sp-color-on-surface-variant);
+}
+
+.success {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-space-related);
+  margin: 0;
+}
+
+.alert {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-space-related);
+  margin: 0;
+  padding: 12px var(--sp-space-card);
+  border-radius: var(--sp-radius-control);
+  background: var(--sp-color-error-container);
+  color: var(--sp-color-on-error-container);
+}
+
+.note a {
+  color: var(--sp-color-primary);
+}

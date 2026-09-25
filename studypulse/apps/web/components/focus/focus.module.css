@@ -1,0 +1,156 @@
+.content {
+  display: grid;
+  gap: var(--sp-space-section);
+  min-width: 0;
+}
+
+.timerCard {
+  display: grid;
+  justify-items: center;
+  gap: var(--sp-space-card);
+  padding: var(--sp-space-major) var(--sp-space-card);
+  border-radius: var(--sp-radius-card);
+  background: var(--sp-color-surface-container);
+  text-align: center;
+}
+
+.phase {
+  margin: 0;
+  color: var(--sp-color-on-surface-variant);
+  font-size: var(--sp-type-label-large-size);
+  line-height: var(--sp-type-label-large-line-height);
+  font-weight: var(--sp-type-label-large-weight);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+/* Large timer: scales with the viewport but also with the user's text size (rem). */
+.clock {
+  margin: 0;
+  font-size: clamp(4rem, 14vw, 7.5rem);
+  line-height: 1.1;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+
+.linked {
+  display: grid;
+  justify-items: center;
+  gap: var(--sp-space-related);
+  max-width: 100%;
+}
+
+.linkedTitle {
+  font-size: var(--sp-type-section-heading-size);
+  line-height: var(--sp-type-section-heading-line-height);
+  font-weight: var(--sp-type-section-heading-weight);
+  overflow-wrap: anywhere;
+}
+
+.linkedMeta {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: var(--sp-space-related);
+  color: var(--sp-color-on-surface-variant);
+}
+
+.setup {
+  display: grid;
+  gap: var(--sp-space-card);
+  width: min(100%, 560px);
+  text-align: start;
+}
+
+@media (min-width: 600px) {
+  .setup {
+    grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+    align-items: start;
+  }
+}
+
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--sp-space-related);
+}
+
+.muted {
+  margin: 0;
+  color: var(--sp-color-on-surface-variant);
+}
+
+.alert {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-space-related);
+  margin: 0;
+  padding: 12px var(--sp-space-card);
+  border-radius: var(--sp-radius-control);
+  background: var(--sp-color-error-container);
+  color: var(--sp-color-on-error-container);
+  text-align: start;
+}
+
+/* Right panel (beside the content at 1440 px, below it otherwise). */
+.panel {
+  display: grid;
+  gap: var(--sp-space-card);
+}
+
+.panelCard {
+  display: grid;
+  gap: var(--sp-space-related);
+  padding: var(--sp-space-card);
+  border-radius: var(--sp-radius-card);
+  background: var(--sp-color-surface-container);
+}
+
+.panelTitle {
+  font-size: var(--sp-type-card-title-size);
+  line-height: var(--sp-type-card-title-line-height);
+  font-weight: var(--sp-type-card-title-weight);
+}
+
+.history {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.historyRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 4px var(--sp-space-related);
+  padding: 12px 0;
+  border-top: 1px solid var(--sp-color-outline-variant);
+}
+
+.historyRow:first-child {
+  border-top: 0;
+}
+
+.historyTitle {
+  overflow-wrap: anywhere;
+}
+
+.historyMeta {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-space-related);
+  color: var(--sp-color-on-surface-variant);
+  font-size: var(--sp-type-label-large-size);
+}
+
+.historyMinutes {
+  grid-column: 2;
+  grid-row: 1;
+  font-variant-numeric: tabular-nums;
+  color: var(--sp-color-on-surface-variant);
+}

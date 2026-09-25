@@ -1,0 +1,135 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+# The project lives in studypulse/; every step runs there.
+defaults:
+  run:
+    working-directory: studypulse
+
+env:
+  TURBO_TELEMETRY_DISABLED: 1
+
+jobs:
+  checks:
+    name: Lint, typecheck, test
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v5
+      - uses: pnpm/action-setup@v4
+        with:
+          package_json_file: studypulse/package.json
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: studypulse/.nvmrc
+          cache: pnpm
+          cache-dependency-path: studypulse/pnpm-lock.yaml
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm format:check
+      - run: pnpm lint
+      - run: pnpm typecheck
+      - run: pnpm test
+      # Fails on GPL, AGPL, source-available, or unreviewed dependency licenses (S27).
+      - run: pnpm licenses:check
+
+  secret-scan:
+    name: Client bundle secret scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v5
+      - uses: pnpm/action-setup@v4
+        with:
+          package_json_file: studypulse/package.json
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: studypulse/.nvmrc
+          cache: pnpm
+          cache-dependency-path: studypulse/pnpm-lock.yaml
+      - run: pnpm install --frozen-lockfile
+      # Builds web and mobile with canary values in every server secret, then fails if a
+      # canary or a real-looking secret shows up in anything a client downloads.
+      - run: pnpm secrets:scan
+
+  migrations:
+    name: Migrations and SQL tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v5
+      - uses: pnpm/action-setup@v4
+        with:
+          package_json_file: studypulse/package.json
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: studypulse/.nvmrc
+          cache: pnpm
+          cache-dependency-path: studypulse/pnpm-lock.yaml
+      - run: pnpm install --frozen-lockfile
+      # Only the database is needed to apply migrations and run SQL tests.
+      - name: Start Postgres
+        run: pnpm exec supabase db start
+      - name: Apply every migration from scratch and seed
+        run: pnpm exec supabase db reset
+      - name: Lint schema
+        run: pnpm exec supabase db lint --level warning --fail-on error
+      - name: Run SQL tests
+        run: pnpm exec supabase test db
+      - name: Run concurrency tests (two real sessions)
+        run: for t in supabase/tests/concurrency/*.sh; do bash "$t"; done
+      - name: Check generated database types are up to date
+        run: |
+          pnpm db:types
+          if ! git diff --exit-code -- packages/db/src/database.types.ts; then
+            echo "::error::packages/db types are stale. Run 'pnpm db:types' and commit the result."
+            exit 1
+          fi
+
+  cross-user:
+    name: Cross-user access (end to end)
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v5
+      - uses: pnpm/action-setup@v4
+        with:
+          package_json_file: studypulse/package.json
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: studypulse/.nvmrc
+          cache: pnpm
+          cache-dependency-path: studypulse/pnpm-lock.yaml
+      - run: pnpm install --frozen-lockfile
+      # The real stack: Postgres, PostgREST, Auth, Storage, and the edge runtime.
+      - name: Start Supabase
+        run: pnpm exec supabase start -x studio,imgproxy,logflare,vector,supavisor,realtime,postgres-meta
+      - name: Wait for the edge functions
+        run: |
+          for i in $(seq 1 90); do
+            code=$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:54321/functions/v1/features || true)
+            if [ "$code" = 200 ] || [ "$code" = 401 ]; then exit 0; fi
+            sleep 2
+          done
+          echo "::error::edge functions did not come up"; exit 1
+      # Users A, B, and an org admin C; A and C attack B's data through every table, RPC,
+      # edge function, storage path, ICS feed, export, and link. Any leak fails the job.
+      - name: Run the cross-user access suite
+        run: pnpm test:cross-user
+      - name: Upload the report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cross-user-report
+          path: studypulse/cross-user-report.md
+          if-no-files-found: ignore

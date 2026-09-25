@@ -50,7 +50,12 @@ export default function TermsPage() {
         The free plan and Pro include the following. Each limit resets at midnight in your time
         zone.
       </p>
-      <div className={styles.tableWrap}>
+      <div
+        className={styles.tableWrap}
+        tabIndex={0}
+        role="region"
+        aria-label="Free and Pro compared"
+      >
         <table>
           <thead>
             <tr>

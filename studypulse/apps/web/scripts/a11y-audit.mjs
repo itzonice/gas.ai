@@ -192,10 +192,37 @@ async function load(page, path, ready) {
 
 const browser = await chromium.launch();
 try {
+  // The consent banner (S23) shows locally (no geo header). Audit it once at phone and
+  // desktop widths, then pre-set a choice so it doesn't cover the screens below.
+  for (const width of [375, 1600]) {
+    const bctx = await browser.newContext({ viewport: { width, height: 800 } });
+    const bpage = await bctx.newPage();
+    const context = { path: "/sign-in (consent banner)", width, scheme: "light" };
+    try {
+      await load(bpage, "/sign-in", "button:has-text('Reject')");
+      await axe(bpage, context);
+      await targets(bpage, context);
+    } catch (e) {
+      fail({ ...context, check: "banner", help: String(e).slice(0, 200) });
+    }
+    await bctx.close();
+  }
+
   for (const scheme of SCHEMES) {
     const ctx = await browser.newContext({
       colorScheme: scheme,
       viewport: { width: 1600, height: 1000 },
+    });
+    await ctx.addInitScript(() => {
+      window.localStorage.setItem(
+        "studypulse.privacy-choices",
+        JSON.stringify({
+          analytics: false,
+          errorReports: false,
+          version: "2026-09-25",
+          at: new Date().toISOString(),
+        }),
+      );
     });
     const page = await ctx.newPage();
     page.on("request", (req) => {
@@ -221,6 +248,7 @@ try {
       "/copyright",
       "/refunds",
       "/eula",
+      "/cookies",
     ].flatMap((p) => [375, 1600].map((w) => [p, w]))) {
       await page.setViewportSize({ width, height: 1000 });
       await load(page, path, "h1");

@@ -21,6 +21,7 @@
     "./resilience": "./src/resilience/index.ts",
     "./parser": "./src/parser/index.ts",
     "./plans": "./src/plans/index.ts",
+    "./privacy": "./src/privacy/index.ts",
     "./priority": "./src/priority/index.ts",
     "./resources": "./src/resources/index.ts",
     "./review": "./src/review/index.ts",

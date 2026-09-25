@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 
 import { LegalPage, legalStyles as styles } from "@/components/legal/LegalPage";
 import { SupportEmail } from "@/components/legal/SupportEmail";
@@ -111,7 +112,9 @@ export default function PrivacyPage() {
         loads no fonts, analytics, or trackers from other companies: your browser only talks to
         StudyPulse and our database host. Error reports go through our own servers first. If we ever
         wanted session recording, we would ask you first, hide everything you type or see, and
-        update this policy before turning it on.
+        update this policy before turning it on. In the EU, the EEA, the UK, and Switzerland,
+        product analytics and browser error reports stay off until you allow them; everywhere, you
+        can change this in the <Link href="/cookies">cookie policy</Link> or in Settings.
       </p>
 
       <h2>Who else handles your data</h2>

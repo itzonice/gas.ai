@@ -583,6 +583,14 @@ Deno.test({
   sanitizeOps: false,
   sanitizeResources: false,
   async fn() {
+    // Preflight: an unreachable functions server would make every function attempt
+    // "leak nothing" and pass for the wrong reason.
+    const probe = await http(`${FUNCTIONS}/features`, {});
+    if (probe.status !== 200) {
+      throw new Error(
+        `edge functions are not reachable at ${FUNCTIONS} (status ${String(probe.status)})`,
+      );
+    }
     const a = await createUser("a", `Alice ${RUN}`);
     const b = await createUser("b", `Bob ${NAME_MARK}`);
     const c = await createUser("c", `Carol admin ${RUN}`);

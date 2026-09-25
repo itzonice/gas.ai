@@ -907,6 +907,20 @@ export function createApiClient(db: Db) {
       },
     },
 
+    privacy: {
+      /** Saves the product-analytics and error-report choices on the account (S23). */
+      async setChoices(
+        choices: { analytics: boolean; errorReports: boolean },
+        source: "banner" | "settings" | "signin",
+      ): Promise<void> {
+        const { error } = await db.rpc("set_privacy_choices", {
+          p_analytics: choices.analytics,
+          p_error_reports: choices.errorReports,
+          p_source: source,
+        });
+        if (error) throw fromPostgrestError(error);
+      },
+    },
     billing: {
       /**
        * Starts a Stripe Checkout for Pro (web); redirect to the returned URL. Throws

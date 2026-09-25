@@ -17,3 +17,14 @@ it("private.current_terms_version() returns TERMS_VERSION", () => {
   expect(latest).toBeDefined();
   expect(latest).toContain(`select '${TERMS_VERSION}'::text`);
 });
+
+it("private.current_privacy_version() returns PRIVACY_VERSION", async () => {
+  const { PRIVACY_VERSION } = await import("../privacy/index.ts");
+  const dir = fileURLToPath(new URL("../../../../supabase/migrations/", import.meta.url));
+  const latest = readdirSync(dir)
+    .sort()
+    .map((f) => readFileSync(join(dir, f), "utf8"))
+    .filter((sql) => sql.includes("function private.current_privacy_version()"))
+    .at(-1);
+  expect(latest).toContain(`select '${PRIVACY_VERSION}'::text`);
+});

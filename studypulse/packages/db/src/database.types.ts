@@ -451,6 +451,44 @@ export type Database = {
           },
         ];
       };
+      consent_log: {
+        Row: {
+          granted: boolean;
+          id: number;
+          kind: string;
+          policy_version: string;
+          recorded_at: string;
+          source: string;
+          user_id: string;
+        };
+        Insert: {
+          granted: boolean;
+          id?: never;
+          kind: string;
+          policy_version: string;
+          recorded_at?: string;
+          source: string;
+          user_id: string;
+        };
+        Update: {
+          granted?: boolean;
+          id?: never;
+          kind?: string;
+          policy_version?: string;
+          recorded_at?: string;
+          source?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "consent_log_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       course_meetings: {
         Row: {
           course_id: string;
@@ -1303,11 +1341,13 @@ export type Database = {
       profiles: {
         Row: {
           age_confirmed_at: string | null;
+          analytics_allowed: boolean;
           calendar_token_hash: string | null;
           card_tasks_enabled: boolean;
           created_at: string;
           daily_study_minutes: number;
           display_name: string | null;
+          error_reports_allowed: boolean;
           id: string;
           last_replanned_on: string | null;
           onboarded_at: string | null;
@@ -1320,11 +1360,13 @@ export type Database = {
         };
         Insert: {
           age_confirmed_at?: string | null;
+          analytics_allowed?: boolean;
           calendar_token_hash?: string | null;
           card_tasks_enabled?: boolean;
           created_at?: string;
           daily_study_minutes?: number;
           display_name?: string | null;
+          error_reports_allowed?: boolean;
           id: string;
           last_replanned_on?: string | null;
           onboarded_at?: string | null;
@@ -1337,11 +1379,13 @@ export type Database = {
         };
         Update: {
           age_confirmed_at?: string | null;
+          analytics_allowed?: boolean;
           calendar_token_hash?: string | null;
           card_tasks_enabled?: boolean;
           created_at?: string;
           daily_study_minutes?: number;
           display_name?: string | null;
+          error_reports_allowed?: boolean;
           id?: string;
           last_replanned_on?: string | null;
           onboarded_at?: string | null;
@@ -2281,6 +2325,14 @@ export type Database = {
       };
       set_plan_alerts: {
         Args: { p_alerts: Json; p_from: string; p_user_id: string };
+        Returns: undefined;
+      };
+      set_privacy_choices: {
+        Args: {
+          p_analytics: boolean;
+          p_error_reports: boolean;
+          p_source?: string;
+        };
         Returns: undefined;
       };
       start_study_session: {

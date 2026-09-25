@@ -2,6 +2,7 @@ import { darkColors, lightColors } from "@studypulse/tokens";
 import type { Metadata, Viewport } from "next";
 
 import { SessionProvider } from "@/components/auth/SessionProvider";
+import { ConsentManager } from "@/components/privacy/ConsentManager";
 
 import "@studypulse/tokens/tokens.css";
 import "./globals.css";
@@ -25,7 +26,10 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="en">
       <body>
-        <SessionProvider>{children}</SessionProvider>
+        <SessionProvider>
+          {children}
+          <ConsentManager />
+        </SessionProvider>
       </body>
     </html>
   );

@@ -11,6 +11,7 @@ import {
   type Settings,
 } from "@studypulse/core/api";
 import type { BillingStatus } from "@studypulse/core/billing";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState, type FormEvent } from "react";
 
@@ -27,6 +28,7 @@ import {
   TextField,
 } from "@/components/ui";
 import { SupportEmail } from "@/components/legal/SupportEmail";
+import { PrivacyChoicesForm } from "@/components/privacy/PrivacyChoicesForm";
 import { clearAppStorage, signOutEverywhere } from "@/lib/sign-out";
 import { getSupabase } from "@/lib/supabase";
 import { enableWebPush, webPushSupported } from "@/lib/web-push";
@@ -415,6 +417,16 @@ export function SettingsScreen() {
             </Button>
           ) : null}
         </div>
+      </section>
+
+      <section className={styles.section} aria-labelledby="privacy-heading">
+        <h2 id="privacy-heading" className={styles.sectionHeading}>
+          Privacy choices
+        </h2>
+        <PrivacyChoicesForm />
+        <p className={styles.muted}>
+          What each one means is in the <Link href="/cookies">cookie policy</Link>.
+        </p>
       </section>
 
       <section className={styles.section} aria-labelledby="legal-heading">

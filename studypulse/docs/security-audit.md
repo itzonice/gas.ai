@@ -406,3 +406,41 @@ Every call to Anthropic, Stripe, Expo, Resend, Google, and PostHog goes through
   steps.
 - **`/copyright`** now has a "If your upload was removed" counter-notice section listing
   what to include and the 10-to-14-business-day restore timeline.
+
+## S23–S24: Cookie policy, consent banner, and consent records
+
+- **`/cookies`** is rendered from `STORAGE_INVENTORY` and `OPTIONAL_PROCESSING` in
+  `@studypulse/core/privacy`:
+  - no cookies at all;
+  - the essential storage keys: session, sign-in verifier, the choice itself, focus
+    timer, age-gate memory, push service worker;
+  - the two optional kinds of processing (product analytics and browser error reports),
+    with a form to change them.
+- **Banner:** for visitors from the EU, EEA, UK, or Switzerland, or from an unknown
+  country (`/api/consent-region`, from the host's geolocation header).
+  - Reject and Accept have the same style and size, side by side.
+  - Nothing optional runs before a choice.
+  - Browser Sentry now starts only when error reports are allowed (`lib/error-reporting.ts`;
+    `instrumentation-client.ts` no longer initializes it).
+- **Analytics are server-side (PostHog):**
+  - `profiles.analytics_allowed` gates the outbox with a trigger: events for students who
+    haven't allowed analytics are never stored.
+  - Withdrawing deletes events that haven't been sent yet.
+  - In the EU and UK, a signed-in student who hasn't chosen is set to opted out.
+- **S24 form audit:** no pre-checked boxes anywhere (sign-up, onboarding, upgrade,
+  settings, age step). Marketing email opt-in is separate from accepting the terms and
+  off by default. Each consent is stored with a timestamp and policy version:
+  - Terms: `terms_acceptances`.
+  - Marketing email, analytics, and error reports: `consent_log`, append-only, with the
+    source (banner, settings, sign-in, unsubscribe link).
+  - Age: `age_confirmed_at`.
+- `PRIVACY_VERSION` matches SQL `current_privacy_version()` (core test and SQL test 650).
+- **Mobile:** the app sends no analytics from the device; the server-side gate covers
+  its events. A consent screen for mobile error reports comes with the mobile screens
+  (L1).
+- **Tests:**
+  - web banner tests;
+  - SQL test 650;
+  - the a11y audit, which now also covers the banner and `/cookies` and fixed a keyboard
+    issue with the scrollable table on phones;
+  - the third-party request audit: still none.

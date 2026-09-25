@@ -1,0 +1,39 @@
+.banner {
+  position: fixed;
+  inset-inline: var(--sp-space-card);
+  inset-block-end: var(--sp-space-card);
+  z-index: 50;
+  max-width: 40rem;
+  margin-inline: auto;
+  padding: var(--sp-space-card);
+  border-radius: var(--sp-radius-sheet);
+  background: var(--sp-color-surface-container-high);
+  color: var(--sp-color-on-surface);
+  border: 1px solid var(--sp-color-outline-variant);
+  display: grid;
+  gap: var(--sp-space-related);
+}
+
+.heading {
+  margin: 0;
+  font-size: var(--sp-type-label-large-size);
+  line-height: var(--sp-type-label-large-line-height);
+  font-weight: var(--sp-type-label-large-weight);
+}
+
+.text {
+  margin: 0;
+  font-size: var(--sp-type-label-large-size);
+  line-height: var(--sp-type-label-large-line-height);
+}
+
+.actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--sp-space-related);
+}
+
+.form {
+  display: grid;
+  gap: var(--sp-space-related);
+}

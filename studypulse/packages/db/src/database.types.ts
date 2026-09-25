@@ -28,6 +28,68 @@ export type Database = {
   };
   public: {
     Tables: {
+      ai_cost_alerts: {
+        Row: {
+          alert_date: string;
+          cost_cents: number;
+          created_at: string;
+          id: number;
+          threshold_cents: number;
+          uploads: number;
+          user_id: string | null;
+        };
+        Insert: {
+          alert_date: string;
+          cost_cents: number;
+          created_at?: string;
+          id?: never;
+          threshold_cents: number;
+          uploads: number;
+          user_id?: string | null;
+        };
+        Update: {
+          alert_date?: string;
+          cost_cents?: number;
+          created_at?: string;
+          id?: never;
+          threshold_cents?: number;
+          uploads?: number;
+          user_id?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "ai_cost_alerts_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      ai_model_prices: {
+        Row: {
+          cache_read_cents_per_mtok: number;
+          input_cents_per_mtok: number;
+          model: string;
+          output_cents_per_mtok: number;
+          updated_at: string;
+        };
+        Insert: {
+          cache_read_cents_per_mtok: number;
+          input_cents_per_mtok: number;
+          model: string;
+          output_cents_per_mtok: number;
+          updated_at?: string;
+        };
+        Update: {
+          cache_read_cents_per_mtok?: number;
+          input_cents_per_mtok?: number;
+          model?: string;
+          output_cents_per_mtok?: number;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
       analytics_events: {
         Row: {
           attempts: number;
@@ -1343,6 +1405,14 @@ export type Database = {
       };
     };
     Functions: {
+      ai_cost_by_user: {
+        Args: { p_since: string; p_until?: string };
+        Returns: {
+          cost_cents: number;
+          uploads: number;
+          user_id: string;
+        }[];
+      };
       analytics_claim_batch: {
         Args: { p_limit?: number };
         Returns: {
@@ -1569,6 +1639,18 @@ export type Database = {
         Returns: {
           ocr_allowed: boolean;
           plan_tier: Database["public"]["Enums"]["plan_tier"];
+        }[];
+      };
+      record_ai_cost_alerts: {
+        Args: {
+          p_total_threshold_cents: number;
+          p_user_threshold_cents: number;
+        };
+        Returns: {
+          cost_cents: number;
+          threshold_cents: number;
+          uploads: number;
+          user_id: string;
         }[];
       };
       register_push_token: {

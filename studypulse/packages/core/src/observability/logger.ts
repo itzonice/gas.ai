@@ -40,6 +40,13 @@ function serializeError(error: unknown): LogFields {
   if (error instanceof Error) {
     return { name: error.name, message: error.message, stack: error.stack };
   }
+  // Supabase/PostgREST errors are plain objects ({ message, code, details, hint }).
+  if (error && typeof error === "object") {
+    const e = error as Record<string, unknown>;
+    const pick = (k: string) => (typeof e[k] === "string" ? { [k]: e[k] } : {});
+    const fields = { ...pick("message"), ...pick("code"), ...pick("details"), ...pick("hint") };
+    if (Object.keys(fields).length) return fields;
+  }
   return { message: String(error) };
 }
 

@@ -34,6 +34,14 @@ describe("createLogger", () => {
     ]);
   });
 
+  it("serializes Supabase errors, which are plain objects, not Errors", () => {
+    const { logger, lines } = capture();
+    logger.error("query failed", {
+      error: { message: "URI too long", code: "PGRST000", details: null, hint: null },
+    });
+    expect(lines[0]?.entry.error).toEqual({ message: "URI too long", code: "PGRST000" });
+  });
+
   it("child loggers keep the request id and add fields", () => {
     const { logger, lines } = capture();
     logger.child({ user_id: "u1" }).warn("slow");

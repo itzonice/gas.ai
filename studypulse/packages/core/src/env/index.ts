@@ -104,6 +104,11 @@ export const edgeEnvSchema = z.object({
   POSTHOG_API_KEY: optionalNonEmpty,
   // PostHog ingestion host; defaults to https://us.i.posthog.com (EU: https://eu.i.posthog.com).
   POSTHOG_HOST: optionalUrl,
+  // AI cost alerts (ai-cost-monitor): cents over the last 24 hours, per user and in total.
+  AI_COST_ALERT_USER_CENTS: z.coerce.number().positive().default(100),
+  AI_COST_ALERT_TOTAL_CENTS: z.coerce.number().positive().default(5000),
+  // Optional Slack-compatible incoming webhook for operational alerts.
+  ALERT_WEBHOOK_URL: optionalUrl,
   // Shared secret pg_cron sends (x-cron-secret) to scheduled functions. Unset = cron endpoints refuse all calls.
   CRON_SECRET: optionalNonEmpty,
 });

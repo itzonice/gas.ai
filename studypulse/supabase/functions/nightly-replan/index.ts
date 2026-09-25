@@ -13,6 +13,7 @@ import { createHandler } from "../_shared/handler.ts";
 import { json, requireMethod } from "../_shared/http.ts";
 import { replanUser } from "../_shared/planner.ts";
 import { adminClient } from "../_shared/supabase.ts";
+import { chunks } from "../_shared/chunks.ts";
 
 const NIGHTLY_LOCAL_HOUR = 3;
 const CONCURRENCY = 4;
@@ -38,12 +39,12 @@ Deno.serve(
 
     let users: { user_id: string; timezone: string }[];
     if (body.user_ids) {
-      const { data, error } = await db
-        .from("profiles")
-        .select("id, timezone")
-        .in("id", body.user_ids);
-      if (error) throw error;
-      users = (data ?? []).map((p) => ({ user_id: p.id, timezone: p.timezone }));
+      users = [];
+      for (const ids of chunks(body.user_ids)) {
+        const { data, error } = await db.from("profiles").select("id, timezone").in("id", ids);
+        if (error) throw error;
+        users.push(...data.map((p) => ({ user_id: p.id, timezone: p.timezone })));
+      }
     } else {
       const { data, error } = await db.rpc("users_due_for_replan", {
         p_local_hour: NIGHTLY_LOCAL_HOUR,

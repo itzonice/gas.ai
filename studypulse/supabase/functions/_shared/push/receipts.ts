@@ -5,6 +5,7 @@ import type { Logger } from "@studypulse/core/observability/index.ts";
 
 import { expoOptions } from "./options.ts";
 import type { AdminClient } from "../supabase.ts";
+import { chunks } from "../chunks.ts";
 
 export async function checkExpoReceipts(
   db: AdminClient,
@@ -43,21 +44,19 @@ export async function checkExpoReceipts(
     });
     if (invalidateError) throw invalidateError;
   }
-  if (failed.length) {
+  for (const ids of chunks(failed)) {
     await db
       .from("notification_log")
       .update({ status: "failed", error: "push receipt error" })
-      .in("id", failed);
+      .in("id", ids);
   }
   // Receipts not ready yet stay unchecked and are retried next run (up to 24 h).
   const ready = rows
     .filter((r) => receipts[r.provider_message_id ?? ""] !== undefined)
     .map((r) => r.id);
-  if (ready.length) {
-    await db
-      .from("notification_log")
-      .update({ receipt_checked_at: new Date().toISOString() })
-      .in("id", ready);
+  const checkedAt = new Date().toISOString();
+  for (const ids of chunks(ready)) {
+    await db.from("notification_log").update({ receipt_checked_at: checkedAt }).in("id", ids);
   }
   log.info("push receipts checked", {
     checked: ready.length,

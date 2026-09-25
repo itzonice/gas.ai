@@ -20,6 +20,7 @@ import {
 import type { Logger } from "@studypulse/core/observability/index.ts";
 import { z } from "zod";
 
+import { chunks } from "../_shared/chunks.ts";
 import { requireCron } from "../_shared/cron.ts";
 import { createHandler } from "../_shared/handler.ts";
 import { json, requireMethod } from "../_shared/http.ts";
@@ -186,15 +187,17 @@ Deno.serve(
       after = users[users.length - 1]?.user_id ?? null;
       totals.users += users.length;
 
-      const { data: tokens, error: tokenError } = await db
-        .from("notification_tokens")
-        .select("id, user_id, token, provider, web_push_keys")
-        .in(
-          "user_id",
-          users.map((u) => u.user_id),
-        )
-        .is("invalidated_at", null);
-      if (tokenError) throw tokenError;
+      // Chunked: a page of user ids is too long for one URL filter.
+      const tokens: Token[] = [];
+      for (const ids of chunks(users.map((u) => u.user_id))) {
+        const { data, error: tokenError } = await db
+          .from("notification_tokens")
+          .select("id, user_id, token, provider, web_push_keys")
+          .in("user_id", ids)
+          .is("invalidated_at", null);
+        if (tokenError) throw tokenError;
+        tokens.push(...data);
+      }
 
       const outgoing: ExpoOutgoing[] = [];
       const webOutgoing: WebOutgoing[] = [];

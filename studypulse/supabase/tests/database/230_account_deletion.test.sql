@@ -6,12 +6,13 @@ select plan(3);
 -- Guard: every public table is the profile itself or reaches it by a cascading FK
 -- (user_id -> profiles, course_id -> courses, or connection_id -> lms_connections, which
 -- itself cascades from profiles). A new table without one fails here.
--- Exceptions hold no user data: lms_institutions (the schools list) and organizations
--- (a name and join code; members are in organization_memberships, which cascades).
+-- Exceptions hold no user data: lms_institutions (the schools list), organizations
+-- (a name and join code; members are in organization_memberships, which cascades), and
+-- ai_model_prices (a price list).
 select is_empty($$
   select c.relname
   from pg_class c join pg_namespace n on n.oid = c.relnamespace
-  where n.nspname = 'public' and c.relkind = 'r' and c.relname not in ('profiles', 'lms_institutions', 'organizations')
+  where n.nspname = 'public' and c.relkind = 'r' and c.relname not in ('profiles', 'lms_institutions', 'organizations', 'ai_model_prices')
     and not exists (
       select 1 from pg_constraint k
       where k.conrelid = c.oid and k.contype = 'f' and k.confdeltype = 'c'

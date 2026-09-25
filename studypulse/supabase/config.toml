@@ -526,3 +526,10 @@ enabled = true
 verify_jwt = false
 import_map = "./functions/deno.json"
 entrypoint = "./functions/flush-analytics/index.ts"
+
+[functions.ai-cost-monitor]
+enabled = true
+# Called by pg_cron with x-cron-secret.
+verify_jwt = false
+import_map = "./functions/deno.json"
+entrypoint = "./functions/ai-cost-monitor/index.ts"

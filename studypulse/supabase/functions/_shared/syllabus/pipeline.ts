@@ -7,6 +7,7 @@ import {
 import type { Logger } from "@studypulse/core/observability/index.ts";
 import { localDate } from "@studypulse/core/time/index.ts";
 
+import { AI_BUDGET_MESSAGE, aiBudget } from "../ai-budget.ts";
 import { anthropic } from "../anthropic.ts";
 import { env } from "../env.ts";
 
@@ -136,7 +137,13 @@ export async function processSyllabusUpload(uploadId: string, log: Logger): Prom
   }
 
   try {
+    // Daily AI spend cap (S7): checked before OCR and again before parsing.
+    const overBudget = async () => (await aiBudget(db, upload.user_id)).exceeded;
+    if (await overBudget()) throw new ParseFailure(AI_BUDGET_MESSAGE, "ai_budget_exceeded");
     const { text, usage: extractionUsage } = await ensureText(upload, plog);
+    if (extractionUsage.length && (await overBudget())) {
+      throw new ParseFailure(AI_BUDGET_MESSAGE, "ai_budget_exceeded");
+    }
 
     const { data: profile } = await db
       .from("profiles")

@@ -55,6 +55,7 @@ export function fromPostgrestError(error: PostgrestLikeError): ApiError {
     SPP01: [402, "pro_required"],
     SPC01: [402, "course_limit_reached"],
     SPK01: [429, "card_limit_reached"],
+    SPB01: [429, "ai_budget_exceeded"],
   };
   const [status, mapped] = table[code] ?? [500, "database_error"];
   return new ApiError(status, mapped, error.message, { cause: error });

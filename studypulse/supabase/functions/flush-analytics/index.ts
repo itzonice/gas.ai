@@ -28,7 +28,7 @@ Deno.serve(
     const totals = { sent: 0, failed: 0, invalid: 0 };
 
     for (let i = 0; i < MAX_BATCHES_PER_RUN; i++) {
-      const { data: rows, error } = await db.rpc("analytics_claim_batch", {});
+      const { data: rows, error } = await db.rpc("analytics_claim_batch", { p_limit: 100 });
       if (error) throw error;
       if (!rows.length) break;
       const events = rows.flatMap((r) => {

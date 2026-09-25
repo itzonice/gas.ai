@@ -2,7 +2,7 @@
 -- as priority.test.ts) and respects RLS through security_invoker.
 begin;
 delete from auth.users;
-select plan(3);
+select plan(4);
 
 select tests.create_user('ada@example.com') as ada \gset
 select tests.create_user('bob@example.com') as bob \gset
@@ -26,8 +26,19 @@ select results_eq(
 select is((select round(sum(grade_share), 6) from public.assignment_grade_shares), 100.000000::numeric,
   'categorized shares add up to 100%');
 
+-- The Today feed uses the per-user function (S8); it must match the view exactly.
+select is_empty($$
+  (select assignment_id, round(grade_share, 9) from public.assignment_grade_shares
+   except select assignment_id, round(grade_share, 9) from private.user_grade_shares((select auth.uid())))
+  union all
+  (select assignment_id, round(grade_share, 9) from private.user_grade_shares((select auth.uid()))
+   except select assignment_id, round(grade_share, 9) from public.assignment_grade_shares)
+$$, 'user_grade_shares() matches the view');
+
 select tests.authenticate_as(:'bob');
 select is_empty('select 1 from public.assignment_grade_shares', 'other users see no shares');
+
+
 
 select * from finish();
 rollback;

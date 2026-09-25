@@ -66,6 +66,21 @@ export type Database = {
           },
         ];
       };
+      ai_daily_caps: {
+        Row: {
+          cents: number;
+          plan_tier: Database["public"]["Enums"]["plan_tier"];
+        };
+        Insert: {
+          cents: number;
+          plan_tier: Database["public"]["Enums"]["plan_tier"];
+        };
+        Update: {
+          cents?: number;
+          plan_tier?: Database["public"]["Enums"]["plan_tier"];
+        };
+        Relationships: [];
+      };
       ai_model_prices: {
         Row: {
           cache_read_cents_per_mtok: number;
@@ -1777,6 +1792,7 @@ export type Database = {
       };
     };
     Functions: {
+      ai_budget_status: { Args: { p_user_id: string }; Returns: Json };
       ai_cost_by_user: {
         Args: { p_since: string; p_until?: string };
         Returns: {
@@ -2109,7 +2125,7 @@ export type Database = {
         }[];
       };
       organization_roster: {
-        Args: { p_organization_id: string };
+        Args: { p_limit?: number; p_offset?: number; p_organization_id: string };
         Returns: {
           display_name: string;
           joined_at: string;

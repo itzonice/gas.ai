@@ -21,7 +21,7 @@ Deno.serve(
       requireCron(req);
       if (!googleConfig()) return json({ skipped: "google_not_configured" });
       const started = Date.now();
-      const { data: due, error } = await db.rpc("gcal_connections_due", {});
+      const { data: due, error } = await db.rpc("gcal_connections_due", { p_limit: 100 });
       if (error) throw error;
       const totals = { synced: 0, failed: 0 };
       for (const c of due) {

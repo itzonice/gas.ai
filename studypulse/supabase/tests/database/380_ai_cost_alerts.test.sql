@@ -16,6 +16,9 @@ select is(private.ai_usage_cost_cents('[{"model": "some-new-model", "inputTokens
 select is(private.ai_usage_cost_cents('[]'), 0.0, 'no calls, no cost');
 select is(private.ai_usage_cost_cents('"garbage"'), 0.0, 'malformed usage never errors');
 
+-- This test is about reporting, not the daily spend cap (test 550): lift the cap.
+update public.ai_daily_caps set cents = 1000000;
+
 -- heavy: three big parses today; light: one small one.
 insert into public.syllabus_uploads (user_id, source, status, ai_usage)
 select :'heavy', 'text', 'processing', '[{"step": "parse", "model": "claude-opus-5", "inputTokens": 200000, "outputTokens": 40000, "cacheReadTokens": 0}]'

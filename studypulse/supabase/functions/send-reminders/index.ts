@@ -29,7 +29,8 @@ import { deliveryTargets, type Token } from "../_shared/push/targets.ts";
 import { checkExpoReceipts } from "../_shared/push/receipts.ts";
 import { adminClient } from "../_shared/supabase.ts";
 
-const PAGE_SIZE = 500;
+/** Users per page (PostgREST returns at most 100 rows; launch safety S8). */
+const PAGE_SIZE = 100;
 const TIME_BUDGET_MS = 100_000;
 const WEB_PUSH_CONCURRENCY = 20;
 

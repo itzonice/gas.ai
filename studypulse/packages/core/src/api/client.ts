@@ -1,7 +1,7 @@
 // Typed API client over the Supabase RPCs and edge functions, shared by web and mobile.
 // Every method is async, validates its input with zod before any network call, and
 // rejects with an ApiError on any failure.
-import type { SupabaseClient } from "@supabase/supabase-js";
+import type { PostgrestError, SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@studypulse/db";
 import { z } from "zod";
 
@@ -19,7 +19,10 @@ import {
   calendarRangeInputSchema,
   courseTargetInputSchema,
   featuresResponseSchema,
+  assignmentListInputSchema,
   coursesOverviewSchema,
+  MAX_PAGE_SIZE,
+  pageInputSchema,
   notificationPrefsUpdateSchema,
   onboardingInputSchema,
   profileUpdateSchema,
@@ -47,7 +50,10 @@ import {
   type GenerateCardsRequest,
   type GeneratedCardsResponse,
   type UpdateAssignmentInput,
+  type AssignmentListInput,
   type FocusOverviewInput,
+  type Page,
+  type PageInput,
   type NotificationPrefsUpdate,
   type OnboardingInput,
   type ProfileUpdate,
@@ -124,6 +130,7 @@ async function functionError(error: unknown): Promise<ApiError> {
 }
 
 type AssignmentInsert = Database["public"]["Tables"]["assignments"]["Insert"];
+type AssignmentRow = Database["public"]["Tables"]["assignments"]["Row"];
 
 /** camelCase API fields -> snake_case columns (only the fields that are present). */
 function toAssignmentColumns(input: Partial<Record<string, unknown>>): Partial<AssignmentInsert> {
@@ -144,6 +151,28 @@ function toAssignmentColumns(input: Partial<Record<string, unknown>>): Partial<A
     if (input[key] !== undefined) out[column] = input[key];
   }
   return out;
+}
+
+/**
+ * Reads a list in pages of MAX_PAGE_SIZE, stopping after `maxPages` (so even a
+ * whole-course read stays bounded). `fetchPage(from, to)` returns rows in a stable order.
+ */
+async function readPages<T>(
+  fetchPage: (
+    from: number,
+    to: number,
+  ) => PromiseLike<{ data: T[] | null; error: PostgrestError | null }>,
+  maxPages = 10,
+): Promise<T[]> {
+  const rows: T[] = [];
+  for (let page = 0; page < maxPages; page++) {
+    const from = page * MAX_PAGE_SIZE;
+    const { data, error } = await fetchPage(from, from + MAX_PAGE_SIZE - 1);
+    if (error) throw fromPostgrestError(error);
+    rows.push(...(data ?? []));
+    if ((data?.length ?? 0) < MAX_PAGE_SIZE) break;
+  }
+  return rows;
 }
 
 export function createApiClient(db: Db) {
@@ -262,7 +291,7 @@ export function createApiClient(db: Db) {
       /** One course with its grade categories and assignments (soonest due first). */
       async get(courseId: string) {
         const id = validate(uuidSchema, courseId);
-        const [course, categories, assignments, profile] = await Promise.all([
+        const [course, categories, assignmentRows, profile] = await Promise.all([
           db
             .from("courses")
             .select(
@@ -275,23 +304,28 @@ export function createApiClient(db: Db) {
             .select("id, name, weight, drop_lowest, position")
             .eq("course_id", id)
             .order("position"),
-          db
-            .from("assignments")
-            .select(
-              "id, title, kind, status, due_at, category_id, points_earned, points_possible, source",
-            )
-            .eq("course_id", id)
-            .order("due_at", { ascending: true, nullsFirst: false }),
+          // Paged (at most 1,000 assignments per course), in a stable order.
+          readPages((from, to) =>
+            db
+              .from("assignments")
+              .select(
+                "id, title, kind, status, due_at, category_id, points_earned, points_possible, source",
+              )
+              .eq("course_id", id)
+              .order("due_at", { ascending: true, nullsFirst: false })
+              .order("id")
+              .range(from, to),
+          ),
           db.from("profiles").select("timezone").maybeSingle(),
         ]);
-        for (const res of [course, categories, assignments, profile]) {
+        for (const res of [course, categories, profile]) {
           if (res.error) throw fromPostgrestError(res.error);
         }
         if (!course.data) throw new ApiError(404, "not_found", "Course not found");
         return {
           course: course.data,
           categories: categories.data ?? [],
-          assignments: assignments.data ?? [],
+          assignments: assignmentRows,
           timezone: profile.data?.timezone ?? "UTC",
         };
       },
@@ -307,14 +341,18 @@ export function createApiClient(db: Db) {
     },
 
     assignments: {
-      /** Assignments in a course (or all courses), soonest due first, undated last. */
-      async list(courseId?: string) {
+      /** One page of assignments in a course (or all courses), soonest due first, undated last. */
+      async list(input: AssignmentListInput = {}): Promise<Page<AssignmentRow>> {
+        const { courseId, limit, offset } = validate(assignmentListInputSchema, input);
         let query = db
           .from("assignments")
           .select("*")
-          .order("due_at", { ascending: true, nullsFirst: false });
-        if (courseId) query = query.eq("course_id", validate(uuidSchema, courseId));
-        return unwrap(await query);
+          .order("due_at", { ascending: true, nullsFirst: false })
+          .order("id")
+          .range(offset, offset + limit - 1);
+        if (courseId) query = query.eq("course_id", courseId);
+        const items = unwrap(await query);
+        return { items, nextOffset: items.length === limit ? offset + limit : null };
       },
       async create(input: CreateAssignmentInput) {
         const valid = validate(createAssignmentInputSchema, input);
@@ -358,7 +396,8 @@ export function createApiClient(db: Db) {
             .select("id, kind, url, title, position, created_at")
             .eq("assignment_id", id)
             .order("position")
-            .order("created_at"),
+            .order("created_at")
+            .limit(MAX_PAGE_SIZE),
         );
       },
       /** Adds a link; its kind (Khan Academy, NotebookLM, Anki deck, other) comes from the URL. */
@@ -552,12 +591,16 @@ export function createApiClient(db: Db) {
         if (error) throw fromPostgrestError(error);
         return data;
       },
-      async weeklyFocus() {
+      /** Weekly focus minutes per course for the last `weeks` weeks (at most 100 rows). */
+      async weeklyFocus(weeks = 12) {
+        const since = new Date(Date.now() - Math.min(Math.max(weeks, 1), 52) * 7 * 86_400_000);
         return unwrap(
           await db
             .from("weekly_focus_by_course")
             .select("*")
-            .order("week_start", { ascending: false }),
+            .gte("week_start", since.toISOString().slice(0, 10))
+            .order("week_start", { ascending: false })
+            .limit(MAX_PAGE_SIZE),
         );
       },
     },
@@ -685,7 +728,8 @@ export function createApiClient(db: Db) {
       async mine() {
         const { data, error } = await db
           .from("organization_memberships")
-          .select("organization_id, role, share_focus_hours, joined_at, organizations(name)");
+          .select("organization_id, role, share_focus_hours, joined_at, organizations(name)")
+          .limit(MAX_PAGE_SIZE);
         if (error) throw fromPostgrestError(error);
         return data;
       },
@@ -727,13 +771,17 @@ export function createApiClient(db: Db) {
           }),
         );
       },
-      /** Admins: members, roles, and who shares. No study data. */
-      async roster(organizationId: string) {
-        return unwrap(
+      /** Admins: one page of members, roles, and who shares. No study data. */
+      async roster(organizationId: string, page: PageInput = {}) {
+        const { limit, offset } = validate(pageInputSchema, page);
+        const items = unwrap(
           await db.rpc("organization_roster", {
             p_organization_id: validate(uuidSchema, organizationId),
+            p_limit: limit,
+            p_offset: offset,
           }),
         );
+        return { items, nextOffset: items.length === limit ? offset + limit : null };
       },
       /** Admins: a new join code (the old one stops working). */
       async rotateJoinCode(organizationId: string): Promise<string> {
@@ -746,12 +794,16 @@ export function createApiClient(db: Db) {
     },
 
     integrations: {
-      /** Schools with Canvas available (name and URL). */
-      async canvasSchools() {
-        const { data, error } = await db
+      /** Schools with Canvas available (name and URL), filtered by name, 50 at most. */
+      async canvasSchools(search = "") {
+        const term = validate(z.string().trim().max(100), search).replace(/[%_\\]/g, "");
+        let query = db
           .from("lms_institutions")
           .select("id, name, base_url")
-          .order("name");
+          .order("name")
+          .limit(50);
+        if (term) query = query.ilike("name", `%${term}%`);
+        const { data, error } = await query;
         if (error) throw fromPostgrestError(error);
         return data;
       },
@@ -761,7 +813,8 @@ export function createApiClient(db: Db) {
           .from("lms_connections")
           .select(
             "id, institution_id, external_user_name, status, last_error, connected_at, last_synced_at",
-          );
+          )
+          .limit(MAX_PAGE_SIZE);
         if (error) throw fromPostgrestError(error);
         return data;
       },
@@ -866,7 +919,8 @@ export function createApiClient(db: Db) {
           .select(
             "provider, product_id, status, current_period_end, cancel_at_period_end, grace_period_ends_at",
           )
-          .order("created_at", { ascending: false });
+          .order("created_at", { ascending: false })
+          .limit(MAX_PAGE_SIZE);
         if (error) throw fromPostgrestError(error);
         return data;
       },

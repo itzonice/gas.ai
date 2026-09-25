@@ -8,11 +8,11 @@ select plan(3);
 -- itself cascades from profiles). A new table without one fails here.
 -- Exceptions hold no user data: lms_institutions (the schools list), organizations
 -- (a name and join code; members are in organization_memberships, which cascades), and
--- ai_model_prices (a price list).
+-- ai_model_prices (a price list), ai_daily_caps (settings).
 select is_empty($$
   select c.relname
   from pg_class c join pg_namespace n on n.oid = c.relnamespace
-  where n.nspname = 'public' and c.relkind = 'r' and c.relname not in ('profiles', 'lms_institutions', 'organizations', 'ai_model_prices')
+  where n.nspname = 'public' and c.relkind = 'r' and c.relname not in ('profiles', 'lms_institutions', 'organizations', 'ai_model_prices', 'ai_daily_caps')
     and not exists (
       select 1 from pg_constraint k
       where k.conrelid = c.oid and k.contype = 'f' and k.confdeltype = 'c'

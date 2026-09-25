@@ -23,6 +23,28 @@ Related: [security audit](security-audit.md), [analytics](analytics.md),
 - [ ] Decide the minimum age. Students under 13 bring COPPA obligations in the US; the
       simplest launch position is 13+ (state it in the terms and the age rating).
 
+## 0.5 Hard spend limits (launch safety S7)
+
+Set these before any real traffic, so a bug, a loop, or abuse can't run up a surprise bill.
+Numbers are starting points; raise them as usage grows.
+
+- [ ] **Anthropic Console** → Settings → Limits: set a monthly **spend limit** on the
+      production workspace (requests stop when it's reached) and email notifications at
+      50% and 80%. Use a dedicated workspace and API key for production.
+- [ ] **Supabase** → Organization → Billing: keep the **spend cap on** (the default on Pro),
+      so usage past the plan's quota is throttled instead of billed. Turn it off only
+      deliberately, with a usage alert set.
+- [ ] **Vercel** → Settings → Billing → **Spend Management**: set a monthly amount with
+      notifications, and "pause production deployment" when it's reached.
+- [ ] **In the app**: each user's AI spend is capped per local day (`public.ai_daily_caps`:
+      $1.00 Free, $5.00 Pro). Parses and card generations stop with `ai_budget_exceeded`
+      until the user's next local day. Adjust with
+      `update public.ai_daily_caps set cents = ... where plan_tier = ...` (no deploy).
+      The cost alerts (`AI_COST_ALERT_USER_CENTS`, `AI_COST_ALERT_TOTAL_CENTS`) warn before
+      the caps are hit.
+- [ ] Stripe, Resend, Sentry, PostHog, Expo: check each plan's overage behavior; prefer
+      plans that stop or throttle over plans that bill overages without a cap.
+
 ## 1. Supabase production project
 
 - [ ] Create the project in the region nearest most users; **Pro plan or higher** (needed

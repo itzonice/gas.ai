@@ -78,6 +78,9 @@ Deno.serve(
       if (insertError.code === "SPK01") {
         throw new HttpError(429, "card_limit_reached", insertError.message);
       }
+      if (insertError.code === "SPB01") {
+        throw new HttpError(429, "ai_budget_exceeded", insertError.message);
+      }
       throw insertError;
     }
 

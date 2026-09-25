@@ -22,7 +22,8 @@ import { createHandler } from "../_shared/handler.ts";
 import { json, requireMethod } from "../_shared/http.ts";
 import { adminClient } from "../_shared/supabase.ts";
 
-const PAGE_SIZE = 500;
+/** Users per page (PostgREST returns at most 100 rows; launch safety S8). */
+const PAGE_SIZE = 100;
 const TIME_BUDGET_MS = 100_000;
 
 const assignmentsSchema = z.array(

@@ -7,6 +7,9 @@ select tests.create_user('cards@example.com') as u \gset
 select tests.create_user('cards-other@example.com') as o \gset
 insert into public.courses (id, user_id, name) values ('00000000-0000-0000-0000-00000000c172', :'u', 'Bio');
 
+-- This test is about the per-day count limit, not the spend cap (test 550): lift the cap.
+update public.ai_daily_caps set cents = 1000000;
+
 -- Service role writes (as the edge function does).
 insert into public.card_generations (user_id, course_id, notes_chars, status, ai_usage)
 select :'u', '00000000-0000-0000-0000-00000000c172', 500, 'done',

@@ -19,6 +19,8 @@ import { adminClient } from "../_shared/supabase.ts";
 import { chunks } from "../_shared/chunks.ts";
 
 const NIGHTLY_LOCAL_HOUR = 3;
+/** Users claimed per round trip (PostgREST returns at most 100 rows; launch safety S8). */
+const CLAIM_BATCH = 100;
 const CONCURRENCY = 4;
 /** Stop starting new users after this long so the run finishes inside the function limit. */
 const TIME_BUDGET_MS = 110_000;
@@ -42,23 +44,8 @@ Deno.serve(
 
     // A claim (local date + the previous value) is released if the replan doesn't happen.
     type Claim = { local_date: string; previous_date: string | null };
-    let users: ({ user_id: string; timezone: string } & Partial<Claim>)[];
-    if (body.user_ids) {
-      users = [];
-      for (const ids of chunks(body.user_ids)) {
-        const { data, error } = await db.from("profiles").select("id, timezone").in("id", ids);
-        if (error) throw error;
-        users.push(...data.map((p) => ({ user_id: p.id, timezone: p.timezone })));
-      }
-    } else {
-      const { data, error } = await db.rpc("claim_users_for_replan", {
-        p_local_hour: NIGHTLY_LOCAL_HOUR,
-        p_now: now.toISOString(),
-      });
-      if (error) throw error;
-      users = data ?? [];
-    }
-    const release = async (u: (typeof users)[number]) => {
+    type User = { user_id: string; timezone: string } & Partial<Claim>;
+    const release = async (u: User) => {
       if (!u.local_date) return;
       const { error } = await db.rpc("release_replan_claim", {
         p_user_id: u.user_id,
@@ -68,48 +55,78 @@ Deno.serve(
       if (error) log.error("could not release replan claim", { user_id: u.user_id, error });
     };
 
-    const queue = [...users];
+    let users = 0;
     let replanned = 0;
     let failed = 0;
     let overloadedUsers = 0;
     let deferred = 0;
-    await Promise.all(
-      Array.from({ length: CONCURRENCY }, async () => {
-        for (let u = queue.shift(); u; u = queue.shift()) {
-          if (Date.now() - started > TIME_BUDGET_MS) {
-            deferred++;
-            await release(u);
-            continue;
+
+    /** Replans a batch; past the time budget, releases the rest for the next run. */
+    const runBatch = async (batch: User[]) => {
+      const queue = [...batch];
+      await Promise.all(
+        Array.from({ length: CONCURRENCY }, async () => {
+          for (let u = queue.shift(); u; u = queue.shift()) {
+            if (Date.now() - started > TIME_BUDGET_MS) {
+              deferred++;
+              await release(u);
+              continue;
+            }
+            try {
+              const plan = await replanUser(db, u.user_id, now, log);
+              const alerts = plan.overloads.map((o) => ({
+                local_date: o.date,
+                details: {
+                  unscheduled_minutes: o.unscheduledMinutes,
+                  assignment_ids: o.assignmentIds,
+                },
+              }));
+              const { error } = await db.rpc("set_plan_alerts", {
+                p_user_id: u.user_id,
+                p_from: localDate(now, plan.timezone),
+                p_alerts: alerts,
+              });
+              if (error) throw error;
+              replanned++;
+              if (alerts.length) overloadedUsers++;
+            } catch (error) {
+              failed++;
+              log.error("replan failed", { user_id: u.user_id, error });
+              await release(u);
+            }
           }
-          try {
-            const plan = await replanUser(db, u.user_id, now, log);
-            const alerts = plan.overloads.map((o) => ({
-              local_date: o.date,
-              details: {
-                unscheduled_minutes: o.unscheduledMinutes,
-                assignment_ids: o.assignmentIds,
-              },
-            }));
-            const { error } = await db.rpc("set_plan_alerts", {
-              p_user_id: u.user_id,
-              p_from: localDate(now, plan.timezone),
-              p_alerts: alerts,
-            });
-            if (error) throw error;
-            replanned++;
-            if (alerts.length) overloadedUsers++;
-          } catch (error) {
-            failed++;
-            log.error("replan failed", { user_id: u.user_id, error });
-            await release(u);
-          }
-        }
-      }),
-    );
+        }),
+      );
+    };
+
+    if (body.user_ids) {
+      const batch: User[] = [];
+      for (const ids of chunks(body.user_ids)) {
+        const { data, error } = await db.from("profiles").select("id, timezone").in("id", ids);
+        if (error) throw error;
+        batch.push(...data.map((p) => ({ user_id: p.id, timezone: p.timezone })));
+      }
+      users = batch.length;
+      await runBatch(batch);
+    } else {
+      // Claim and replan in batches until nobody is due or the time budget runs out.
+      while (Date.now() - started <= TIME_BUDGET_MS) {
+        const { data, error } = await db.rpc("claim_users_for_replan", {
+          p_local_hour: NIGHTLY_LOCAL_HOUR,
+          p_now: now.toISOString(),
+          p_limit: CLAIM_BATCH,
+        });
+        if (error) throw error;
+        const batch = data ?? [];
+        users += batch.length;
+        await runBatch(batch);
+        if (batch.length < CLAIM_BATCH) break;
+      }
+    }
 
     const summary = {
       marked_missed: missed,
-      users: users.length,
+      users,
       replanned,
       failed,
       overloaded_users: overloadedUsers,

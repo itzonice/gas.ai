@@ -29,6 +29,7 @@ const BUCKET = "syllabi";
 function planError(error: { code?: string; message: string }): HttpError | null {
   if (error.code === "SPL01") return new HttpError(429, "parse_limit_reached", error.message);
   if (error.code === "SPP01") return new HttpError(402, "pro_required", error.message);
+  if (error.code === "SPB01") return new HttpError(429, "ai_budget_exceeded", error.message);
   return null;
 }
 export const MIN_PASTED_CHARS = 200;

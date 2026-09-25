@@ -345,7 +345,12 @@ export type CourseTargetInput = z.infer<typeof courseTargetInputSchema>;
 
 export const calendarRangeInputSchema = z
   .object({ from: isoDateSchema, to: isoDateSchema })
-  .refine((r) => r.to >= r.from, { message: "End date is before start date", path: ["to"] });
+  .refine((r) => r.to >= r.from, { message: "End date is before start date", path: ["to"] })
+  // Same limit as get_calendar(): a month view plus its leading and trailing days.
+  .refine((r) => Date.parse(r.to) - Date.parse(r.from) <= 62 * 86_400_000, {
+    message: "Show at most 62 days at a time",
+    path: ["to"],
+  });
 export type CalendarRangeInput = z.infer<typeof calendarRangeInputSchema>;
 
 /** Response of get_calendar(): items tagged with their local date, plus course chips. */
@@ -482,3 +487,21 @@ export const registerPushTokenInputSchema = z
       path: ["webPushKeys"],
     },
   );
+
+/** Every list endpoint returns pages of at most 100 rows (PostgREST max_rows is 100 too). */
+export const MAX_PAGE_SIZE = 100;
+export const pageInputSchema = z.object({
+  limit: z.number().int().min(1).max(MAX_PAGE_SIZE).default(50),
+  offset: z.number().int().min(0).max(10_000).default(0),
+});
+export type PageInput = z.input<typeof pageInputSchema>;
+export interface Page<T> {
+  items: T[];
+  /** Pass as `offset` for the next page; null when this was the last one. */
+  nextOffset: number | null;
+}
+
+export const assignmentListInputSchema = pageInputSchema.extend({
+  courseId: uuidSchema.optional(),
+});
+export type AssignmentListInput = z.input<typeof assignmentListInputSchema>;

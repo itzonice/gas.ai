@@ -7,7 +7,7 @@ import { router } from "expo-router";
 import { useState } from "react";
 import { Alert, Linking, Platform, Text, View } from "react-native";
 
-import { LegalLinks } from "../components/LegalLinks";
+import { BusinessLine, LegalLinks } from "../components/LegalLinks";
 import { Screen } from "../components/Screen";
 import { Button } from "../components/ui/Button";
 import { env } from "../env";
@@ -109,6 +109,7 @@ export default function SettingsScreen() {
       <View style={{ gap: theme.spacing.related }}>
         {heading("Legal")}
         <LegalLinks />
+        <BusinessLine />
       </View>
       <View style={{ gap: theme.spacing.related }}>
         {heading("Delete account")}

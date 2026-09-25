@@ -12,7 +12,8 @@ export type FeatureName =
   | "webPush"
   | "googleCalendar"
   | "analytics"
-  | "cron";
+  | "cron"
+  | "business";
 
 export interface FeatureSpec {
   label: string;
@@ -85,6 +86,17 @@ export const FEATURES: Record<FeatureName, FeatureSpec> = {
     label: "Scheduled jobs (pg_cron -> functions)",
     requires: ["CRON_SECRET"],
     whenOff: "Scheduled endpoints refuse every call (reminders, replans, syncs don't run).",
+  },
+  business: {
+    label: "Business name and address (footer, checkout, emails)",
+    requires: [
+      "NEXT_PUBLIC_COMPANY_LEGAL_NAME",
+      "NEXT_PUBLIC_COMPANY_ADDRESS",
+      "COMPANY_LEGAL_NAME",
+      "COMPANY_POSTAL_ADDRESS",
+    ],
+    whenOff:
+      "The footer, checkout, and legal pages show [Company legal name] placeholders; marketing email refuses to send.",
   },
 };
 

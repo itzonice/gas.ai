@@ -1,8 +1,7 @@
-import MaterialIcons from "@expo/vector-icons/MaterialIcons";
-import type { ComponentProps } from "react";
 import { Pressable, Text, View } from "react-native";
 
 import { useAppTheme } from "../../theme";
+import { Icon, type IconName } from "./Icon";
 
 export function EmptyState({
   icon = "inbox",
@@ -10,7 +9,7 @@ export function EmptyState({
   body,
   action,
 }: {
-  icon?: ComponentProps<typeof MaterialIcons>["name"];
+  icon?: IconName;
   title: string;
   body?: string;
   action?: { label: string; onPress: () => void };
@@ -27,7 +26,7 @@ export function EmptyState({
         backgroundColor: theme.colors.surfaceContainerLow,
       }}
     >
-      <MaterialIcons name={icon} size={40} color={theme.colors.onSurfaceVariant} />
+      <Icon name={icon} size={40} color={theme.colors.onSurfaceVariant} />
       <Text
         accessibilityRole="header"
         style={[theme.type.sectionHeading, { color: theme.colors.onSurface, textAlign: "center" }]}

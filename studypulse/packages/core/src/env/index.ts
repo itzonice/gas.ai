@@ -34,6 +34,9 @@ export const webPublicEnvSchema = z.object({
   // VAPID public key for web push subscriptions (same value as the edge VAPID_PUBLIC_KEY).
   NEXT_PUBLIC_VAPID_PUBLIC_KEY: optionalNonEmpty,
   NEXT_PUBLIC_SUPPORT_EMAIL: optionalNonEmpty,
+  // Legal business name and mailing address for the footer and checkout (S28).
+  NEXT_PUBLIC_COMPANY_LEGAL_NAME: optionalNonEmpty,
+  NEXT_PUBLIC_COMPANY_ADDRESS: optionalNonEmpty,
 });
 export type WebPublicEnv = z.infer<typeof webPublicEnvSchema>;
 
@@ -55,6 +58,9 @@ export const mobileEnvSchema = z.object({
   // The web app's origin, for the Terms and Privacy links; defaults to production.
   EXPO_PUBLIC_WEB_URL: optionalUrl,
   EXPO_PUBLIC_SUPPORT_EMAIL: optionalNonEmpty,
+  // Legal business name and mailing address for Settings and the paywall (S28).
+  EXPO_PUBLIC_COMPANY_LEGAL_NAME: optionalNonEmpty,
+  EXPO_PUBLIC_COMPANY_ADDRESS: optionalNonEmpty,
 });
 export type MobileEnv = z.infer<typeof mobileEnvSchema>;
 

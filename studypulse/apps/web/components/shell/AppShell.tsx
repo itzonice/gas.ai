@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { Suspense, type ReactNode } from "react";
 
+import { SiteFooter } from "../legal/BusinessInfo";
 import { Icon } from "../ui/icons";
 import { FocusFab } from "./FocusFab";
 import { NavLinks } from "./NavLinks";
@@ -83,10 +84,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         <main id="main" tabIndex={-1} className={styles.main}>
           {children}
         </main>
-        <footer className={styles.footer}>
-          <Link href="/privacy">Privacy</Link>
-          <Link href="/terms">Terms</Link>
-        </footer>
+        <SiteFooter />
       </div>
 
       <FocusFab />

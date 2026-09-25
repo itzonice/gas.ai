@@ -1,6 +1,6 @@
 // Terms of Use and Privacy Policy links (App Store guideline 3.1.2 wants them on the
 // paywall and at signup; Settings has them too).
-import { legalUrls, supportEmail } from "@studypulse/core/legal";
+import { businessInfo, legalUrls, supportEmail } from "@studypulse/core/legal";
 import { Linking, Pressable, Text, View } from "react-native";
 
 import { env } from "../env";
@@ -33,5 +33,21 @@ export function LegalLinks() {
       {link("License agreement", urls.eula)}
       {link("Contact support", `mailto:${supportEmail(env.EXPO_PUBLIC_SUPPORT_EMAIL)}`)}
     </View>
+  );
+}
+
+/** Who sells StudyPulse and how to reach them (S28); in Settings and on the paywall. */
+export function BusinessLine() {
+  const theme = useAppTheme();
+  const business = businessInfo({
+    legalName: env.EXPO_PUBLIC_COMPANY_LEGAL_NAME,
+    address: env.EXPO_PUBLIC_COMPANY_ADDRESS,
+    supportEmail: env.EXPO_PUBLIC_SUPPORT_EMAIL,
+  });
+  return (
+    <Text style={[theme.type.body, { color: theme.colors.onSurfaceVariant }]}>
+      StudyPulse is operated by {business.legalName}, {business.address}. Support:{" "}
+      {business.supportEmail}
+    </Text>
   );
 }

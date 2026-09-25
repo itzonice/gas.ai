@@ -494,3 +494,20 @@ Every call to Anthropic, Stripe, Expo, Resend, Google, and PostHog goes through
   in the repo.
 - **Name.** The launch checklist adds a USPTO, App Store, and Google Play name search
   before launch.
+
+## S28: Business details and accessible names
+
+- **Who sells it.** The legal business name, mailing address (a PO box is fine), and
+  support email appear in the site footer on every page (app, sign-in, onboarding, and
+  legal pages), on the checkout page ("Sold by …"), in mobile Settings, and in the legal
+  pages, which used to have `[Company legal name]` typed in. They come from
+  `NEXT_PUBLIC_COMPANY_LEGAL_NAME` / `NEXT_PUBLIC_COMPANY_ADDRESS` (and the
+  `EXPO_PUBLIC_` pair). Until those are set, a visible placeholder is shown, and
+  `pnpm deploy:check --strict` fails ("Business name and address").
+- **Alt text and names.** Neither app has raster images; every web icon is an inline SVG
+  with `aria-hidden`, and icon-only buttons have `aria-label`. Mobile icon glyphs now go
+  through `ui/Icon`, which hides them from VoiceOver and TalkBack (the icon font's
+  private-use characters used to be read out next to "Overdue" and in empty states).
+  A core test fails on an image without alt text, an unnamed SVG, or a raw icon glyph,
+  and the axe audit (`image-alt`, `svg-img-alt`, `button-name`, `link-name`) passes on
+  every screen with the new footer.

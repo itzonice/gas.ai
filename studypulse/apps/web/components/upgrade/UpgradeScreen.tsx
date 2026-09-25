@@ -16,6 +16,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useState, type FormEvent } from "react";
 
 import { useApi } from "@/components/auth/SessionProvider";
+import { CompanyAddress, CompanyName } from "@/components/legal/BusinessInfo";
 import { SupportEmail } from "@/components/legal/SupportEmail";
 import { Button, CheckboxField, Icon, PageHeader, TextField } from "@/components/ui";
 
@@ -278,6 +279,9 @@ export function UpgradeScreen({ returned }: { returned?: "success" | "canceled" 
             </p>
             <p>
               See the <Link href="/refunds">refund policy</Link>. Questions? <SupportEmail />.
+            </p>
+            <p>
+              Sold by <CompanyName />, <CompanyAddress />.
             </p>
             <p>
               You&apos;ll pay on Stripe&apos;s secure checkout page. By subscribing you agree to the{" "}

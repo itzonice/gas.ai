@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import { CompanyName } from "@/components/legal/BusinessInfo";
 import { LegalPage } from "@/components/legal/LegalPage";
 import { SupportEmail } from "@/components/legal/SupportEmail";
 
@@ -15,8 +16,8 @@ export default function EulaPage() {
     <LegalPage title="End User License Agreement">
       <p>
         StudyPulse (the app for iOS and Android, and the web app) is{" "}
-        <strong>licensed, not sold,</strong> to you by [Company legal name]. This agreement is
-        between you and us, not Apple or Google, and it works together with our{" "}
+        <strong>licensed, not sold,</strong> to you by <CompanyName />. This agreement is between
+        you and us, not Apple or Google, and it works together with our{" "}
         <Link href="/terms">Terms of Use</Link> and <Link href="/privacy">Privacy Policy</Link>.
       </p>
 

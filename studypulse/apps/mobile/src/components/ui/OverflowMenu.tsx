@@ -1,12 +1,12 @@
 // "More actions" on mobile: a 48 pt icon button that opens a bottom sheet of actions.
 // Screen readers get a named button and a list of labelled menu items; Cancel and the
 // scrim both close it, and the system back gesture does too (onRequestClose).
-import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { useState } from "react";
 import { Modal, Pressable, StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { useAppTheme } from "../../theme";
+import { Icon } from "./Icon";
 
 export interface MenuItem {
   label: string;
@@ -36,7 +36,7 @@ export function OverflowMenu({ label, items }: { label: string; items: readonly 
         style={styles.iconButton}
         hitSlop={4}
       >
-        <MaterialIcons name="more-vert" size={24} color={theme.colors.onSurfaceVariant} />
+        <Icon name="more-vert" size={24} color={theme.colors.onSurfaceVariant} />
       </Pressable>
       <Modal
         visible={open}

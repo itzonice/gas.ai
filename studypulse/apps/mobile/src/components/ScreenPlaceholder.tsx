@@ -1,11 +1,11 @@
 // Temporary screen body until each screen is built (prompts 80–86): one heading and a
 // one-line description, per the design system.
-import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { Link } from "expo-router";
 import { Pressable, ScrollView, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { useAppTheme } from "../theme";
+import { Icon } from "./ui/Icon";
 
 export function ScreenPlaceholder({ title, description }: { title: string; description: string }) {
   const theme = useAppTheme();
@@ -33,7 +33,7 @@ export function ScreenPlaceholder({ title, description }: { title: string; descr
             accessibilityLabel="Settings"
             style={{ width: 48, height: 48, alignItems: "center", justifyContent: "center" }}
           >
-            <MaterialIcons name="settings" size={24} color={theme.colors.onSurfaceVariant} />
+            <Icon name="settings" size={24} color={theme.colors.onSurfaceVariant} />
           </Pressable>
         </Link>
       </View>

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import { CompanyAddress, CompanyName } from "@/components/legal/BusinessInfo";
 import { LegalPage, legalStyles as styles } from "@/components/legal/LegalPage";
 import { SupportEmail } from "@/components/legal/SupportEmail";
 
@@ -71,7 +72,7 @@ export default function PrivacyPage() {
   return (
     <LegalPage title="Privacy Policy">
       <p>
-        StudyPulse (&quot;we&quot;) is operated by [Company legal name], [address]. This policy
+        StudyPulse (&quot;we&quot;) is operated by <CompanyName />, <CompanyAddress />. This policy
         explains what we collect when you use StudyPulse on the web or in the iOS and Android apps,
         why, who else handles it, and your choices. Questions: <SupportEmail />.
       </p>

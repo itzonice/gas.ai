@@ -217,25 +217,6 @@
   outline: none;
 }
 
-.footer {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--sp-space-card);
-  justify-content: center;
-  padding: var(--sp-space-card);
-  color: var(--sp-color-on-surface-variant);
-  font-size: var(--sp-type-label-size);
-}
-.footer a {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-height: var(--sp-layout-min-target);
-  min-width: var(--sp-layout-min-target);
-  padding: 0 var(--sp-space-half);
-  color: inherit;
-}
-
 /* Phones: "Start focus" floats above the bottom bar. */
 .fab {
   position: fixed;

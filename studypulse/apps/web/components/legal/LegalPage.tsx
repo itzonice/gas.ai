@@ -4,6 +4,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 
+import { SiteFooter } from "./BusinessInfo";
 import styles from "./legal.module.css";
 
 export const LEGAL_DRAFT = true;
@@ -11,21 +12,24 @@ export const LEGAL_UPDATED = "September 25, 2026";
 
 export function LegalPage({ title, children }: { title: string; children: ReactNode }) {
   return (
-    <main id="main" className={styles.main}>
-      <article className={styles.article}>
-        <Link href="/" className={styles.home}>
-          StudyPulse home
-        </Link>
-        <h1>{title}</h1>
-        <p className={styles.meta}>Last updated {LEGAL_UPDATED}</p>
-        {LEGAL_DRAFT ? (
-          <p className={styles.draft} role="note">
-            Draft: not yet in effect. This text is being reviewed before StudyPulse launches.
-          </p>
-        ) : null}
-        {children}
-      </article>
-    </main>
+    <>
+      <main id="main" className={styles.main}>
+        <article className={styles.article}>
+          <Link href="/" className={styles.home}>
+            StudyPulse home
+          </Link>
+          <h1>{title}</h1>
+          <p className={styles.meta}>Last updated {LEGAL_UPDATED}</p>
+          {LEGAL_DRAFT ? (
+            <p className={styles.draft} role="note">
+              Draft: not yet in effect. This text is being reviewed before StudyPulse launches.
+            </p>
+          ) : null}
+          {children}
+        </article>
+      </main>
+      <SiteFooter />
+    </>
   );
 }
 

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import { CompanyAddress, CompanyName } from "@/components/legal/BusinessInfo";
 import { LegalPage } from "@/components/legal/LegalPage";
 
 export const metadata: Metadata = { title: "Copyright and takedowns" };
@@ -26,9 +27,9 @@ export default function CopyrightPage() {
       <address>
         [Designated agent name]
         <br />
-        [Company legal name]
+        <CompanyName />
         <br />
-        [Street address or PO box, City, State ZIP, Country]
+        <CompanyAddress />
         <br />
         Email: [copyright email]
         <br />

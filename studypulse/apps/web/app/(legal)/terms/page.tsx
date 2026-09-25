@@ -3,6 +3,7 @@ import { PARSE_LIMITS, PLAN_FEATURES } from "@studypulse/core/plans";
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import { CompanyName } from "@/components/legal/BusinessInfo";
 import { LegalPage, legalStyles as styles } from "@/components/legal/LegalPage";
 import { SupportEmail } from "@/components/legal/SupportEmail";
 
@@ -19,7 +20,7 @@ export default function TermsPage() {
     <LegalPage title="Terms of Use">
       <p className={styles.meta}>Version {TERMS_VERSION}</p>
       <p>
-        These terms are an agreement between you and [Company legal name] (&quot;we&quot;) for using
+        These terms are an agreement between you and <CompanyName /> (&quot;we&quot;) for using
         StudyPulse on the web and in the iOS and Android apps. By creating an account or subscribing
         you agree to them and to our <Link href="/privacy">Privacy Policy</Link>. We record which
         version you accepted and when.

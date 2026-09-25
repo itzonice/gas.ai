@@ -1,8 +1,8 @@
-import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import type { ReactNode } from "react";
 import { Text, View } from "react-native";
 
 import { useAppTheme } from "../../theme";
+import { Icon } from "./Icon";
 
 /** A labelled figure. Status is words plus an icon, never color alone. */
 export function MetricCard({
@@ -46,7 +46,7 @@ export function MetricCard({
       </Text>
       {status ? (
         <View style={{ flexDirection: "row", alignItems: "center", gap: theme.spacing.half }}>
-          <MaterialIcons name="warning-amber" size={18} color={theme.colors.error} />
+          <Icon name="warning-amber" size={18} color={theme.colors.error} />
           <Text style={[theme.type.labelLarge, { color: theme.colors.error }]}>{status.text}</Text>
         </View>
       ) : null}

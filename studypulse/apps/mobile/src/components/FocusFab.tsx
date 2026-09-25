@@ -1,10 +1,10 @@
 // "Start focus" floating button: always one tap away above the tab bar (hidden on the
 // Focus tab itself, where the timer's own controls take over).
-import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { router, usePathname } from "expo-router";
 import { Pressable, StyleSheet, Text } from "react-native";
 
 import { useAppTheme } from "../theme";
+import { Icon } from "./ui/Icon";
 
 export function FocusFab({ bottomOffset }: { bottomOffset: number }) {
   const theme = useAppTheme();
@@ -28,7 +28,7 @@ export function FocusFab({ bottomOffset }: { bottomOffset: number }) {
         },
       ]}
     >
-      <MaterialIcons name="play-arrow" size={24} color={theme.colors.onPrimary} />
+      <Icon name="play-arrow" size={24} color={theme.colors.onPrimary} />
       <Text style={[theme.type.labelLarge, { color: theme.colors.onPrimary }]}>Start focus</Text>
     </Pressable>
   );

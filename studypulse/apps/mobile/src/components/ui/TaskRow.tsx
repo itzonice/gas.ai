@@ -1,6 +1,5 @@
 // One task in a plain list. The row body opens the task; the checkbox and the overflow
 // menu are separate 48 pt targets beside it, not nested inside it.
-import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { courseSwatch } from "@studypulse/tokens/native";
 import type { ReactNode } from "react";
 import { Pressable, Text, View } from "react-native";
@@ -8,6 +7,7 @@ import { Pressable, Text, View } from "react-native";
 import { useAppTheme } from "../../theme";
 import { CourseChip } from "./CourseChip";
 import { OverflowMenu, type MenuItem } from "./OverflowMenu";
+import { Icon } from "./Icon";
 
 export interface TaskRowProps {
   title: string;
@@ -60,7 +60,7 @@ export function TaskRow({
         }}
         style={{ width: 48, height: 48, alignItems: "center", justifyContent: "center" }}
       >
-        <MaterialIcons
+        <Icon
           name={done ? "check-box" : "check-box-outline-blank"}
           size={24}
           color={done ? theme.colors.primary : theme.colors.onSurfaceVariant}
@@ -101,7 +101,7 @@ export function TaskRow({
           <CourseChip code={course.code} colorHex={course.colorHex} />
           {overdue ? (
             <View style={{ flexDirection: "row", alignItems: "center", gap: 2 }}>
-              <MaterialIcons name="warning-amber" size={16} color={theme.colors.error} />
+              <Icon name="warning-amber" size={16} color={theme.colors.error} />
               <Text style={[theme.type.labelLarge, { color: theme.colors.error }]}>Overdue</Text>
             </View>
           ) : null}

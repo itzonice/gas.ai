@@ -182,7 +182,10 @@ Numbers are starting points; raise them as usage grows.
       install `pnpm install` (Vercel detects the workspace); Node 22.
 - [ ] Environment variables (Production and Preview separately):
       `NEXT_PUBLIC_APP_ENV`, `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`,
-      `NEXT_PUBLIC_SENTRY_DSN`, `NEXT_PUBLIC_VAPID_PUBLIC_KEY`, `SUPABASE_SERVICE_ROLE_KEY`
+      `NEXT_PUBLIC_SENTRY_DSN`, `NEXT_PUBLIC_VAPID_PUBLIC_KEY`, `NEXT_PUBLIC_SUPPORT_EMAIL`,
+      `NEXT_PUBLIC_COMPANY_LEGAL_NAME`, `NEXT_PUBLIC_COMPANY_ADDRESS` (S28: shown in the
+      footer and at checkout; `pnpm deploy:check --strict` fails without them),
+      `SUPABASE_SERVICE_ROLE_KEY`
       (server only), and `SENTRY_AUTH_TOKEN`, `SENTRY_ORG`, `SENTRY_PROJECT_WEB` for source maps.
 - [ ] Preview deployments point at a staging Supabase project, never production.
 - [ ] Custom domain with HTTPS; confirm the security headers on the live site
@@ -196,7 +199,8 @@ Numbers are starting points; raise them as usage grows.
 - [ ] EAS environment variables for production: `EXPO_PUBLIC_SUPABASE_URL`,
       `EXPO_PUBLIC_SUPABASE_ANON_KEY`, `EXPO_PUBLIC_SENTRY_DSN`,
       `EXPO_PUBLIC_REVENUECAT_IOS_KEY`, `EXPO_PUBLIC_REVENUECAT_ANDROID_KEY`,
-      `EXPO_PUBLIC_WEB_URL` (for the Terms and Privacy links), and `SENTRY_AUTH_TOKEN`
+      `EXPO_PUBLIC_WEB_URL` (for the Terms and Privacy links), `EXPO_PUBLIC_SUPPORT_EMAIL`,
+      `EXPO_PUBLIC_COMPANY_LEGAL_NAME`, `EXPO_PUBLIC_COMPANY_ADDRESS` (S28), and `SENTRY_AUTH_TOKEN`
       (source maps). Only public values go in `EXPO_PUBLIC_*`.
 - [ ] Push credentials: APNs key uploaded to Expo (`eas credentials`), FCM v1 service
       account for Android.

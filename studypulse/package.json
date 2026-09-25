@@ -26,7 +26,8 @@
     "functions:test": "cd supabase/functions && deno test --allow-env --allow-net=127.0.0.1,localhost --allow-read=.",
     "test:cross-user": "bash scripts/cross-user.sh",
     "deploy:check": "node packages/core/scripts/deploy-check.ts",
-    "secrets:scan": "node scripts/secret-scan.mjs --build"
+    "secrets:scan": "node scripts/secret-scan.mjs --build",
+    "licenses:check": "node scripts/license-check.mjs"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.0",

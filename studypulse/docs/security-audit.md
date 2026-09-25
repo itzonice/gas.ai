@@ -476,3 +476,21 @@ Every call to Anthropic, Stripe, Expo, Resend, Google, and PostHog goes through
   words: none). The launch checklist says to keep portal retention coupons off.
 - **Tests:** a web test that nothing is pre-selected and checkout needs a choice, and a
   core test for the Stripe Tax parameters.
+
+## S27: Licenses, marketing claims, and the name
+
+- **Dependencies.** `pnpm licenses:check` (`scripts/license-check.mjs`) reads every
+  installed package's license, in all workspaces including dev dependencies, and fails
+  CI on GPL, AGPL, SSPL, other source-available licenses, unknown licenses, or any
+  non-permissive license nobody has reviewed. Today: 914 packages, none GPL or AGPL.
+  Seven reviewed exceptions: libvips (LGPL, server-side and dynamically linked),
+  node-forge (dual, used under BSD), `@sentry/cli` (FSL, build tool), and axe-core and
+  lightningcss (MPL, unmodified dev and build tools).
+- **Assets.** [licenses.md](licenses.md) lists every font, image, and icon set. Fonts
+  are the device's own; icons are Material (Apache-2.0). The mobile icons and splash
+  and the web favicon are still template placeholders and are on the launch checklist
+  to replace.
+- **Marketing copy.** No testimonials, ratings, user counts, or outcome claims anywhere
+  in the repo.
+- **Name.** The launch checklist adds a USPTO, App Store, and Google Play name search
+  before launch.

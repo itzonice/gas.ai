@@ -20,6 +20,14 @@ Related: [security audit](security-audit.md), [analytics](analytics.md),
       and the `default` offering in RevenueCat; App Store paid-apps agreement signed.
 - [ ] Sending domain verified in Resend (SPF, DKIM, DMARC on e.g. `mail.studypulse.app`).
 - [ ] Privacy policy and terms published at stable URLs (both stores require them).
+- [ ] **Name search (S27).** Search "StudyPulse" (and any other name you might ship
+      under) in the USPTO trademark database (https://tmsearch.uspto.gov, classes 9, 41,
+      and 42), the App Store, and Google Play. A live mark or a similar app name in the
+      same space means pick another name now; renaming after launch loses reviews and
+      links. Repeat in the EUIPO and UKIPO databases if you launch there.
+- [ ] **Replace template artwork (S27).** The mobile icons and splash image and the web
+      favicon are still the Expo and Next.js template defaults (see
+      [licenses](licenses.md#images-and-icons)). Stores reject template icons.
 - [ ] Decide the minimum age. Students under 13 bring COPPA obligations in the US; the
       simplest launch position is 13+ (state it in the terms and the age rating).
 

@@ -40,6 +40,8 @@ jobs:
       - run: pnpm lint
       - run: pnpm typecheck
       - run: pnpm test
+      # Fails on GPL, AGPL, source-available, or unreviewed dependency licenses (S27).
+      - run: pnpm licenses:check
 
   secret-scan:
     name: Client bundle secret scan

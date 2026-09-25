@@ -415,18 +415,18 @@ export type Database = {
         };
         Relationships: [
           {
-            foreignKeyName: "card_generations_assignment_id_fkey";
-            columns: ["assignment_id"];
+            foreignKeyName: "card_generations_assignment_fkey";
+            columns: ["assignment_id", "course_id"];
             isOneToOne: false;
             referencedRelation: "assignment_grade_shares";
-            referencedColumns: ["assignment_id"];
+            referencedColumns: ["assignment_id", "course_id"];
           },
           {
-            foreignKeyName: "card_generations_assignment_id_fkey";
-            columns: ["assignment_id"];
+            foreignKeyName: "card_generations_assignment_fkey";
+            columns: ["assignment_id", "course_id"];
             isOneToOne: false;
             referencedRelation: "assignments";
-            referencedColumns: ["id"];
+            referencedColumns: ["id", "course_id"];
           },
           {
             foreignKeyName: "card_generations_course_id_fkey";
@@ -642,18 +642,18 @@ export type Database = {
         };
         Relationships: [
           {
-            foreignKeyName: "flashcards_assignment_id_fkey";
-            columns: ["assignment_id"];
+            foreignKeyName: "flashcards_assignment_fkey";
+            columns: ["assignment_id", "course_id"];
             isOneToOne: false;
             referencedRelation: "assignment_grade_shares";
-            referencedColumns: ["assignment_id"];
+            referencedColumns: ["assignment_id", "course_id"];
           },
           {
-            foreignKeyName: "flashcards_assignment_id_fkey";
-            columns: ["assignment_id"];
+            foreignKeyName: "flashcards_assignment_fkey";
+            columns: ["assignment_id", "course_id"];
             isOneToOne: false;
             referencedRelation: "assignments";
-            referencedColumns: ["id"];
+            referencedColumns: ["id", "course_id"];
           },
           {
             foreignKeyName: "flashcards_course_id_fkey";

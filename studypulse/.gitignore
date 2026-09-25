@@ -24,3 +24,4 @@ expo-env.d.ts
 coverage/
 npm-debug.log*
 a11y-report.json
+cross-user-report.md

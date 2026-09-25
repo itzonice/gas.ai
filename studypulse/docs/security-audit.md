@@ -128,3 +128,18 @@ server's answer (`billing_status`, `parse_limit_reached`, `course_limit_reached`
 - **Remaining gap:** a direct call to the auth API's sign-up endpoint with a registered
   email gets `422 User already registered` (Supabase Auth behavior). Mitigated by the
   per-IP limit; close it with CAPTCHA, and fully with a server-side sign-up endpoint.
+
+## Cross-user access suite
+
+`supabase/tests/e2e/cross_user.test.ts` runs in CI (the `cross-user` job). User A, and C as an
+org admin, attack user B's data through every table, view, RPC, edge function, storage
+path, ICS token, export, and link. The first run flagged these paths:
+
+| Path | Finding | Fix |
+| --- | --- | --- |
+| `flashcards` insert/update | A card on A's course could point at B's assignment | Composite FK `(assignment_id, course_id)` on flashcards and card_generations (migration 006000, test 570) |
+| `register_push_token` | Registering B's device token moved B's row to A and returned B's row id, device id, and keys | The device still moves to the new account, but as a new row; B's row is deleted and nothing of it is returned (test 250) |
+| `create_organization`, `rotate_calendar_token` | Flagged by the differential check | False positive: the answers are random; the suite now compares two random runs first |
+| `organization_roster` | Admin sees member user ids | By design (needed to manage members); the suite checks that nothing else of B's appears |
+
+Current result: 400 attempts, 0 failed.

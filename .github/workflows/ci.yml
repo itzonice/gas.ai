@@ -93,3 +93,41 @@ jobs:
             echo "::error::packages/db types are stale. Run 'pnpm db:types' and commit the result."
             exit 1
           fi
+
+  cross-user:
+    name: Cross-user access (end to end)
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v5
+      - uses: pnpm/action-setup@v4
+        with:
+          package_json_file: studypulse/package.json
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: studypulse/.nvmrc
+          cache: pnpm
+          cache-dependency-path: studypulse/pnpm-lock.yaml
+      - run: pnpm install --frozen-lockfile
+      # The real stack: Postgres, PostgREST, Auth, Storage, and the edge runtime.
+      - name: Start Supabase
+        run: pnpm exec supabase start -x studio,imgproxy,logflare,vector,supavisor,realtime,postgres-meta
+      - name: Wait for the edge functions
+        run: |
+          for i in $(seq 1 90); do
+            code=$(curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:54321/functions/v1/features || true)
+            if [ "$code" = 200 ] || [ "$code" = 401 ]; then exit 0; fi
+            sleep 2
+          done
+          echo "::error::edge functions did not come up"; exit 1
+      # Users A, B, and an org admin C; A and C attack B's data through every table, RPC,
+      # edge function, storage path, ICS feed, export, and link. Any leak fails the job.
+      - name: Run the cross-user access suite
+        run: pnpm test:cross-user
+      - name: Upload the report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cross-user-report
+          path: studypulse/cross-user-report.md
+          if-no-files-found: ignore

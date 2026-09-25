@@ -2,6 +2,8 @@
 
 // Email and password sign-in (and account creation). Errors are announced in an alert
 // and tied to the form; after signing in the user goes back where they were headed.
+import { authErrorMessage } from "@studypulse/core/auth";
+import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState, type FormEvent } from "react";
 
@@ -39,17 +41,18 @@ export function SignInForm() {
         ? await auth.signInWithPassword({ email, password })
         : await auth.signUp({ email, password });
     setBusy(false);
-    if (result.error) {
-      setError(
-        result.error.message === "Invalid login credentials"
-          ? "That email and password don't match an account."
-          : result.error.message,
-      );
+    // The wording never reveals whether an account exists for this email (S6).
+    if (mode === "sign-up" && (result.error || !result.data.session)) {
+      const message = authErrorMessage("sign-up", result.error);
+      if (result.error?.status === 429 || (result.error?.status ?? 400) >= 500) setError(message);
+      else {
+        setNotice(message);
+        setMode("sign-in");
+      }
       return;
     }
-    if (mode === "sign-up" && !result.data.session) {
-      setNotice("Check your email to confirm your account, then sign in.");
-      setMode("sign-in");
+    if (result.error) {
+      setError(authErrorMessage("sign-in", result.error));
       return;
     }
     router.replace(next);
@@ -93,6 +96,12 @@ export function SignInForm() {
             setPassword(e.currentTarget.value);
           }}
         />
+        {mode === "sign-up" ? (
+          <p className={styles.legal}>
+            By creating an account you agree to the <Link href="/terms">Terms of Use</Link> and{" "}
+            <Link href="/privacy">Privacy Policy</Link>.
+          </p>
+        ) : null}
         <Button type="submit" variant="filled" disabled={busy}>
           {mode === "sign-in"
             ? busy
@@ -114,6 +123,10 @@ export function SignInForm() {
         >
           {mode === "sign-in" ? "Create an account" : "Sign in instead"}
         </Button>
+      </p>
+      <p className={styles.legalLinks}>
+        <Link href="/terms">Terms of Use</Link>
+        <Link href="/privacy">Privacy Policy</Link>
       </p>
     </div>
   );

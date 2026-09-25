@@ -51,6 +51,8 @@ export const mobileEnvSchema = z.object({
   // RevenueCat public SDK keys (appl_... / goog_...). Public by design, safe to ship.
   EXPO_PUBLIC_REVENUECAT_IOS_KEY: optionalNonEmpty,
   EXPO_PUBLIC_REVENUECAT_ANDROID_KEY: optionalNonEmpty,
+  // The web app's origin, for the Terms and Privacy links; defaults to production.
+  EXPO_PUBLIC_WEB_URL: optionalUrl,
 });
 export type MobileEnv = z.infer<typeof mobileEnvSchema>;
 

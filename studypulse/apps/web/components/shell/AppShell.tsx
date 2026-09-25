@@ -86,7 +86,6 @@ export function AppShell({ children }: { children: ReactNode }) {
         <footer className={styles.footer}>
           <Link href="/privacy">Privacy</Link>
           <Link href="/terms">Terms</Link>
-          <Link href="/help">Help</Link>
         </footer>
       </div>
 

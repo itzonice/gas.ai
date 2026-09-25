@@ -125,8 +125,9 @@ Related: [security audit](security-audit.md), [analytics](analytics.md),
       preview, and production profiles.
 - [ ] EAS environment variables for production: `EXPO_PUBLIC_SUPABASE_URL`,
       `EXPO_PUBLIC_SUPABASE_ANON_KEY`, `EXPO_PUBLIC_SENTRY_DSN`,
-      `EXPO_PUBLIC_REVENUECAT_IOS_KEY`, `EXPO_PUBLIC_REVENUECAT_ANDROID_KEY`, and
-      `SENTRY_AUTH_TOKEN` (source maps). Only public values go in `EXPO_PUBLIC_*`.
+      `EXPO_PUBLIC_REVENUECAT_IOS_KEY`, `EXPO_PUBLIC_REVENUECAT_ANDROID_KEY`,
+      `EXPO_PUBLIC_WEB_URL` (for the Terms and Privacy links), and `SENTRY_AUTH_TOKEN`
+      (source maps). Only public values go in `EXPO_PUBLIC_*`.
 - [ ] Push credentials: APNs key uploaded to Expo (`eas credentials`), FCM v1 service
       account for Android.
 - [ ] Family Controls: leave `EXPO_FAMILY_CONTROLS` unset for production until Apple
@@ -137,11 +138,30 @@ Related: [security audit](security-audit.md), [analytics](analytics.md),
 - [ ] Submit: `eas submit --platform ios --profile production` and
       `eas submit --platform android --profile production`.
 - [ ] Store listing: screenshots per device size, description, keywords, support URL,
-      privacy policy URL, age rating questionnaire, review notes with a demo account
-      (reviewers need to see a parsed syllabus without uploading their own).
-- [ ] Account deletion is available in the app (required by both stores): it calls
-      `delete-account`, which also cancels web billing. App Store and Play subscriptions
-      can only be cancelled by the user in the store; the app must say so before deleting.
+      age rating questionnaire (13+), review notes with a demo account (reviewers need to
+      see a parsed syllabus without uploading their own).
+- [ ] Legal URLs in both stores (App Store Connect → App Information; Play Console → App
+      content → Privacy policy):
+  - Privacy Policy: `https://app.studypulse.app/privacy`
+  - Terms of Use (App Store "License Agreement" → custom EULA, and the subscription
+    description): `https://app.studypulse.app/terms`
+- [ ] **Legal text reviewed by counsel** (`apps/web/app/(legal)/`): fill in the bracketed
+      company name, address, contacts, jurisdiction, and backup retention, then set
+      `LEGAL_DRAFT = false` in `apps/web/components/legal/LegalPage.tsx` to remove the draft
+      banner. This is a technical checklist, not legal advice.
+- [ ] Terms and Privacy links appear on the web sign-up form, the upgrade page (paywall),
+      web and mobile Settings, and the mobile sign-in and sign-up screens (guideline 3.1.2).
+- [ ] The apps are native screens (Expo), not a web view of the site; a CI test fails if
+      `react-native-webview` is added (guideline 4.2).
+- [ ] Account deletion is in the app (required by both stores): Settings (gear on any tab)
+      → Delete account → confirm. It calls `delete-account`, which also cancels web
+      billing. App Store and Play subscriptions can only be cancelled by the user in the
+      store; the confirmation says so before deleting.
+- [ ] Sign in with Apple: not required today, since sign-in is email and password only
+      (Google is used only to connect a calendar, which isn't sign-in). A CI test fails if a
+      third-party sign-in provider is enabled in `supabase/config.toml` without Apple
+      (guideline 4.8). If Apple sign-in is added, `delete-account` must also revoke the
+      user's Apple token (Apple's REST `auth/revoke`, needs the Services ID key).
 
 ## 5. App Store privacy labels (and Play data safety)
 

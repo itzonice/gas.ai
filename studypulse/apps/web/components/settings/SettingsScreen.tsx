@@ -406,6 +406,20 @@ export function SettingsScreen() {
         </div>
       </section>
 
+      <section className={styles.section} aria-labelledby="legal-heading">
+        <h2 id="legal-heading" className={styles.sectionHeading}>
+          Legal
+        </h2>
+        <div className={styles.row}>
+          <Button variant="text" href="/terms">
+            Terms of Use
+          </Button>
+          <Button variant="text" href="/privacy">
+            Privacy Policy
+          </Button>
+        </div>
+      </section>
+
       <section className={styles.section} aria-labelledby="data-heading">
         <h2 id="data-heading" className={styles.sectionHeading}>
           Your data

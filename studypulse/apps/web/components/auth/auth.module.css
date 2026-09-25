@@ -43,3 +43,27 @@
   margin: 0;
   color: var(--sp-color-on-surface-variant);
 }
+
+.legal {
+  margin: 0;
+  color: var(--sp-color-on-surface-variant);
+}
+
+.legal a,
+.legalLinks a {
+  color: var(--sp-color-primary);
+}
+
+.legalLinks {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--sp-space-card);
+  margin: 0;
+}
+
+.legalLinks a {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--sp-layout-min-target);
+}

@@ -109,3 +109,7 @@
   background: var(--sp-color-error-container);
   color: var(--sp-color-on-error-container);
 }
+
+.note a {
+  color: var(--sp-color-primary);
+}

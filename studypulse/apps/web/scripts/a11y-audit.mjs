@@ -191,11 +191,13 @@ try {
       viewport: { width: 1600, height: 1000 },
     });
     const page = await ctx.newPage();
-    // Signed out: the sign-in screen.
-    for (const width of [375, 1600]) {
+    // Signed out: sign-in and the legal pages.
+    for (const [path, width] of ["/sign-in", "/terms", "/privacy"].flatMap((p) =>
+      [375, 1600].map((w) => [p, w]),
+    )) {
       await page.setViewportSize({ width, height: 1000 });
-      await load(page, "/sign-in", "h1");
-      const context = { path: "/sign-in", width, scheme };
+      await load(page, path, "h1");
+      const context = { path, width, scheme };
       await axe(page, context);
       await targets(page, context);
       await reflow(page, context);

@@ -1,12 +1,14 @@
 // Bottom tabs for the five destinations, styled from the design tokens, plus the
 // floating "Start focus" button above the tab bar.
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
+import { Redirect } from "expo-router";
 import { Tabs } from "expo-router/tabs";
 import type { ComponentProps } from "react";
 import { View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { FocusFab } from "../../components/FocusFab";
+import { useSession } from "../../session";
 import { useAppTheme } from "../../theme";
 
 type IconName = ComponentProps<typeof MaterialIcons>["name"];
@@ -22,7 +24,10 @@ const TABS: { name: string; title: string; icon: IconName }[] = [
 export default function TabsLayout() {
   const theme = useAppTheme();
   const insets = useSafeAreaInsets();
+  const session = useSession();
   const barHeight = theme.layout.bottomBarHeight + insets.bottom;
+  if (session.status === "loading") return null;
+  if (session.status === "signed-out") return <Redirect href="/sign-in" />;
 
   return (
     <View style={{ flex: 1, backgroundColor: theme.colors.surface }}>

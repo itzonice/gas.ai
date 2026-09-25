@@ -7,6 +7,7 @@
 import { ApiError, type Features } from "@studypulse/core/api";
 import type { BillingInterval, BillingStatus } from "@studypulse/core/billing";
 import { PLAN_FEATURES } from "@studypulse/core/plans";
+import Link from "next/link";
 import { useCallback, useEffect, useState, type FormEvent } from "react";
 
 import { useApi } from "@/components/auth/SessionProvider";
@@ -226,8 +227,10 @@ export function UpgradeScreen({ returned }: { returned?: "success" | "canceled" 
             </p>
           ) : null}
           <p className={styles.note}>
-            You&apos;ll see the price and pay on Stripe&apos;s secure checkout page. Cancel anytime
-            in Settings.
+            You&apos;ll see the price and pay on Stripe&apos;s secure checkout page. Pro renews
+            automatically until you cancel, which you can do anytime in Settings. By subscribing you
+            agree to the <Link href="/terms">Terms of Use</Link> and{" "}
+            <Link href="/privacy">Privacy Policy</Link>.
           </p>
           <div>
             <Button type="submit" variant="tonal" disabled={busy}>

@@ -1,0 +1,8 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    // Node APIs are used only by the generator and tests, never by the token exports.
+    "types": ["node"]
+  },
+  "include": ["src", "scripts", "vitest.config.ts"]
+}

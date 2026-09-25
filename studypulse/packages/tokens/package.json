@@ -1,0 +1,23 @@
+{
+  "name": "@studypulse/tokens",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./css": "./tokens.css",
+    "./native": "./src/native.ts"
+  },
+  "scripts": {
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "generate": "node --import ./scripts/extensionless.mjs scripts/generate.ts && prettier --write src/generated.ts tokens.css"
+  },
+  "devDependencies": {
+    "@material/material-color-utilities": "0.4.0",
+    "@types/node": "^22",
+    "typescript": "~6.0.3",
+    "vitest": "^5.0.1"
+  }
+}

@@ -5,8 +5,8 @@ text, or URL); an AI parser extracts the course, grade categories, and assignmen
 we compute current grades, "what do I need on the final" answers, a ranked Today feed, and
 scheduled study blocks, and send reminders before things are due.
 
-This repo holds the backend, business logic, and infrastructure. UI/UX work lives in the app
-shells but is out of scope for most tasks.
+This repo holds the backend, business logic, and infrastructure, plus the web and mobile UI.
+UI work follows the design system in "UI design" below.
 
 ## Stack
 
@@ -81,3 +81,92 @@ Run `pnpm lint`, `pnpm typecheck`, and `pnpm test` before calling a task done.
   and `@studypulse/db`.
 - Money is stored in integer cents; percentages and weights as numbers from 0 to 100.
 - Durations are stored in whole minutes.
+
+## UI design
+
+StudyPulse uses a Material Design 3 responsive layout: an app bar, a sidebar that collapses
+to a rail and then bottom navigation, and one primary action per screen.
+
+### Layout and navigation
+
+Five top-level destinations: Today, Calendar, Courses, Focus, and Stats. Settings and account
+sit at the bottom of the sidebar. The information architecture stays the same at every size;
+only the presentation changes.
+
+| Viewport | Navigation | Content | StudyPulse behavior |
+| --- | --- | --- | --- |
+| Phone, under 600 px | Bottom navigation, 5 destinations | One column | "Start focus" stays visible as a floating button; task cards stack |
+| Tablet, 600–1023 px | Navigation rail, icons plus labels | One or two columns | Metric cards in a 2-column grid; search in the app bar |
+| Desktop, 1024 px and up | Persistent sidebar, 280 px | Main content, 1200 px max width | Readable width; extra space stays as whitespace |
+| Wide, 1440 px and up | Persistent sidebar | Main plus right panel | Right panel shows upcoming exams and the focus timer |
+
+App bar: logo, search across courses and assignments, notifications, and profile. On phones
+it shows only the logo and one action.
+
+Skip link: "Skip to main content" comes first in the tab order. Use semantic landmarks:
+header, nav, main, and footer.
+
+### Visual system
+
+Colors are assigned by role, never as decoration. Each course's color_hex is used only as an
+identifying tint, never for status.
+
+| Role | StudyPulse use |
+| --- | --- |
+| primary / on-primary | The single main action per screen: Start focus, Upload syllabus, Save schedule |
+| surface | Page background |
+| surface-container | Task cards, metric cards, and the syllabus review drawer |
+| secondary-container | Filters, course chips, and secondary actions |
+| error / on-error | Overdue tasks, grade at risk, and delete confirmations |
+| on-surface-variant | Due times, weights, and other metadata |
+| outline-variant | Dividers between list rows |
+| Course tint | A 4 px left stripe and the course chip background, always shown with the course code as text |
+
+Spacing: an 8 px rhythm. Use 8 px between related items, 16 px for card padding, 24 px
+between sections, and 32 px for major separation.
+
+Corners: 8 px for controls, 12 px for cards, and 16 px for sheets and drawers.
+
+Type: Roboto or a system sans stack. Page titles 32 px, section headings 22 px, card titles
+16 px, body 14–16 px, and labels 12–14 px. Use medium weight for headings and regular for
+body text.
+
+Themes: build light and dark from the same semantic tokens. Test every course color against
+both themes.
+
+### Key screens
+
+Every screen has one H1, an optional one-line description, and one primary action. Secondary
+actions go in an overflow menu.
+
+| Screen | H1 and primary action | Metric cards | Main content | Wide-screen right panel |
+| --- | --- | --- | --- | --- |
+| Today | "Today" · Start focus | Due this week, focus hours this week, courses at risk | Due reviews first, then ranked tasks as a list | Next exam countdown and timer |
+| Calendar | "Calendar" · Add assignment | None | Month or week grid; on phones, a day-by-day agenda list | Selected day's details |
+| Courses | "Courses" · Upload syllabus | None | One card per course: code, current grade, next due item | None |
+| Course detail | Course code and title · Add score | Current grade, target, score needed on the final | Category weights, then assignments as a table; on phones, a list | What-if calculator |
+| Syllabus review | "Review your schedule" · Save to calendar | Items found, items needing review | Editable list of parsed items, with low-confidence items flagged first | Original syllabus text |
+| Focus | "Focus" · Start or pause | Today's minutes, streak | Large timer and the linked task | Session history |
+| Stats | "Stats" · Export | Weekly focus hours, average grade | Focus minutes against grade per course | None |
+
+Use a plain list for tasks and assignments, not a card per item. When a whole row opens a
+task, don't put buttons inside the row; put the checkbox and overflow menu in their own tap
+targets outside the row's link area.
+
+### Accessibility
+
+- Text contrast of at least 4.5:1, or 3:1 for large text and essential graphics. Limit course
+  colors to a vetted palette that passes in both themes, instead of a free color picker.
+- Never signal status with color alone. Overdue tasks get the word "Overdue" and an icon;
+  courses always show their code.
+- Tap targets of at least 48 px with 8 px between them. This matters most for task
+  checkboxes and timer controls.
+- Visible focus rings on every control, with full keyboard support in the calendar grid,
+  drawers, menus, and the review list.
+- Icon-only buttons get an accessible name, such as aria-label="Start focus session".
+- The timer announces only start, pause, and finish through a polite live region, never
+  every second.
+- Form fields in the review drawer and score entry use real labels; placeholders are only
+  examples.
+- Layouts must hold up at 200% text size, with no fixed-height text containers that clip.
+

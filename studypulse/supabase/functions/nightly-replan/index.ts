@@ -1,7 +1,10 @@
 // Scheduled hourly by pg_cron. Each run:
 // 1. marks ended planned blocks missed (or done, if study time covered them), for everyone
-// 2. for users whose local time is 3 AM: re-ranks their open work and rebuilds their
-//    plan (missed work is rescheduled; nothing is ever placed after its due time)
+// 2. for users past 3 AM local time who haven't been replanned yet that local day
+//    (claimed atomically, so each user is replanned at most once per local day, in any
+//    UTC offset and across DST changes): re-ranks their open work and rebuilds their
+//    plan (missed work is rescheduled; nothing is ever placed after its due time).
+//    A failed or deferred replan releases its claim so a later run retries it that day.
 // 3. records overloaded days as study_plan_alerts
 //
 // Body (optional, for manual runs): { "user_ids": [...] } to replan specific users now.
@@ -37,7 +40,9 @@ Deno.serve(
     if (markError) throw markError;
     const missed = (marked ?? []).reduce((s, r) => s + r.missed, 0);
 
-    let users: { user_id: string; timezone: string }[];
+    // A claim (local date + the previous value) is released if the replan doesn't happen.
+    type Claim = { local_date: string; previous_date: string | null };
+    let users: ({ user_id: string; timezone: string } & Partial<Claim>)[];
     if (body.user_ids) {
       users = [];
       for (const ids of chunks(body.user_ids)) {
@@ -46,13 +51,22 @@ Deno.serve(
         users.push(...data.map((p) => ({ user_id: p.id, timezone: p.timezone })));
       }
     } else {
-      const { data, error } = await db.rpc("users_due_for_replan", {
+      const { data, error } = await db.rpc("claim_users_for_replan", {
         p_local_hour: NIGHTLY_LOCAL_HOUR,
         p_now: now.toISOString(),
       });
       if (error) throw error;
       users = data ?? [];
     }
+    const release = async (u: (typeof users)[number]) => {
+      if (!u.local_date) return;
+      const { error } = await db.rpc("release_replan_claim", {
+        p_user_id: u.user_id,
+        p_local_date: u.local_date,
+        ...(u.previous_date ? { p_previous_date: u.previous_date } : {}),
+      });
+      if (error) log.error("could not release replan claim", { user_id: u.user_id, error });
+    };
 
     const queue = [...users];
     let replanned = 0;
@@ -64,6 +78,7 @@ Deno.serve(
         for (let u = queue.shift(); u; u = queue.shift()) {
           if (Date.now() - started > TIME_BUDGET_MS) {
             deferred++;
+            await release(u);
             continue;
           }
           try {
@@ -86,6 +101,7 @@ Deno.serve(
           } catch (error) {
             failed++;
             log.error("replan failed", { user_id: u.user_id, error });
+            await release(u);
           }
         }
       }),

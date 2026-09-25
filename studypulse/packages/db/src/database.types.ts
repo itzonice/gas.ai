@@ -1287,6 +1287,7 @@ export type Database = {
           daily_study_minutes: number;
           display_name: string | null;
           id: string;
+          last_replanned_on: string | null;
           plan_tier: Database["public"]["Enums"]["plan_tier"];
           school: string | null;
           study_minutes_by_weekday: number[] | null;
@@ -1301,6 +1302,7 @@ export type Database = {
           daily_study_minutes?: number;
           display_name?: string | null;
           id: string;
+          last_replanned_on?: string | null;
           plan_tier?: Database["public"]["Enums"]["plan_tier"];
           school?: string | null;
           study_minutes_by_weekday?: number[] | null;
@@ -1315,6 +1317,7 @@ export type Database = {
           daily_study_minutes?: number;
           display_name?: string | null;
           id?: string;
+          last_replanned_on?: string | null;
           plan_tier?: Database["public"]["Enums"]["plan_tier"];
           school?: string | null;
           study_minutes_by_weekday?: number[] | null;
@@ -1810,6 +1813,15 @@ export type Database = {
         };
         Returns: string[];
       };
+      claim_users_for_replan: {
+        Args: { p_limit?: number; p_local_hour?: number; p_now?: string };
+        Returns: {
+          local_date: string;
+          previous_date: string;
+          timezone: string;
+          user_id: string;
+        }[];
+      };
       commit_parsed_syllabus: {
         Args: { p_payload?: Json; p_upload_id: string };
         Returns: string;
@@ -2110,6 +2122,14 @@ export type Database = {
         };
         Returns: string;
       };
+      release_replan_claim: {
+        Args: {
+          p_local_date: string;
+          p_previous_date?: string;
+          p_user_id: string;
+        };
+        Returns: undefined;
+      };
       reminder_batch: {
         Args: { p_after?: string; p_limit?: number; p_now: string };
         Returns: {
@@ -2221,13 +2241,6 @@ export type Database = {
       unsubscribe_email_digest: {
         Args: { p_user_id: string };
         Returns: boolean;
-      };
-      users_due_for_replan: {
-        Args: { p_local_hour?: number; p_now?: string };
-        Returns: {
-          timezone: string;
-          user_id: string;
-        }[];
       };
     };
     Enums: {

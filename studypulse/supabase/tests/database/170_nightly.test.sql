@@ -31,10 +31,10 @@ select is((select status::text from public.study_blocks where id = 'b0000000-000
 select is_empty($$ select * from public.mark_missed_blocks('2027-03-03 00:00Z') $$, 'running again changes nothing');
 
 -- 09:00 UTC is 03:00 in Chicago (CST) and 18:00 in Tokyo.
-select results_eq($$ select user_id from public.users_due_for_replan(3, '2027-03-04 09:00Z') $$,
-  format($$ values (%L::uuid) $$, :'ada'), 'only users at their local 3 AM with something to plan');
-select is_empty($$ select 1 from public.users_due_for_replan(3, '2027-03-04 18:00Z') $$,
-  'Tokyo user with nothing to plan is skipped');
+select results_eq($$ select user_id from public.claim_users_for_replan(3, '2027-03-04 09:00Z') $$,
+  format($$ values (%L::uuid) $$, :'ada'), 'only users past their local 3 AM with something to plan');
+select is_empty($$ select 1 from public.claim_users_for_replan(3, '2027-03-04 18:00Z') $$,
+  'Tokyo user with nothing to plan is skipped (and Ada is already done today)');
 
 select public.set_plan_alerts(:'ada', '2027-03-04', '[{"local_date": "2027-03-06", "details": {"unscheduled_minutes": 90}}]');
 select public.set_plan_alerts(:'ada', '2027-03-04', '[{"local_date": "2027-03-07", "details": {"unscheduled_minutes": 30}}]');

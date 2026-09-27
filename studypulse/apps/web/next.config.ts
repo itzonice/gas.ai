@@ -54,6 +54,10 @@ export default withSentryConfig(nextConfig, {
   authToken: process.env.SENTRY_AUTH_TOKEN,
   silent: !process.env.CI,
   widenClientFileUpload: true,
+  // S33: source maps go to Sentry only. After upload they are deleted from the build, so
+  // the site never serves them (Next's productionBrowserSourceMaps stays off). A test in
+  // scripts/secret-scan.mjs fails if a built client bundle ships a .map file.
+  sourcemaps: { deleteSourcemapsAfterUpload: true },
   // Browser error reports go to our own origin and are forwarded server-side, so the
   // browser makes no third-party request (S13).
   tunnelRoute: "/monitoring",

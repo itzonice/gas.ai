@@ -637,3 +637,30 @@ Re-reading S29 and S30 against what was built found three gaps, now closed:
   revoked admin), a Deno unit test of the metadata check, the S30 manifest (`admin`
   auth kind with a per-user rate limit), Stripe refund parameters, and live calls:
   normal user 403, fake admin 403, signed out 401, unknown field 400, admin allowed.
+
+## S33: Production configuration
+
+- **Generic errors.** Unexpected errors in edge functions return
+  `{"error": "internal_error", "request_id": …}` with the stack trace only in the logs
+  (and Sentry, redacted per S31). Messages users see come from our own error codes (limits
+  reached, not configured, invalid input). The web app runs Next.js in production mode,
+  which hides error details.
+- **No debug routes, seed endpoints, or test helpers in production.** A test fails if a
+  migration creates the `tests` schema or demo users, or if an edge function or web route
+  is named like debug, seed, test, dev, or sandbox. Seed data (`seed.sql`) loads only on a
+  local `db reset`, never on `db push`. The component gallery returns 404 in production.
+- **Test-only switches refused.** `STRIPE_API_URL`, `RESEND_API_URL`, `EXPO_API_URL`,
+  `GOOGLE_OAUTH_BASE_URL`, `GOOGLE_API_BASE_URL`, and `RATE_LIMITS_DISABLED` exist for
+  tests (fake provider servers, load runs). With `APP_ENV=production` the functions refuse
+  to start if any is set, because a stray `STRIPE_API_URL` would send the Stripe secret
+  key to that URL.
+- **Source maps.** Uploaded to Sentry and deleted from the build
+  (`deleteSourcemapsAfterUpload`); the production build serves no `.map` files, and the
+  client bundle scan in CI now fails if one appears.
+- **Only the needed schemas.** The API exposes `public` only; `graphql_public` is off
+  (nothing uses GraphQL; the endpoint now answers 406). The production dashboard needs
+  the same setting (launch checklist).
+- **Private storage and RLS everywhere.** SQL guard test `000_rls_enabled` fails if any
+  table in any schema we own has RLS off (tables in `private` now have it too, with no
+  policies, as a second lock behind their missing grants), if any storage bucket is
+  public, or if API roles have any privilege on a private table.

@@ -1,6 +1,12 @@
 import { describe, expect, it } from "vitest";
 
-import { EnvError, edgeEnvSchema, mobileEnvSchema, parseEnv } from "./index.ts";
+import {
+  EnvError,
+  edgeEnvSchema,
+  mobileEnvSchema,
+  parseEnv,
+  TEST_ONLY_VARIABLES,
+} from "./index.ts";
 
 const validEdge = {
   SUPABASE_URL: "http://127.0.0.1:54321",
@@ -58,5 +64,46 @@ describe("parseEnv", () => {
     } catch (error) {
       expect((error as Error).message).not.toContain(secret);
     }
+  });
+});
+
+describe("test-only variables in production (S33)", () => {
+  it("are refused, one issue per variable, without echoing the value", () => {
+    const secretUrl = "https://attacker.example/capture";
+    const error = (() => {
+      try {
+        parseEnv("edge", edgeEnvSchema, {
+          ...validEdge,
+          APP_ENV: "production",
+          STRIPE_API_URL: secretUrl,
+          RATE_LIMITS_DISABLED: "true",
+        });
+      } catch (e) {
+        return e;
+      }
+      return null;
+    })();
+    expect(error).toBeInstanceOf(EnvError);
+    expect((error as EnvError).issues).toEqual([
+      "STRIPE_API_URL: is for tests only and must be unset in production",
+      "RATE_LIMITS_DISABLED: is for tests only and must be unset in production",
+    ]);
+    expect((error as EnvError).message).not.toContain(secretUrl);
+  });
+
+  it("are allowed outside production, and RATE_LIMITS_DISABLED=false is harmless", () => {
+    for (const name of TEST_ONLY_VARIABLES) {
+      const value = name === "RATE_LIMITS_DISABLED" ? "true" : "http://127.0.0.1:12111";
+      expect(() =>
+        parseEnv("edge", edgeEnvSchema, { ...validEdge, APP_ENV: "preview", [name]: value }),
+      ).not.toThrow();
+    }
+    expect(() =>
+      parseEnv("edge", edgeEnvSchema, {
+        ...validEdge,
+        APP_ENV: "production",
+        RATE_LIMITS_DISABLED: "false",
+      }),
+    ).not.toThrow();
   });
 });

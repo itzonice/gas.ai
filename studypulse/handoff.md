@@ -17,7 +17,7 @@
 - **PR #1** is open, green on all four CI jobs (lint/typecheck/test, migrations and SQL
   tests, cross-user access, client bundle secret scan) and mergeable. Its head is
   `e66be16`.
-- **Done and pushed:** S1–S32. The latest items:
+- **Done and pushed:** S1–S33. The latest items:
   - S27: license check.
   - S28: business details in the footer and at checkout.
   - S29: web session in cookies, verified with `getUser` in `proxy.ts`.
@@ -29,6 +29,9 @@
   - S32: admin role in `app_metadata` (only the service role can set it), checked live
     on the server by admin RPCs and the `admin-refund` edge function; 403 otherwise;
     every admin action logged in `private.admin_actions`.
+  - S33: test-only switches refused in production, source maps never served, API exposes
+    only `public`, RLS on every table we own, every bucket private, and a guard against
+    debug, seed, and test endpoints.
 - **Not started:** S32–S34 and L1–L10.
 - **Beta testing is still blocked:**
   - The environment's network policy denies `api.vercel.com` and `api.supabase.com`.
@@ -99,14 +102,8 @@ This session:
 
 ## 6. Next Steps
 
-- [ ] **S33:**
-  - generic errors with a request ID;
-  - no debug routes;
-  - source maps uploaded to Sentry;
-  - only the needed schemas exposed;
-  - private storage buckets;
-  - a CI check that fails on tables with RLS disabled;
-  - per-request CSP nonces in `proxy.ts` to drop `'unsafe-inline'`.
+- [ ] **CSP nonces:** per-request nonces in `proxy.ts` to drop `'unsafe-inline'` from
+      `script-src` (makes every page dynamic; measure the cost first).
 - [ ] **S34:**
   - email confirmation;
   - a minimum password length of 10;

@@ -11,6 +11,7 @@ import { encodeHex } from "jsr:@std/encoding@^1/hex";
 import type { Logger } from "@studypulse/core/observability/index.ts";
 import { z } from "zod";
 
+import { env } from "./env.ts";
 import { HttpError } from "./http.ts";
 import { adminClient } from "./supabase.ts";
 
@@ -111,7 +112,8 @@ const resultSchema = z.object({
 
 /** Counts a hit on `bucket`; throws 429 with Retry-After when over `limit`. */
 export async function enforce(bucket: string, limit: Limit, log?: Logger): Promise<void> {
-  if (Deno.env.get("RATE_LIMITS_DISABLED") === "true") return;
+  // Tests only; the env schema refuses it in production (S33).
+  if (env().RATE_LIMITS_DISABLED === "true") return;
   let result: z.infer<typeof resultSchema>;
   try {
     const { data, error } = await adminClient().rpc("rate_limit_hit", {

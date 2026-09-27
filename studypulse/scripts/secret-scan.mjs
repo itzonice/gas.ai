@@ -77,8 +77,13 @@ export function scan(dirs) {
       continue;
     }
     for (const file of files(dir)) {
-      const text = readFileSync(file, "latin1");
       const where = relative(root, file);
+      // S33: source maps go to Sentry, never to browsers (they'd hand out the source).
+      if (file.endsWith(".map") && where.startsWith("apps/web/.next/static/")) {
+        findings.push({ file: where, what: "source map served to browsers" });
+        continue;
+      }
+      const text = readFileSync(file, "latin1");
       for (const [name, value] of canaries) {
         if (text.includes(value)) findings.push({ file: where, what: `${name} (canary value)` });
       }

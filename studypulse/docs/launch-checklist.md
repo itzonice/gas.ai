@@ -164,6 +164,13 @@ Numbers are starting points; raise them as usage grows.
       start and stop a session, receive a reminder, subscribe with a Stripe test clock or a
       real card then refund it, export data, delete the account.
 
+- [ ] **API exposure (S33):** Settings, API, Exposed schemas: `public` only (remove
+      `graphql_public`). Storage: every bucket private.
+- [ ] **No test switches (S33):** never set `STRIPE_API_URL`, `RESEND_API_URL`,
+      `EXPO_API_URL`, `GOOGLE_OAUTH_BASE_URL`, `GOOGLE_API_BASE_URL`, or
+      `RATE_LIMITS_DISABLED` in production; with `APP_ENV=production` the functions refuse
+      to start if any is set.
+
 ## 2. Backups and recovery
 
 - [ ] Daily backups confirmed (Database → Backups); **point-in-time recovery** enabled.

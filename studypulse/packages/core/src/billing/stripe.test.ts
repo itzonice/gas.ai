@@ -7,6 +7,7 @@ import {
   deleteStripeCustomer,
   createStripeCustomer,
   encodeStripeForm,
+  refundStripeCharge,
   StripeError,
   subscriptionForCharge,
 } from "./stripe.ts";
@@ -249,5 +250,33 @@ describe("deleteStripeCustomer", () => {
     await expect(
       deleteStripeCustomer("cus_1", { apiKey: "k", fetch: down }),
     ).rejects.toBeInstanceOf(StripeError);
+  });
+});
+
+describe("refundStripeCharge", () => {
+  it("refunds in full as fraudulent by default (early fraud warnings)", async () => {
+    const fetchMock = mockFetch({ id: "re_1" });
+    expect(await refundStripeCharge("ch_1", "efw-1", { apiKey: "k", fetch: fetchMock })).toBe(
+      "re_1",
+    );
+    const [url, init] = fetchMock.mock.calls[0]!;
+    expect(url).toBe("https://api.stripe.com/v1/refunds");
+    expect(form(init)).toEqual({ charge: "ch_1", reason: "fraudulent" });
+    expect(init!.headers).toMatchObject({ "Idempotency-Key": "efw-1" });
+  });
+
+  it("takes an admin's reason and a partial amount (S32)", async () => {
+    const fetchMock = mockFetch({ id: "re_2" });
+    await refundStripeCharge(
+      "ch_2",
+      "admin-refund:ch_2:250",
+      { apiKey: "k", fetch: fetchMock },
+      { reason: "requested_by_customer", amountCents: 250 },
+    );
+    expect(form(fetchMock.mock.calls[0]![1])).toEqual({
+      charge: "ch_2",
+      reason: "requested_by_customer",
+      amount: "250",
+    });
   });
 });

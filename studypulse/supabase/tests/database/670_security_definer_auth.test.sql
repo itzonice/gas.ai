@@ -67,7 +67,7 @@ select is(
      and f.oid not in (select p.oid from pg_proc p where p.prorettype = 'trigger'::regtype)
      and has_function_privilege('authenticated', f.oid, 'EXECUTE')),
   array[
-    'accept_terms', 'billing_status', 'commit_parsed_syllabus', 'complete_onboarding',
+    'accept_terms', 'admin_takedown_content', 'admin_takedown_count', 'billing_status', 'commit_parsed_syllabus', 'complete_onboarding',
     'confirm_age', 'course_current_grade', 'create_organization',
     'default_task_minutes', -- pure helper
     'gcal_disconnect', 'get_calendar', 'get_card_quota', 'get_courses_overview',

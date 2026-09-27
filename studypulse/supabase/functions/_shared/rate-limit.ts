@@ -45,6 +45,7 @@ export const FUNCTION_LIMITS: Record<string, FunctionLimits> = {
   "delete-account": { ip: perMinute(10), user: perHour(5) },
   "stripe-checkout": { ip: perMinute(30), user: perMinute(10) },
   "stripe-portal": { ip: perMinute(30), user: perMinute(10) },
+  "admin-refund": { ip: perMinute(30), user: perMinute(20) },
   "google-oauth": { ip: perMinute(30), user: perMinute(20) },
   "canvas-oauth": { ip: perMinute(30), user: perMinute(20) },
   "google-calendar-sync": { ip: MACHINE.ip, user: perMinute(10) },

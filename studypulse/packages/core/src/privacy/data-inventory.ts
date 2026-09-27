@@ -212,6 +212,11 @@ export const DATA_INVENTORY: Record<string, TableInventory> = {
     personal: true,
     retention: "Kept for the repeat-infringer policy",
   },
+  "private.admin_actions": {
+    purpose: "Audit trail of admin refunds and takedowns (S32).",
+    personal: true,
+    retention: "Kept as an audit record; no user content, only ids and reasons",
+  },
 };
 
 /** What each outside service receives. */

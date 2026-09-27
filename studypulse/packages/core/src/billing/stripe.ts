@@ -447,19 +447,30 @@ export async function retrieveStripeCharge(
 }
 
 /** Full refund of a charge (the charge.refunded webhook then ends Pro). Idempotent per key. */
+export type RefundReason = "fraudulent" | "duplicate" | "requested_by_customer";
+
+/**
+ * Refunds a charge, in full unless `amountCents` is given. Defaults to reason
+ * "fraudulent" (early fraud warnings, S20); admin refunds pass their own (S32).
+ */
 export async function refundStripeCharge(
   chargeId: string,
   idempotencyKey: string,
   options: StripeOptions,
+  refund: { reason?: RefundReason; amountCents?: number } = {},
 ): Promise<string> {
-  const refund = await stripeRequest(
+  const result = await stripeRequest(
     z.looseObject({ id: z.string() }),
     "POST",
     "/v1/refunds",
-    { charge: chargeId, reason: "fraudulent" },
+    {
+      charge: chargeId,
+      reason: refund.reason ?? "fraudulent",
+      ...(refund.amountCents === undefined ? {} : { amount: String(refund.amountCents) }),
+    },
     { ...options, idempotencyKey },
   );
-  return refund.id;
+  return result.id;
 }
 
 /** Evidence fields Stripe accepts as text. */

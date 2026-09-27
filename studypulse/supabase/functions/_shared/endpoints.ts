@@ -11,6 +11,7 @@
 
 export type EndpointAuth =
   | "user" // Supabase JWT, via requireUser
+  | "admin" // Supabase JWT plus app_metadata role "admin", via requireAdmin (S32)
   | "cron" // CRON_SECRET bearer, via requireCron
   | "oauth-state" // our single-use state on a provider's redirect back
   | "stripe-signature" // Stripe-Signature HMAC over the raw body
@@ -33,6 +34,7 @@ export interface Endpoint {
 }
 
 export const ENDPOINTS: Record<string, Endpoint> = {
+  "admin-refund": { auth: ["admin"], input: ["json"] },
   "ai-cost-monitor": { auth: ["cron"], input: ["none"] },
   "calendar-feed": { auth: ["url-token"], input: ["query"], tokenCheck: "tokenFrom(req)" },
   "canvas-oauth": { auth: ["user", "oauth-state"], input: ["json", "query"] },

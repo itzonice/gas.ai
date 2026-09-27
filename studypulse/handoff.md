@@ -17,7 +17,7 @@
 - **PR #1** is open, green on all four CI jobs (lint/typecheck/test, migrations and SQL
   tests, cross-user access, client bundle secret scan) and mergeable. Its head is
   `e66be16`.
-- **Done and pushed:** S1–S31. The latest items:
+- **Done and pushed:** S1–S32. The latest items:
   - S27: license check.
   - S28: business details in the footer and at checkout.
   - S29: web session in cookies, verified with `getUser` in `proxy.ts`.
@@ -26,6 +26,9 @@
     secrets, emails and syllabus text redacted from logs and Sentry.
   - S29–S30 follow-up: SQL test 670 for `SECURITY DEFINER` functions, zod coverage of
     every RPC argument, proxy redirect tests, and `pnpm deps:audit` in CI.
+  - S32: admin role in `app_metadata` (only the service role can set it), checked live
+    on the server by admin RPCs and the `admin-refund` edge function; 403 otherwise;
+    every admin action logged in `private.admin_actions`.
 - **Not started:** S32–S34 and L1–L10.
 - **Beta testing is still blocked:**
   - The environment's network policy denies `api.vercel.com` and `api.supabase.com`.
@@ -96,8 +99,6 @@ This session:
 
 ## 6. Next Steps
 
-- [ ] **S32:** an admin role stored in `app_metadata`, checked server-side, with tests
-      that non-admins get a 403.
 - [ ] **S33:**
   - generic errors with a request ID;
   - no debug routes;

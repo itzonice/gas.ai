@@ -21,6 +21,7 @@ const sources = await functionSources();
 /** What each kind of auth looks like in the source. */
 const AUTH_CALLS: Record<Exclude<EndpointAuth, "url-token" | "public">, RegExp> = {
   user: /\brequireUser\(/,
+  admin: /\brequireAdmin\(/,
   cron: /\brequireCron\(/,
   "oauth-state": /\boauthCallbackQuery\b/,
   "stripe-signature": /\bverifyStripeSignature\(/,
@@ -52,7 +53,8 @@ Deno.test("every function runs through createHandler and has rate limits", () =>
     );
     const limits = FUNCTION_LIMITS[name];
     assert(limits, `${name}: add it to FUNCTION_LIMITS`);
-    if (ENDPOINTS[name]!.auth.includes("user")) {
+    const auth = ENDPOINTS[name]!.auth;
+    if (auth.includes("user") || auth.includes("admin")) {
       assert(limits.user, `${name}: signed-in callers need a per-user limit`);
     }
   }

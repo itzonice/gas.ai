@@ -30,6 +30,20 @@ export interface AuthedUser {
   email: string | undefined;
   /** The user proved they own `email` (clicked the confirmation link). */
   emailConfirmed: boolean;
+  /**
+   * Admin role (S32), from app_metadata as returned by the auth server just now. Only the
+   * service role can set app_metadata; user_metadata is never consulted.
+   */
+  isAdmin: boolean;
+}
+
+/** True only for app_metadata "role": "admin". */
+export function isAdminMetadata(appMetadata: unknown): boolean {
+  return (
+    typeof appMetadata === "object" &&
+    appMetadata !== null &&
+    (appMetadata as Record<string, unknown>).role === "admin"
+  );
 }
 
 /** Verifies the bearer token with Supabase Auth and returns the user, or throws 401. */
@@ -45,5 +59,13 @@ export async function requireUser(req: Request): Promise<AuthedUser> {
     id: data.user.id,
     email: data.user.email,
     emailConfirmed: Boolean(data.user.email_confirmed_at),
+    isAdmin: isAdminMetadata(data.user.app_metadata),
   };
+}
+
+/** Like requireUser, then 403 unless the caller is an admin (S32). */
+export async function requireAdmin(req: Request): Promise<AuthedUser> {
+  const user = await requireUser(req);
+  if (!user.isAdmin) throw new HttpError(403, "forbidden", "Admins only");
+  return user;
 }

@@ -282,6 +282,14 @@ only; mention it in the privacy policy.
 - [ ] Weekly check of `cron.job_run_details` for failed runs:
       `select jobname, status, count(*) from cron.job_run_details jrd join cron.job j using (jobid) where start_time > now() - interval '7 days' group by 1, 2;`
 
+## 6.5 Admins (S32)
+
+- [ ] Grant admin only to the people who handle refunds and takedowns:
+      `SUPABASE_URL=… SUPABASE_SERVICE_ROLE_KEY=… node scripts/set-admin.mjs <user-id> grant`
+      (run on your machine with the key in the environment; never paste it anywhere).
+- [ ] Review `private.admin_actions` monthly; revoke anyone who no longer needs it
+      (`… revoke`), which takes effect immediately.
+
 ## 7. Launch day
 
 - [ ] Rotate any secret ever used outside production (staging, laptops, CI logs).

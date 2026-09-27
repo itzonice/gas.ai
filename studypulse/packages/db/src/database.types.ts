@@ -1878,6 +1878,17 @@ export type Database = {
     };
     Functions: {
       accept_terms: { Args: { p_version: string }; Returns: undefined };
+      admin_takedown_content: {
+        Args: {
+          p_notice_ref: string;
+          p_reason?: string;
+          p_received_at: string;
+          p_target_id: string;
+          p_target_type: string;
+        };
+        Returns: string;
+      };
+      admin_takedown_count: { Args: { p_user_id: string }; Returns: number };
       ai_budget_status: { Args: { p_user_id: string }; Returns: Json };
       ai_cost_by_user: {
         Args: { p_since: string; p_until?: string };
@@ -2244,6 +2255,16 @@ export type Database = {
       rate_limit_hit: {
         Args: { p_bucket: string; p_limit: number; p_window_seconds: number };
         Returns: Json;
+      };
+      record_admin_action: {
+        Args: {
+          p_action: string;
+          p_admin_id: string;
+          p_details?: Json;
+          p_target_id: string;
+          p_target_type: string;
+        };
+        Returns: undefined;
       };
       record_ai_cost_alerts: {
         Args: {

@@ -596,7 +596,7 @@ Re-reading S29 and S30 against what was built found three gaps, now closed:
   `SECURITY DEFINER` function that users can call doesn't check `auth.uid()` (directly,
   or through a helper that does, such as `private.is_org_admin`), when one can be called
   signed out, or when one leaves `search_path` unpinned. It also pins the exact list of
-  42 RPCs signed-in users can call, so exposing a new one is a reviewed change. Of 109
+  44 RPCs signed-in users can call, so exposing a new one is a reviewed change. Of 109
   definer functions, 27 are callable by users; all check the caller. The one reviewed
   exception is the PostgREST pre-request guard from S5, which must run signed out.
 - **RPC arguments (S30).** `rpc-validation.test.ts` fails when an API-client method
@@ -616,3 +616,24 @@ Re-reading S29 and S30 against what was built found three gaps, now closed:
   called through PostgREST. Expensive work (AI, exports, email) runs in edge functions,
   which are rate limited per user and IP; the RPCs are bounded queries (S8 caps page
   sizes at 100) and write paths have their own daily caps.
+
+## S32: Admin role
+
+- **Where it lives.** An admin has `"role": "admin"` in `app_metadata`. Only the service
+  role can change app metadata (`node scripts/set-admin.mjs <user-id> grant|revoke`);
+  users can edit `user_metadata`, which is never consulted, so writing `"role": "admin"`
+  there does nothing (tested).
+- **Checked on the server, live.** In SQL, `private.is_admin()` / `private.require_admin()`
+  read the current `auth.users` row, not the JWT claim. In edge functions,
+  `requireAdmin(req)` uses the user the auth server returns for the token. Removing the
+  role takes effect on the next request, even with an unexpired token (tested live).
+- **Admin paths.** `admin_takedown_content` and `admin_takedown_count` (RPCs) and
+  `admin-refund` (edge function: full or partial refund of a charge, with a reason) all
+  require an admin and answer 403 otherwise. The early-fraud-warning auto-refund (S20)
+  stays with the Stripe webhook, which is authenticated by Stripe's signature.
+- **Audit trail.** Every admin action is written to `private.admin_actions` (who, what,
+  target, details, when), which no user can read or change.
+- **Tests:** SQL test 680 (normal user, fake `user_metadata` admin, signed out, admin,
+  revoked admin), a Deno unit test of the metadata check, the S30 manifest (`admin`
+  auth kind with a per-user rate limit), Stripe refund parameters, and live calls:
+  normal user 403, fake admin 403, signed out 401, unknown field 400, admin allowed.

@@ -63,7 +63,7 @@ CCPA: below the thresholds; nothing to do beyond the above.
 | HTTPS; secure, httpOnly cookies                         | 🟢     | HTTPS on Vercel and Supabase. The web session is in first-party cookies (Secure on HTTPS, SameSite=Lax), verified on the server with getUser before any app page renders. Not httpOnly, by design: the browser client reads them to call the API; the server never trusts them unverified. | S29 (done)        |
 | Validate and sanitise input; sanitise rendered markdown | ✅     | zod on every boundary. No user markdown or HTML is rendered (no `dangerouslySetInnerHTML`); React escapes all text.                                                                                                                                                                        | S34 (`.strict()`) |
 | Rate-limit login and paid API calls                     | 🟡     | Login lockout (10 failures / 15 min), daily AI spend cap, per-day parse and card limits. General per-user and per-IP rate limits with Retry-After are not done yet.                                                                                                                        | S10               |
-| Dependencies updated: npm audit, Dependabot             | ❌     | No Dependabot config and no audit step in CI.                                                                                                                                                                                                                                              | L8                |
+| Dependencies updated: npm audit, Dependabot             | ✅     | Dependabot (weekly, grouped) for npm and GitHub Actions; a weekly `deno outdated` workflow for the edge functions; `pnpm deps:audit` in CI fails on high or critical production advisories and any for Next.js or React.                                                                   | L8                |
 | Tauri permissions                                       | ➖     | No desktop app.                                                                                                                                                                                                                                                                            | —                 |
 | Friendly errors; stack traces only in logs              | 🟡     | The UI shows plain messages; Sentry gets the details. Generic errors with a request id are still to come.                                                                                                                                                                                  | S33               |
 | Back up the database and test a restore                 | 👤     | Steps are in launch-checklist §2 (PITR plus a restore drill); has to be done on the real project.                                                                                                                                                                                          | 👤                |
@@ -152,18 +152,18 @@ CCPA: below the thresholds; nothing to do beyond the above.
 
 ## Final pre-launch checks
 
-| Item                                                                 | Status                                                                                                                     | Plan |
-| -------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- | ---- |
-| Test on phone, tablet, PC; Chrome, Safari, Firefox                   | 🟡 The a11y audit drives Chromium only; add WebKit and Firefox runs.                                                       | L7   |
-| 5 first-time users try it unaided                                    | 👤                                                                                                                         | 👤   |
-| Lighthouse 90+ (accessibility and performance)                       | ❌ not measured                                                                                                            | L7   |
-| Airplane mode mid-session loses nothing                              | ❌                                                                                                                         | L2   |
-| Sentry on, with no personal data                                     | ✅ `scrubEvent` redacts headers, bodies, and cookies; no replay. S31 adds logger redaction.                                | S31  |
-| Support email and an in-app feedback link                            | ❌ the placeholder email is not in the app                                                                                 | S19  |
-| Policy, terms, accessibility statement, licenses all live and linked | 🟡 policy, terms, accessibility, and deletion pages linked in the footer; the open-source licenses screen is still to come | S27  |
-| Store screenshots, description, age rating accurate                  | 👤                                                                                                                         | 👤   |
-| Version, changelog, update plan                                      | 🟡 versions in `app.json`; no changelog                                                                                    | L8   |
-| Lawyer review before kids' data, payments, or schools                | 👤 **Payments are in v1 (Stripe, RevenueCat)**, so this applies.                                                           | 👤   |
+| Item                                                                 | Status                                                                                                                                       | Plan |
+| -------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- | ---- |
+| Test on phone, tablet, PC; Chrome, Safari, Firefox                   | 🟡 The a11y audit drives Chromium only; add WebKit and Firefox runs.                                                                         | L7   |
+| 5 first-time users try it unaided                                    | 👤                                                                                                                                           | 👤   |
+| Lighthouse 90+ (accessibility and performance)                       | ❌ not measured                                                                                                                              | L7   |
+| Airplane mode mid-session loses nothing                              | ❌                                                                                                                                           | L2   |
+| Sentry on, with no personal data                                     | ✅ `scrubEvent` redacts headers, bodies, and cookies; no replay. S31 adds logger redaction.                                                  | S31  |
+| Support email and an in-app feedback link                            | ❌ the placeholder email is not in the app                                                                                                   | S19  |
+| Policy, terms, accessibility statement, licenses all live and linked | 🟡 policy, terms, accessibility, and deletion pages linked in the footer; the open-source licenses screen is still to come                   | S27  |
+| Store screenshots, description, age rating accurate                  | 👤                                                                                                                                           | 👤   |
+| Version, changelog, update plan                                      | ✅ `CHANGELOG.md` with the release steps: version in `app.json`, EAS build numbers, migrations first, `eas update` for JavaScript-only fixes | L8   |
+| Lawyer review before kids' data, payments, or schools                | 👤 **Payments are in v1 (Stripe, RevenueCat)**, so this applies.                                                                             | 👤   |
 
 ## New build items from this audit
 
@@ -202,8 +202,8 @@ These join S9–S34, in this order after S10, because L1 and L2-AI block store a
 - **L7 Browser matrix and Lighthouse:**
   - Playwright WebKit and Firefox projects.
   - Lighthouse CI on key routes with budgets (≥ 90 accessibility and performance).
-- **L8 Dependency hygiene:**
-  - Dependabot for npm, Actions, and Deno.
+- **L8 Dependency hygiene (done, 2026-09-27):**
+  - Dependabot for npm and Actions; a weekly `deno outdated` workflow for Deno (Dependabot doesn't read `deno.json`).
   - A `pnpm audit --prod` CI step (high and above fail).
   - `CHANGELOG.md`.
 - **L9 Compliance docs (done, 2026-09-26; owner fills names and contacts):**

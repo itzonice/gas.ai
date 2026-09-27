@@ -5,6 +5,20 @@ setting, command, or variable. Nothing here is automated yet; tick items as you 
 Related: [security audit](security-audit.md), [analytics](analytics.md),
 [load tests](../load/README.md).
 
+## Private beta (before any of this)
+
+`pnpm deploy:beta` puts a test copy online: it applies the migrations (no demo data) and
+`supabase/config.toml` to a separate Supabase project, deploys the edge functions, builds
+the web app on Vercel (project `studypulse-beta`), points auth emails at it, and prints the
+link. Run it again to redeploy.
+
+- [ ] Create a separate Supabase project for the beta, not the production one.
+- [ ] In the environment settings (never in chat or in a file), set
+      `SUPABASE_ACCESS_TOKEN`, `SUPABASE_PROJECT_REF`, `SUPABASE_DB_PASSWORD` and
+      `VERCEL_TOKEN`; optionally `ANTHROPIC_API_KEY` (syllabus reading) and `VERCEL_SCOPE`.
+- [ ] Allow `api.supabase.com`, `*.supabase.co` and `api.vercel.com` in the network settings.
+- [ ] The beta has no billing, email, push or scheduled jobs; those keys stay unset.
+
 ## 0. Weeks before launch (long lead times)
 
 - [ ] **Apple Family Controls (Distribution) entitlement** requested:

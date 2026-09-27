@@ -26,6 +26,7 @@
     "functions:test": "cd supabase/functions && deno test --allow-env --allow-net=127.0.0.1,localhost --allow-read=.,../../packages/core/src",
     "test:cross-user": "bash scripts/cross-user.sh",
     "deploy:check": "node packages/core/scripts/deploy-check.ts",
+    "deploy:beta": "bash scripts/deploy-beta.sh",
     "secrets:scan": "node scripts/secret-scan.mjs --build",
     "licenses:check": "node scripts/license-check.mjs",
     "secrets:history": "bash scripts/gitleaks.sh history",

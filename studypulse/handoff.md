@@ -46,6 +46,8 @@
   - These secrets are missing: `SUPABASE_ACCESS_TOKEN`, `SUPABASE_PROJECT_REF`,
     `SUPABASE_DB_PASSWORD`, `VERCEL_TOKEN` (and optionally `ANTHROPIC_API_KEY`).
   - The user adds these in the environment settings, never in chat.
+  - Once they're set (new session), `pnpm deploy:beta` does the whole deploy and prints
+    the link (`scripts/deploy-beta.sh`; steps in `docs/launch-checklist.md`).
 - **Store blockers from `docs/launch-audit.md`:** the mobile tabs are placeholders (L1),
   and there's no in-app AI consent step (L2).
 - **Latest local test counts:** core 560+, web 110, 711 SQL tests. The cross-user suite

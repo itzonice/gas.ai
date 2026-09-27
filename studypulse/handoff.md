@@ -2,9 +2,9 @@
 
 ## 1. Goal
 
-- Finish the StudyPulse launch-safety plan (S1–S34), then the launch-audit build items
-  (L1–L10), on branch `claude/studypulse-backend-prompts-161jl9` in `itzonice/gas.ai`.
-  Keep PR #1 green and mergeable, and don't open another PR.
+- StudyPulse launch work on branch `claude/studypulse-backend-prompts-161jl9` in
+  `itzonice/gas.ai`: the launch-safety plan (S1–S34) and the launch-audit build items
+  (L1–L10) are now all done. Keep PR #1 green and mergeable, and don't open another PR.
 - The project lives in `studypulse/`: Turborepo + pnpm, Next 16 web app, Expo mobile app,
   Supabase (Postgres, RLS, Deno edge functions).
 - Before every commit, run `pnpm lint`, `pnpm typecheck`, `pnpm test` and
@@ -14,111 +14,94 @@
 
 ## 2. Current State
 
-- **PR #1** is open, green on all four CI jobs (lint/typecheck/test, migrations and SQL
-  tests, cross-user access, client bundle secret scan) and mergeable. Its head is
-  `e66be16`.
-- **Done and pushed:** S1–S34 (all launch-safety items). The latest items:
-  - S27: license check.
-  - S28: business details in the footer and at checkout.
-  - S29: web session in cookies, verified with `getUser` in `proxy.ts`.
-  - S30: CI check that every edge function has auth, zod validation and a rate limit.
-  - S31: gitleaks in a pre-commit hook and CI (full history), `.env*` ignored, and
-    secrets, emails and syllabus text redacted from logs and Sentry.
-  - S29–S30 follow-up: SQL test 670 for `SECURITY DEFINER` functions, zod coverage of
-    every RPC argument, proxy redirect tests, and `pnpm deps:audit` in CI.
-  - S32: admin role in `app_metadata` (only the service role can set it), checked live
-    on the server by admin RPCs and the `admin-refund` edge function; 403 otherwise;
-    every admin action logged in `private.admin_actions`.
-  - S33: test-only switches refused in production, source maps never served, API exposes
-    only `public`, RLS on every table we own, every bucket private, and a guard against
-    debug, seed, and test endpoints.
-  - S34: 10-character passwords (plus leaked-password protection in production), a clear
-    message when Supabase refuses a password, strict request schemas everywhere except
-    documented outside senders, and checks against dynamic SQL.
-- **Launch audit, done:** L2-AI (AI consent before anything goes to Anthropic, enforced in
-  the database; Settings switch on web and mobile), L6 (public `/delete-account` and
-  `/accessibility` pages), L9 (`docs/security-program.md`, `docs/incident-response.md`,
-  `docs/legal-rules.md`). Built in another session that couldn't push; brought in here on
-  top of S32–S34 and checked with every test, the cross-user suite, and the a11y audit.
-- **Not started:** L1, L3–L5, L7, L8, L10.
-- **Beta testing is still blocked:**
-  - The environment's network policy denies `api.vercel.com` and `api.supabase.com`.
+- **PR #1**: see CI on the latest head. Six jobs: lint/typecheck/test, migrations and
+  SQL tests, cross-user access, client bundle secret scan, full-history secret scan, and
+  the new "Browsers, Lighthouse, and accessibility" job.
+- **Done:** S1–S34 and L1–L10 (L2 offline is mobile-only; the web shows a banner).
+- **Latest local counts:** core 657 tests, web 117, tokens 58, Deno 19. The a11y audit
+  is clean. Lighthouse is 96–100 performance and 100 accessibility on every key route
+  (phone and desktop). The browser matrix passes in Chromium locally. Firefox and WebKit
+  run only in CI, because they aren't installed in this environment.
+- **Beta testing is still blocked** (unchanged):
+  - The network policy denies `api.vercel.com` and `api.supabase.com`.
   - These secrets are missing: `SUPABASE_ACCESS_TOKEN`, `SUPABASE_PROJECT_REF`,
-    `SUPABASE_DB_PASSWORD`, `VERCEL_TOKEN` (and optionally `ANTHROPIC_API_KEY`).
-  - The user adds these in the environment settings, never in chat.
-  - Once they're set (new session), `pnpm deploy:beta` does the whole deploy and prints
-    the link (`scripts/deploy-beta.sh`; steps in `docs/launch-checklist.md`).
-- **Store blockers from `docs/launch-audit.md`:** the mobile tabs are placeholders (L1),
-  and there's no in-app AI consent step (L2).
-- **Latest local test counts:** core 560+, web 110, 711 SQL tests. The cross-user suite
-  made 420 attempts with 0 failures, and the axe accessibility audit is clean.
+    `SUPABASE_DB_PASSWORD`, `VERCEL_TOKEN` (optionally `ANTHROPIC_API_KEY`).
+  - Once they're in the environment settings, `pnpm deploy:beta` deploys and prints
+    the link.
 
 ## 3. Active Files
 
-- `studypulse/docs/security-audit.md`: one section per S item. Add S31 onward here.
-- `studypulse/docs/launch-audit.md` and `studypulse/docs/launch-checklist.md`.
-- `studypulse/packages/core/src/observability/index.ts` and `logger.ts`: redaction (S31).
-- `studypulse/scripts/`: `license-check.mjs`, `secret-scan.mjs`, `cross-user.sh`,
-  `serve-functions.mjs`, `gitleaks.sh`.
-- `studypulse/supabase/functions/_shared/endpoints.ts` and `endpoints.test.ts`: the
-  per-function auth and input manifest (S30).
-- `studypulse/supabase/functions/_shared/http.ts`: `parseJsonBody` (with `allowEmpty`)
-  and `parseQuery`.
-- `studypulse/apps/web/proxy.ts` and `studypulse/apps/web/lib/auth-routes.ts`: the
-  server-side session check (S29).
-- `.github/workflows/ci.yml`: CI jobs. It runs in `studypulse/` by default.
+- `studypulse/packages/core/src/screens/`: the shared screen models for web and mobile
+  (today, calendar, courses, focus, stats, syllabus labels, undo, focus alerts,
+  shortcuts, search, onboarding, offline).
+- `studypulse/apps/mobile/src/app/`: the tabs plus `courses/[courseId]`,
+  `courses/upload`, `courses/review/[uploadId]`, `assignments/new`, and `onboarding`.
+  `src/lib/`: `hooks.ts` (`useLoad`, reduce motion, window class), `offline.ts`,
+  `app-storage.ts`, `uuid.ts`.
+- `studypulse/apps/web/scripts/`: `a11y-audit.mjs`, `browser-matrix.mjs`,
+  `lighthouse.mjs`.
+- `studypulse/scripts/seed-reviewer.mjs`: the store review account.
+- `studypulse/docs/launch-audit.md`, `launch-checklist.md`, `security-audit.md` (the L10
+  section is at the end), and `CHANGELOG.md`.
+- `.github/workflows/ci.yml` (the `browsers` job), `deno-deps.yml`, and
+  `.github/dependabot.yml`.
 
 ## 4. Changes Made
 
-This session:
+This session, one commit per item:
 
-- **S27** (`cfbc8ac`): `pnpm licenses:check` in CI fails on GPL, AGPL or unreviewed
-  licenses. `docs/licenses.md` lists fonts, icons and dependencies. The launch checklist
-  adds a USPTO and app-store name search, and a reminder that the app icons and favicon
-  are still template placeholders.
-- **S28** (`290c79f`):
-  - The legal business name, address and support email appear in the site footer, on
-    checkout ("Sold by …"), in mobile Settings and on the legal pages.
-  - They're set by the `NEXT_PUBLIC_COMPANY_*` and `EXPO_PUBLIC_COMPANY_*` variables;
-    `deploy:check --strict` fails without them.
-  - Mobile icons now go through `ui/Icon`, which hides them from screen readers.
-- **Calendar test fix** (`4fe8c9f`): the test now waits for focus to move after a
-  keypress.
-- **S29** (`5752a29`):
-  - The web session is now in cookies via `@supabase/ssr` (Lax, Secure on HTTPS).
-  - `proxy.ts` checks the session with `getUser` and redirects signed-out visitors to
-    `/sign-in?next=…`.
-  - The cookies are not httpOnly, by design; the reason is in the audit doc.
-- **S30** (`bbef2cd`): an endpoint manifest plus a CI test over the 22 functions. It
-  found four places that read query strings without zod validation (calendar-feed,
-  email-unsubscribe and both OAuth callbacks); those are fixed.
-- **SQL test fix** (`e66be16`): `490_focus_overview` no longer fails between 18:30 and
-  18:50 UTC, the 20 minutes after midnight in Kolkata.
+- **L1:** the screen models move to `@studypulse/core/screens`. Native mobile screens:
+  Today, Calendar (week agenda), Courses, Course detail (scores and target), Focus
+  (timer), and Stats (CSV export), plus syllabus paste or link with the AI consent sheet,
+  a review screen, and Add assignment. Tablets get a rail and landscape. Reduce motion is
+  respected, and swipes have button alternatives. `pnpm reviewer:seed` sets up the store
+  review account.
+- **L8:** Dependabot (npm and Actions), a weekly `deno outdated` workflow, and
+  `CHANGELOG.md`.
+- **L3:** undo toasts instead of confirmations for course and assignment deletes (web and
+  mobile). The syllabus review draft and typed scores are autosaved, and the web warns
+  before you leave with unsaved changes.
+- **L4:** a generated chime, a notification when the tab is hidden, vibration on mobile,
+  and optional breaks (5 minutes, or 15 after every fourth session).
+- **L5:** Skip on every onboarding step. Mobile onboarding saves the phone's timezone
+  (mobile accounts had been stuck in UTC). Keyboard shortcuts with a help list, which can
+  be switched off.
+- **Fix:** the app bar's search, bell, and account links opened 404s. Added `/search`;
+  the bell and account button now open Settings.
+- **L7:** `pnpm browsers` (Chromium, Firefox, WebKit), `pnpm lighthouse` (at least 90,
+  median of 3 runs), and `pnpm a11y`, all in CI. Fixed the footer and calendar layout
+  shifts, which took mobile performance from 71–87 to 96–100.
+- **L10:** the security review. Mobile now clears its local data on sign-out, and the
+  reviewer script refuses any account it didn't create.
+- **L7 follow-up:** WebKit reports fetches cancelled by navigation as errors; these are
+  now warnings. Failed steps log the page state.
+- **L2:** mobile offline support (saved screens and a sync queue) and a web offline
+  banner. Offline now shows up as `network_error` instead of a 500.
 
 ## 5. Failed Attempts
 
-- **The S31 commit was blocked by its own new pre-commit hook.** gitleaks flagged two
-  fake secrets in `observability.test.ts`:
-  - a Stripe-style `sk_live_…` string (line ~56);
-  - a JWT string (line ~80).
-
-  Everything else in S31 passed: lint, typecheck, tests, the full-history gitleaks scan
-  (126 commits, clean after one allowlist entry) and a test that the hook blocks a
-  staged fake key. Fixed by assembling the fake values at runtime in the test.
-
-- **The first full-history gitleaks run found one hit:** the published RFC 8291 test
-  vectors in `studypulse/packages/core/src/notify/webpush.test.ts`. These are not real
-  secrets. `.gitleaks.toml` allowlists those exact values in that one file.
+- **First CI run of the browsers job:** WebKit failed; Chromium and Firefox passed.
+  - About 100 of the failures were fetches cancelled by navigation (now warnings).
+  - The shortcuts step clicked inside the sidebar (fixed).
+  - "Add score dialog" timed out in WebKit. The cause is unknown because WebKit can't run
+    here. The step now logs the dialog state, so read the next CI log if it fails again.
+- **`pkill -f "next start"` kills the shell running it**, because the pattern matches the
+  command itself. Stop the server by PID instead.
 
 ## 6. Next Steps
 
-- [ ] **CSP nonces:** per-request nonces in `proxy.ts` to drop `'unsafe-inline'` from
-      `script-src` (makes every page dynamic; measure the cost first).
-- [ ] **L1, L3–L5, L7, L8, L10** from `docs/launch-audit.md`. The mobile tabs (L1) come
-      first (they block store review); the mobile syllabus and card screens must show
-      the AI consent prompt (`AI_DISCLOSURE`) before their first request.
+- [ ] If the WebKit Add score step still fails, read the logged dialog state in the CI
+      log and fix it.
+- [ ] **CSP nonces:** drop `'unsafe-inline'` from `script-src`. It makes every page
+      dynamic, so measure the cost with `pnpm lighthouse` first.
+- [ ] **Mobile:** a background notification when the timer ends (needs
+      `expo-notifications` and a new build), PDF and photo syllabus upload, and push
+      reminders on the phone (the mobile app doesn't register for push yet).
+- [ ] **Web offline writes** (a queue like the mobile one), if wanted.
 - [ ] **Manual, for the owner:**
   - add the deploy secrets in the environment settings;
+  - run `pnpm reviewer:seed` against production before each store submission;
   - replace the template app icons and favicon;
   - set the company name and address variables;
-  - do the trademark and app-store name search.
+  - do the trademark and app-store name search;
+  - do VoiceOver and TalkBack passes on real devices.

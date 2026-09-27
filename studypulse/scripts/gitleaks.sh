@@ -8,7 +8,9 @@ set -euo pipefail
 
 VERSION=8.28.0
 here="$(cd "$(dirname "$0")/.." && pwd)"
-repo="$(git -C "$here" rev-parse --show-toplevel)"
+# Inside a hook, git sets GIT_DIR, and rev-parse would then report the current directory
+# rather than the work tree (wrong in a linked worktree); ask without it.
+repo="$(cd "$here" && env -u GIT_DIR -u GIT_WORK_TREE -u GIT_INDEX_FILE git rev-parse --show-toplevel)"
 tools="$here/.tools"
 bin="$tools/gitleaks-$VERSION"
 

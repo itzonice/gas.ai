@@ -45,6 +45,7 @@ import {
   joinCodeSchema,
   focusSummaryWeeksSchema,
   privacyChoicesInputSchema,
+  aiConsentInputSchema,
   updateAssignmentInputSchema,
   startSessionInputSchema,
   stopSessionInputSchema,
@@ -939,7 +940,11 @@ export function createApiClient(db: Db) {
        * the in-context prompt ("prompt") before the first AI feature; "settings" to change it.
        */
       async setAiConsent(allowed: boolean, source: "prompt" | "settings"): Promise<void> {
-        const { error } = await db.rpc("set_ai_consent", { p_allowed: allowed, p_source: source });
+        const valid = validate(aiConsentInputSchema, { allowed, source });
+        const { error } = await db.rpc("set_ai_consent", {
+          p_allowed: valid.allowed,
+          p_source: valid.source,
+        });
         if (error) throw fromPostgrestError(error);
       },
     },

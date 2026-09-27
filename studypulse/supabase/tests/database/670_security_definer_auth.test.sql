@@ -78,7 +78,7 @@ select is(
     'letter_for', -- pure helper
     'lms_disconnect', 'org_focus_summary', 'organization_roster', 'register_push_token',
     'replace_practice_plan', 'replace_review_plan', 'replace_study_plan',
-    'revoke_calendar_token', 'rotate_calendar_token', 'rotate_join_code', 'set_focus_sharing',
+    'revoke_calendar_token', 'rotate_calendar_token', 'rotate_join_code', 'set_ai_consent', 'set_focus_sharing',
     'set_privacy_choices', 'start_study_session', 'stop_study_session',
     'study_capacity', 'task_priority', -- pure helpers (ranking)
     'terms_current', 'unregister_push_token'

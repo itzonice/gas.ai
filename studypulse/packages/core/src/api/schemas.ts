@@ -533,6 +533,12 @@ export const joinCodeSchema = z
   .regex(/^[0-9a-f]{12}$/, "Enter the 12-character join code");
 export const focusSummaryWeeksSchema = z.number().int().min(1).max(52);
 
+/** Allowing or withdrawing AI processing of syllabi and notes (L2-AI). */
+export const aiConsentInputSchema = z.strictObject({
+  allowed: z.boolean(),
+  source: z.enum(["prompt", "settings"]),
+});
+
 /** The privacy choices a user makes in the banner or Settings (S23). */
 export const privacyChoicesInputSchema = z.strictObject({
   analytics: z.boolean(),

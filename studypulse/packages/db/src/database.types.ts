@@ -2318,16 +2318,16 @@ export type Database = {
       revoke_calendar_token: { Args: never; Returns: undefined };
       rotate_calendar_token: { Args: never; Returns: string };
       rotate_join_code: { Args: { p_organization_id: string }; Returns: string };
+      set_ai_consent: {
+        Args: { p_allowed: boolean; p_source?: string };
+        Returns: undefined;
+      };
       set_focus_sharing: {
         Args: { p_organization_id: string; p_share: boolean };
         Returns: undefined;
       };
       set_plan_alerts: {
         Args: { p_alerts: Json; p_from: string; p_user_id: string };
-        Returns: undefined;
-      };
-      set_ai_consent: {
-        Args: { p_allowed: boolean; p_source?: string };
         Returns: undefined;
       };
       set_privacy_choices: {

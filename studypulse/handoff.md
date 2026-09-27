@@ -35,7 +35,12 @@
   - S34: 10-character passwords (plus leaked-password protection in production), a clear
     message when Supabase refuses a password, strict request schemas everywhere except
     documented outside senders, and checks against dynamic SQL.
-- **Not started:** L1–L10.
+- **Launch audit, done:** L2-AI (AI consent before anything goes to Anthropic, enforced in
+  the database; Settings switch on web and mobile), L6 (public `/delete-account` and
+  `/accessibility` pages), L9 (`docs/security-program.md`, `docs/incident-response.md`,
+  `docs/legal-rules.md`). Built in another session that couldn't push; brought in here on
+  top of S32–S34 and checked with every test, the cross-user suite, and the a11y audit.
+- **Not started:** L1, L3–L5, L7, L8, L10.
 - **Beta testing is still blocked:**
   - The environment's network policy denies `api.vercel.com` and `api.supabase.com`.
   - These secrets are missing: `SUPABASE_ACCESS_TOKEN`, `SUPABASE_PROJECT_REF`,
@@ -107,8 +112,9 @@ This session:
 
 - [ ] **CSP nonces:** per-request nonces in `proxy.ts` to drop `'unsafe-inline'` from
       `script-src` (makes every page dynamic; measure the cost first).
-- [ ] **L1–L10** from `docs/launch-audit.md`. The mobile tabs (L1) and the AI consent
-      step (L2) come first; both block store review.
+- [ ] **L1, L3–L5, L7, L8, L10** from `docs/launch-audit.md`. The mobile tabs (L1) come
+      first (they block store review); the mobile syllabus and card screens must show
+      the AI consent prompt (`AI_DISCLOSURE`) before their first request.
 - [ ] **Manual, for the owner:**
   - add the deploy secrets in the environment settings;
   - replace the template app icons and favicon;

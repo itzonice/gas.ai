@@ -207,6 +207,9 @@
 
 .main {
   flex: 1;
+  /* At least one screen tall, so the footer starts below the fold and content loading in
+     never pushes a visible footer down (a layout shift; Lighthouse CLS, L7). */
+  min-height: calc(100dvh - var(--sp-layout-app-bar-height));
   width: 100%;
   max-width: var(--sp-layout-content-max-width);
   margin-inline: auto;

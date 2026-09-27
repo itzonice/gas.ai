@@ -28,3 +28,5 @@ coverage/
 npm-debug.log*
 a11y-report.json
 cross-user-report.md
+browser-matrix-report.json
+lighthouse-report/

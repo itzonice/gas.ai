@@ -88,7 +88,7 @@ CCPA: below the thresholds; nothing to do beyond the above.
 | Login with no puzzle; paste and password managers allowed | ✅     | No CAPTCHA; `autocomplete` set; paste allowed.                                                                                                                                                                                                                                   | —         |
 | Help and settings in the same place                       | ✅     | Settings sits at the bottom of the sidebar, rail, and tab bar on every screen.                                                                                                                                                                                                   | —         |
 | `lang="en"`, plain language                               | ✅     | `app/layout.tsx`.                                                                                                                                                                                                                                                                | —         |
-| axe / Lighthouse on every screen                          | 🟡     | `pnpm --filter @studypulse/web a11y` runs axe on every route; Lighthouse isn't wired up.                                                                                                                                                                                         | L7        |
+| axe / Lighthouse on every screen                          | ✅     | In CI (the "Browsers, Lighthouse, and accessibility" job): `pnpm a11y` (axe, keyboard, 48 px targets, reflow, third parties on every route, both themes) and `pnpm lighthouse` on key routes.                                                                                    | L7        |
 | VoiceOver and TalkBack, 10 minutes each                   | 👤     | Needs a person with devices. The mobile screens (L1) are built with labels, roles, and announcements for start, pause, finish, and saves.                                                                                                                                        | 👤        |
 | Accessibility statement with a contact                    | ✅     | Public `/accessibility` page with known limitations and a reply time; linked in the footer.                                                                                                                                                                                      | L6 (done) |
 
@@ -152,18 +152,18 @@ CCPA: below the thresholds; nothing to do beyond the above.
 
 ## Final pre-launch checks
 
-| Item                                                                 | Status                                                                                                                                       | Plan |
-| -------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- | ---- |
-| Test on phone, tablet, PC; Chrome, Safari, Firefox                   | 🟡 The a11y audit drives Chromium only; add WebKit and Firefox runs.                                                                         | L7   |
-| 5 first-time users try it unaided                                    | 👤                                                                                                                                           | 👤   |
-| Lighthouse 90+ (accessibility and performance)                       | ❌ not measured                                                                                                                              | L7   |
-| Airplane mode mid-session loses nothing                              | ❌                                                                                                                                           | L2   |
-| Sentry on, with no personal data                                     | ✅ `scrubEvent` redacts headers, bodies, and cookies; no replay. S31 adds logger redaction.                                                  | S31  |
-| Support email and an in-app feedback link                            | ❌ the placeholder email is not in the app                                                                                                   | S19  |
-| Policy, terms, accessibility statement, licenses all live and linked | 🟡 policy, terms, accessibility, and deletion pages linked in the footer; the open-source licenses screen is still to come                   | S27  |
-| Store screenshots, description, age rating accurate                  | 👤                                                                                                                                           | 👤   |
-| Version, changelog, update plan                                      | ✅ `CHANGELOG.md` with the release steps: version in `app.json`, EAS build numbers, migrations first, `eas update` for JavaScript-only fixes | L8   |
-| Lawyer review before kids' data, payments, or schools                | 👤 **Payments are in v1 (Stripe, RevenueCat)**, so this applies.                                                                             | 👤   |
+| Item                                                                 | Status                                                                                                                                                                                                             | Plan |
+| -------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---- |
+| Test on phone, tablet, PC; Chrome, Safari, Firefox                   | ✅ `pnpm browsers` runs sign-in, every screen, calendar keys, shortcuts, the focus timer, and Add score in Chromium, Firefox, and WebKit at desktop and phone sizes, in CI. 👤 Still worth a pass on real devices. | L7   |
+| 5 first-time users try it unaided                                    | 👤                                                                                                                                                                                                                 | 👤   |
+| Lighthouse 90+ (accessibility and performance)                       | ✅ CI fails under 90 on any key route, phone or desktop (median of 3 runs). Measured 96–100 performance, 100 accessibility after fixing footer and calendar layout shifts.                                         | L7   |
+| Airplane mode mid-session loses nothing                              | ❌                                                                                                                                                                                                                 | L2   |
+| Sentry on, with no personal data                                     | ✅ `scrubEvent` redacts headers, bodies, and cookies; no replay. S31 adds logger redaction.                                                                                                                        | S31  |
+| Support email and an in-app feedback link                            | ❌ the placeholder email is not in the app                                                                                                                                                                         | S19  |
+| Policy, terms, accessibility statement, licenses all live and linked | 🟡 policy, terms, accessibility, and deletion pages linked in the footer; the open-source licenses screen is still to come                                                                                         | S27  |
+| Store screenshots, description, age rating accurate                  | 👤                                                                                                                                                                                                                 | 👤   |
+| Version, changelog, update plan                                      | ✅ `CHANGELOG.md` with the release steps: version in `app.json`, EAS build numbers, migrations first, `eas update` for JavaScript-only fixes                                                                       | L8   |
+| Lawyer review before kids' data, payments, or schools                | 👤 **Payments are in v1 (Stripe, RevenueCat)**, so this applies.                                                                                                                                                   | 👤   |
 
 ## New build items from this audit
 
@@ -199,7 +199,7 @@ These join S9–S34, in this order after S10, because L1 and L2-AI block store a
   - Accessibility statement with a contact.
   - Signed-out account-deletion request page (Play).
   - Footer links.
-- **L7 Browser matrix and Lighthouse:**
+- **L7 Browser matrix and Lighthouse (done, 2026-09-27):**
   - Playwright WebKit and Firefox projects.
   - Lighthouse CI on key routes with budgets (≥ 90 accessibility and performance).
 - **L8 Dependency hygiene (done, 2026-09-27):**

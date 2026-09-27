@@ -146,3 +146,63 @@ jobs:
           name: cross-user-report
           path: studypulse/cross-user-report.md
           if-no-files-found: ignore
+
+  browsers:
+    name: Browsers, Lighthouse, and accessibility
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v5
+      - uses: pnpm/action-setup@v4
+        with:
+          package_json_file: studypulse/package.json
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: studypulse/.nvmrc
+          cache: pnpm
+          cache-dependency-path: studypulse/pnpm-lock.yaml
+      - run: pnpm install --frozen-lockfile
+      # The local stack with the seeded demo account (supabase/seed.sql).
+      - name: Start Supabase
+        run: pnpm exec supabase start -x studio,imgproxy,logflare,vector,supavisor,realtime,postgres-meta
+      - name: Build and start the web app against it
+        run: |
+          eval "$(pnpm exec supabase status -o env \
+            --override-name api.url=SUPABASE_URL \
+            --override-name auth.anon_key=SUPABASE_ANON_KEY 2>/dev/null |
+            grep -E '^SUPABASE_(URL|ANON_KEY)=' | sed 's/^/export /')"
+          cd apps/web
+          NEXT_PUBLIC_SUPABASE_URL="$SUPABASE_URL" NEXT_PUBLIC_SUPABASE_ANON_KEY="$SUPABASE_ANON_KEY" \
+            NEXT_TELEMETRY_DISABLED=1 pnpm exec next build
+          nohup pnpm exec next start -p 3000 > next.log 2>&1 &
+          for i in $(seq 1 60); do
+            curl -s -o /dev/null http://localhost:3000/sign-in && exit 0
+            sleep 2
+          done
+          echo "::error::the web app did not start"; cat next.log; exit 1
+      - name: Install Chromium, Firefox, and WebKit
+        working-directory: studypulse/apps/web
+        run: pnpm exec playwright install --with-deps chromium firefox webkit
+      # Launch audit L7: the main flows in all three engines, at desktop and phone sizes.
+      - name: Browser matrix
+        working-directory: studypulse/apps/web
+        run: pnpm browsers
+      # Performance and accessibility of at least 90 on key routes, phone and desktop.
+      - name: Lighthouse budgets
+        working-directory: studypulse/apps/web
+        run: pnpm lighthouse
+      # The full audit (UI prompt 87): axe, keyboard, 48 px targets, reflow, third parties.
+      - name: Accessibility audit
+        working-directory: studypulse/apps/web
+        run: pnpm a11y
+      - name: Upload the reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: browser-reports
+          path: |
+            studypulse/apps/web/browser-matrix-report.json
+            studypulse/apps/web/lighthouse-report/
+            studypulse/apps/web/a11y-report.json
+            studypulse/apps/web/next.log
+          if-no-files-found: ignore

@@ -51,6 +51,12 @@ export const REVIEWED = [
     reason: "Dual-licensed; we use it under BSD-3-Clause. Build tooling (Expo dev server).",
   },
   {
+    prefix: "parse-cache-control",
+    license: "BSD",
+    reason:
+      "The LICENSE file is the BSD-3-Clause text (package.json just says BSD). Dev only: Lighthouse, for the performance and accessibility budgets in CI.",
+  },
+  {
     prefix: "@sentry/cli",
     license: "FSL-1.1-MIT",
     reason:

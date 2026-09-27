@@ -228,8 +228,11 @@
   text-decoration: line-through;
 }
 
+/* The selected day's details. Phones already show every day in the agenda (and "Add
+   assignment" is the page's primary action), so the panel starts at tablet width; below
+   the agenda on a phone it only moved as the agenda loaded (a layout shift, L7). */
 .panel {
-  display: grid;
+  display: none;
   gap: 12px;
   padding: var(--sp-space-card);
   border-radius: var(--sp-radius-card);
@@ -259,4 +262,10 @@
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
   gap: var(--sp-space-card);
+}
+
+@media (min-width: 600px) {
+  .panel {
+    display: grid;
+  }
 }

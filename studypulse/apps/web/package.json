@@ -9,7 +9,9 @@
     "lint": "eslint .",
     "typecheck": "next typegen && tsc --noEmit",
     "test": "vitest run",
-    "a11y": "node scripts/a11y-audit.mjs"
+    "a11y": "node scripts/a11y-audit.mjs",
+    "browsers": "node scripts/browser-matrix.mjs",
+    "lighthouse": "node scripts/lighthouse.mjs"
   },
   "dependencies": {
     "@sentry/nextjs": "^10.75.3",
@@ -35,6 +37,7 @@
     "eslint-config-next": "16.3.6",
     "eslint-config-prettier": "^10.1.8",
     "jsdom": "^30.1.1",
+    "lighthouse": "12.8.2",
     "playwright": "1.56.1",
     "typescript": "~6.0.3",
     "vitest": "^5.0.1"

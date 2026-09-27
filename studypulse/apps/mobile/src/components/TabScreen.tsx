@@ -1,11 +1,13 @@
 // The frame for every signed-in screen: one header with the screen's single primary
 // action and an overflow menu, a Settings button, pull to refresh, and the first-load
 // and error states. Content keeps a readable width on tablets.
+import { offlineMessage } from "@studypulse/core/screens";
 import { Link } from "expo-router";
 import type { ReactNode } from "react";
 import { Pressable, RefreshControl, ScrollView, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
+import { dismissRefused, useOffline } from "../lib/offline";
 import { useAppTheme } from "../theme";
 import { Icon } from "./ui/Icon";
 import type { MenuItem } from "./ui/OverflowMenu";
@@ -93,6 +95,7 @@ export function TabScreen({
           </Link>
         ) : null}
       </View>
+      <OfflineBanner />
       {error ? (
         <Notice
           tone="error"
@@ -138,5 +141,28 @@ export function ListCard({ children, label }: { children: ReactNode; label?: str
     >
       {children}
     </View>
+  );
+}
+
+/**
+ * "You're offline. Showing what was saved at 3:05 PM. 2 changes will sync…" while there
+ * is no connection or changes are waiting (L2), and a note if a queued change was refused.
+ */
+function OfflineBanner() {
+  const state = useOffline();
+  if (state.refused) {
+    return (
+      <Notice tone="error" action={{ label: "OK", onPress: dismissRefused }}>
+        {state.refused}
+      </Notice>
+    );
+  }
+  if (!state.offline && state.pending === 0) return null;
+  return (
+    <Notice>
+      {state.offline
+        ? offlineMessage(state)
+        : `Syncing ${String(state.pending)} ${state.pending === 1 ? "change" : "changes"}…`}
+    </Notice>
   );
 }

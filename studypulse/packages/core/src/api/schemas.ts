@@ -151,6 +151,47 @@ export const coursesOverviewSchema = z.object({
   ),
 });
 export type CoursesOverview = z.infer<typeof coursesOverviewSchema>;
+
+/** What api.courses.get returns; used to check a saved copy before showing it offline (L2). */
+export const courseDetailSchema = z.object({
+  course: z.object({
+    id: uuidSchema,
+    name: z.string(),
+    code: z.string().nullable(),
+    color: z.string().nullable(),
+    instructor: z.string().nullable(),
+    term_start: z.string().nullable(),
+    term_end: z.string().nullable(),
+    target_grade: z.number().nullable(),
+    // Parsed with letterScaleSchema where it's used.
+    letter_scale: z.unknown(),
+    archived_at: z.string().nullable(),
+  }),
+  categories: z.array(
+    z.object({
+      id: uuidSchema,
+      name: z.string(),
+      weight: z.number(),
+      drop_lowest: z.number(),
+      position: z.number(),
+    }),
+  ),
+  assignments: z.array(
+    z.object({
+      id: uuidSchema,
+      title: z.string(),
+      kind: z.enum(ASSIGNMENT_KINDS),
+      status: z.enum(["todo", "in_progress", "done", "skipped"]),
+      due_at: z.string().nullable(),
+      category_id: uuidSchema.nullable(),
+      points_earned: z.number().nullable(),
+      points_possible: z.number().nullable(),
+      source: z.string(),
+    }),
+  ),
+  timezone: z.string(),
+});
+export type CourseDetail = z.infer<typeof courseDetailSchema>;
 export type CourseCard = CoursesOverview["courses"][number];
 
 const focusCourseFields = {

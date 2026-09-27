@@ -38,6 +38,13 @@ interface PostgrestLikeError {
 /** Maps Postgres/PostgREST error codes (including our custom SQLSTATEs) to ApiError. */
 export function fromPostgrestError(error: PostgrestLikeError): ApiError {
   const code = error.code ?? "";
+  // supabase-js reports a request that never reached the server (offline, DNS, timeout)
+  // with an empty code; every PostgREST and Postgres error has one (launch audit L2).
+  if (code === "") {
+    return new ApiError(503, "network_error", "Couldn't reach StudyPulse. Check your connection.", {
+      cause: error,
+    });
+  }
   const table: Record<string, [number, string]> = {
     "42501": [403, "forbidden"],
     PGRST301: [401, "unauthorized"],
@@ -60,4 +67,12 @@ export function fromPostgrestError(error: PostgrestLikeError): ApiError {
   };
   const [status, mapped] = table[code] ?? [500, "database_error"];
   return new ApiError(status, mapped, error.message, { cause: error });
+}
+
+/** True when the request never reached StudyPulse (offline), so it's safe to retry later. */
+export function isNetworkError(error: unknown): boolean {
+  return (
+    (error instanceof ApiError && error.code === "network_error") ||
+    (error instanceof TypeError && /fetch|network|load failed/i.test(error.message))
+  );
 }

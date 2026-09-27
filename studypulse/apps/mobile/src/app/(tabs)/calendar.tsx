@@ -2,7 +2,7 @@
 // already places every item on the student's local date. Previous, Next, and This week
 // are buttons; swiping the agenda sideways is a shortcut for the same thing. Tablets show
 // the days in two columns.
-import type { CalendarItem } from "@studypulse/core/api";
+import { calendarRangeSchema, type CalendarItem } from "@studypulse/core/api";
 import {
   dayLabel,
   daySummary,
@@ -22,6 +22,7 @@ import { Pressable, Text, View } from "react-native";
 import { ListCard, TabScreen } from "../../components/TabScreen";
 import { CourseChip, Icon, useHorizontalSwipe } from "../../components/ui";
 import { useLoad, useWindowClass } from "../../lib/hooks";
+import { cached } from "../../lib/offline";
 import { getApi } from "../../lib/supabase";
 import { useAppTheme } from "../../theme";
 
@@ -33,7 +34,11 @@ export default function CalendarScreen() {
   const size = useWindowClass();
   const [anchor, setAnchor] = useState<IsoDate>(deviceToday);
   const range = useMemo(() => rangeFor("week", anchor), [anchor]);
-  const fetcher = useCallback(() => getApi().calendar.range(range), [range]);
+  const fetcher = useCallback(
+    () =>
+      cached(`calendar.${range.from}`, calendarRangeSchema, () => getApi().calendar.range(range)),
+    [range],
+  );
   const { data, error, refreshing, refresh } = useLoad(fetcher);
 
   const previous = useCallback(() => {

@@ -1,6 +1,6 @@
 // Courses: one card per active course with its code, current grade against the target,
 // and the next thing due (get_courses_overview). The primary action uploads a syllabus.
-import type { CourseCard } from "@studypulse/core/api";
+import { coursesOverviewSchema, type CourseCard } from "@studypulse/core/api";
 import { dueText, formatPercent, targetStatus } from "@studypulse/core/screens";
 import { courseSwatch } from "@studypulse/tokens/native";
 import { router } from "expo-router";
@@ -10,11 +10,15 @@ import { Pressable, Text, View } from "react-native";
 import { TabScreen } from "../../components/TabScreen";
 import { CourseChip, EmptyState, Icon, OverflowMenu, useUndoDelete } from "../../components/ui";
 import { useLoad, useWindowClass } from "../../lib/hooks";
+import { cached } from "../../lib/offline";
 import { getApi } from "../../lib/supabase";
 import { useAppTheme } from "../../theme";
 
 async function loadCourses() {
-  return { overview: await getApi().courses.overview(), now: new Date() };
+  const overview = await cached("courses.overview", coursesOverviewSchema, () =>
+    getApi().courses.overview(),
+  );
+  return { overview, now: new Date() };
 }
 
 export default function CoursesScreen() {

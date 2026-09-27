@@ -3,7 +3,7 @@ import type { Database } from "@studypulse/db";
 import { describe, expect, it } from "vitest";
 
 import { createApiClient } from "./client.ts";
-import { ApiError, fromPostgrestError } from "./errors.ts";
+import { ApiError, fromPostgrestError, isNetworkError } from "./errors.ts";
 
 interface Call {
   kind: "rpc" | "invoke";
@@ -216,6 +216,12 @@ describe("calls", () => {
       status: 500,
       code: "database_error",
     });
+    // What supabase-js returns when the request never left the device.
+    const offline = fromPostgrestError({ code: "", message: "TypeError: Network request failed" });
+    expect(offline).toMatchObject({ status: 503, code: "network_error" });
+    expect(isNetworkError(offline)).toBe(true);
+    expect(isNetworkError(new TypeError("Failed to fetch"))).toBe(true);
+    expect(isNetworkError(fromPostgrestError({ code: "42501", message: "denied" }))).toBe(false);
   });
 
   it("maps edge function error bodies", async () => {

@@ -7,6 +7,7 @@ import { SiteFooter } from "../legal/BusinessInfo";
 import { Icon } from "../ui/icons";
 import { FocusFab } from "./FocusFab";
 import { NavLinks } from "./NavLinks";
+import { OfflineBanner } from "./OfflineBanner";
 import { RouteFocus } from "./RouteFocus";
 import { Shortcuts } from "./Shortcuts";
 import styles from "./shell.module.css";
@@ -84,6 +85,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
       <div className={styles.body}>
         <main id="main" tabIndex={-1} className={styles.main}>
+          <OfflineBanner />
           {children}
         </main>
         <SiteFooter />

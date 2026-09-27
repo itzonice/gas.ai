@@ -2,7 +2,7 @@
 // from @studypulse/core/grades, the same as the web); category weights; and every
 // assignment as a list. "Add score" opens a sheet; each row's checkbox marks it done,
 // and swiping a row is a shortcut for the same actions as its menu.
-import { ApiError, type ApiClient } from "@studypulse/core/api";
+import { ApiError, courseDetailSchema, type CourseDetail } from "@studypulse/core/api";
 import {
   currentGrade,
   findFinalExam,
@@ -38,17 +38,22 @@ import {
 } from "../../components/ui";
 import { errorMessage } from "../../lib/errors";
 import { announce, useLoad } from "../../lib/hooks";
+import { cached, write } from "../../lib/offline";
 import { getApi } from "../../lib/supabase";
 import { useAppTheme } from "../../theme";
 
-type CourseDetail = Awaited<ReturnType<ApiClient["courses"]["get"]>>;
 type Assignment = CourseDetail["assignments"][number];
 
 export default function CourseDetailScreen() {
   const theme = useAppTheme();
   const { courseId } = useLocalSearchParams<{ courseId: string }>();
   const fetcher = useCallback(
-    async () => ({ detail: await getApi().courses.get(courseId), now: new Date() }),
+    async () => ({
+      detail: await cached(`course.${courseId}`, courseDetailSchema, () =>
+        getApi().courses.get(courseId),
+      ),
+      now: new Date(),
+    }),
     [courseId],
   );
   const { data, error, failure, refreshing, refresh, reload } = useLoad(fetcher);
@@ -92,7 +97,7 @@ export default function CourseDetailScreen() {
   async function toggle(a: Assignment, next: boolean) {
     setDone((s) => ({ ...s, [a.id]: next }));
     try {
-      await getApi().assignments.update({ id: a.id, status: next ? "done" : "todo" });
+      await write({ kind: "assignment.status", id: a.id, status: next ? "done" : "todo" });
       say(next ? `${a.title} marked done.` : `${a.title} marked not done.`);
     } catch {
       setDone((s) => ({ ...s, [a.id]: !next }));
@@ -476,11 +481,12 @@ function ScoreSheet({
     if (Object.keys(next).length || e === null || p === null) return;
     setBusy(true);
     try {
-      await getApi().assignments.update({
+      // Offline, the score waits in the outbox and syncs later (L2).
+      await write({
+        kind: "assignment.score",
         id: selected.id,
         pointsEarned: e,
         pointsPossible: p,
-        status: "done",
       });
       const id = selected.id;
       setDrafts((d) => {

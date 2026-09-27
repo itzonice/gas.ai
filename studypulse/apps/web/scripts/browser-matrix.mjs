@@ -5,9 +5,9 @@
 //   BM_BASE_URL=https://preview.example pnpm --filter @studypulse/web browsers
 //
 // Signs in as the demo account and, in each browser: loads every screen, moves around the
-// calendar grid with the arrow keys, opens the shortcuts list with "?", starts and pauses
-// the focus timer and checks the clock counts down, and opens and closes the Add score
-// dialog. Any uncaught page error
+// calendar grid with the arrow keys, opens the shortcuts list with "?", shows the offline
+// banner when the connection drops, starts and pauses the focus timer and checks the
+// clock counts down, and opens and closes the Add score dialog. Any uncaught page error
 // or failed step fails the run; console errors are listed in the report. Browsers that
 // aren't installed are reported, not skipped silently.
 import { writeFileSync } from "node:fs";
@@ -171,6 +171,15 @@ async function run(browserName, size) {
         await page.keyboard.press("Escape");
       });
     }
+
+    await check("offline banner", async () => {
+      await page.goto(`${BASE}/today`);
+      await page.getByRole("heading", { level: 1, name: "Today" }).waitFor();
+      await context.setOffline(true);
+      await page.getByText("You're offline.").waitFor({ timeout: 5_000 });
+      await context.setOffline(false);
+      await page.getByText("You're offline.").waitFor({ state: "hidden", timeout: 5_000 });
+    });
 
     await check("focus timer counts down, pauses, ends", async () => {
       await page.goto(`${BASE}/focus`);

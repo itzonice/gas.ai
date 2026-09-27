@@ -2,7 +2,7 @@
 // next exam. Everything is computed on the server (get_today_overview, get_today_feed);
 // this screen renders it and saves checkbox changes. Swipe right marks a row done and
 // swipe left starts focus on it; both are also buttons (checkbox, overflow menu).
-import type { TodayFeedRow } from "@studypulse/core/api";
+import { todayFeedRowSchema, todayOverviewSchema, type TodayFeedRow } from "@studypulse/core/api";
 import {
   atRiskStatus,
   dayLabel,
@@ -16,16 +16,22 @@ import {
 import { router } from "expo-router";
 import { useState } from "react";
 import { Text, View } from "react-native";
+import { z } from "zod";
 
 import { ListCard, SectionHeading, TabScreen } from "../../components/TabScreen";
 import { EmptyState, MetricCard, MetricGrid, Notice, SwipeRow, TaskRow } from "../../components/ui";
 import { announce, useLoad } from "../../lib/hooks";
+import { cached, write } from "../../lib/offline";
 import { getApi } from "../../lib/supabase";
 import { useAppTheme } from "../../theme";
 
 async function loadToday() {
   const api = getApi();
-  const [overview, feed] = await Promise.all([api.today.overview(), api.today.feed()]);
+  // Saved as they arrive; offline, the saved copies are shown (L2).
+  const [overview, feed] = await Promise.all([
+    cached("today.overview", todayOverviewSchema, () => api.today.overview()),
+    cached("today.feed", z.array(todayFeedRowSchema), () => api.today.feed()),
+  ]);
   return { overview, feed, now: new Date() };
 }
 
@@ -44,11 +50,12 @@ export default function TodayScreen() {
   async function toggle(row: TodayFeedRow, next: boolean) {
     setDone((s) => ({ ...s, [row.item_id]: next }));
     try {
-      if (row.item_type === "review") {
-        await getApi().plan.setBlockStatus({ id: row.item_id, status: next ? "done" : "planned" });
-      } else {
-        await getApi().assignments.update({ id: row.item_id, status: next ? "done" : "todo" });
-      }
+      // Offline, the change waits in the outbox and syncs later (L2).
+      await write(
+        row.item_type === "review"
+          ? { kind: "block.status", id: row.item_id, status: next ? "done" : "planned" }
+          : { kind: "assignment.status", id: row.item_id, status: next ? "done" : "todo" },
+      );
       say(next ? `${row.title} marked done.` : `${row.title} marked not done.`);
     } catch {
       setDone((s) => ({ ...s, [row.item_id]: !next }));

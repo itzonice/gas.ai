@@ -4,9 +4,12 @@
 // block (AGE_BLOCK_KEY) is left alone on purpose: it must outlast a sign-out.
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
+import { resetOffline } from "./offline";
+
 export const APP_STORAGE_PREFIX = "studypulse.";
 
 export async function clearAppStorage(): Promise<void> {
+  resetOffline();
   try {
     const keys = await AsyncStorage.getAllKeys();
     const ours = keys.filter((k) => k.startsWith(APP_STORAGE_PREFIX));

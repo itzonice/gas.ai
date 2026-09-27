@@ -30,7 +30,8 @@
     "react-native-purchases": "~10.10.2",
     "react-native-safe-area-context": "~5.7.0",
     "react-native-screens": "~4.26.2",
-    "react-native-url-polyfill": "^4.0.0"
+    "react-native-url-polyfill": "^4.0.0",
+    "zod": "^4.6.5"
   },
   "devDependencies": {
     "@types/react": "~19.2.2",

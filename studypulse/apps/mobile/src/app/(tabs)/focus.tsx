@@ -4,7 +4,7 @@
 // timestamps, so the clock is right after the app was in the background. VoiceOver and
 // TalkBack hear only start, pause, and finish, never the clock ticking.
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { ApiError, type FocusOverview } from "@studypulse/core/api";
+import { ApiError, focusOverviewSchema, type FocusOverview } from "@studypulse/core/api";
 import {
   alertText,
   announce as say,
@@ -50,6 +50,7 @@ import {
 } from "../../components/ui";
 import { errorMessage } from "../../lib/errors";
 import { announce } from "../../lib/hooks";
+import { cached, offlineNow, write } from "../../lib/offline";
 import { getApi } from "../../lib/supabase";
 import { uuid } from "../../lib/uuid";
 import { useAppTheme } from "../../theme";
@@ -122,10 +123,16 @@ export default function FocusScreen() {
   }, []);
 
   const refresh = useCallback(async () => {
-    const next = await getApi().sessions.overview({
-      ...(assignmentId ? { assignmentId } : {}),
-      ...(blockId ? { blockId } : {}),
-    });
+    const fetch = () =>
+      getApi().sessions.overview({
+        ...(assignmentId ? { assignmentId } : {}),
+        ...(blockId ? { blockId } : {}),
+      });
+    // The plain Focus tab is saved for offline use; links to a task always ask the server.
+    const next =
+      assignmentId || blockId
+        ? await fetch()
+        : await cached("focus.overview", focusOverviewSchema, fetch);
     setOverview(next);
     return next;
   }, [assignmentId, blockId]);
@@ -135,7 +142,9 @@ export default function FocusScreen() {
   const load = useCallback(async () => {
     try {
       const [next, stored] = await Promise.all([refresh(), readStoredRun()]);
-      const current = reconcile(stored, next.running);
+      // Offline, or with timer changes still waiting to sync, the server doesn't know
+      // about this device's run yet: keep it as it is (L2).
+      const current = offlineNow() ? stored : reconcile(stored, next.running);
       setRun(current);
       setTarget(current?.target ?? (next.linked ? targetFromLinked(next.linked) : null));
       setLength(current?.lengthMinutes ?? defaultLength(next.linked?.block_minutes));
@@ -163,10 +172,11 @@ export default function FocusScreen() {
       setBusy(true);
       setError("");
       try {
-        await getApi().sessions.start({
+        await write({
+          kind: "session.start",
           id: sessionId,
           courseId: base.target.courseId,
-          ...(base.target.assignmentId ? { assignmentId: base.target.assignmentId } : {}),
+          assignmentId: base.target.assignmentId,
           startedAt,
         });
         setNow(new Date());
@@ -200,7 +210,7 @@ export default function FocusScreen() {
     const paused: FocusRun = { ...run, doneMs: elapsedMs(run, at), current: null };
     setBusy(true);
     try {
-      await getApi().sessions.stop({ id: run.current.sessionId, endedAt: at.toISOString() });
+      await write({ kind: "session.stop", id: run.current.sessionId, endedAt: at.toISOString() });
       setRun(paused);
       setNow(at);
       announce(say.pause(paused, at));
@@ -220,10 +230,15 @@ export default function FocusScreen() {
       const studied = elapsedMs(run, endAt);
       setBusy(true);
       try {
-        if (run.current && endAt.getTime() > new Date(run.current.startedAt).getTime()) {
-          await getApi().sessions.stop({ id: run.current.sessionId, endedAt: endAt.toISOString() });
-        } else if (run.current) {
-          await getApi().sessions.stop({ id: run.current.sessionId });
+        if (run.current) {
+          // Less than a moment long: stop it "now" (it must still be stopped).
+          const stopAt =
+            endAt.getTime() > new Date(run.current.startedAt).getTime() ? endAt : new Date();
+          await write({
+            kind: "session.stop",
+            id: run.current.sessionId,
+            endedAt: stopAt.toISOString(),
+          });
         }
         setRun(null);
         setLength(run.lengthMinutes);

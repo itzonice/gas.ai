@@ -14,6 +14,7 @@ import { Screen } from "../components/Screen";
 import { Button } from "../components/ui/Button";
 import { env } from "../env";
 import { clearAppStorage } from "../lib/app-storage";
+import { flush } from "../lib/offline";
 import { getApi, getSupabase } from "../lib/supabase";
 import { resetPurchaser } from "../purchases";
 import { useSession } from "../session";
@@ -21,6 +22,8 @@ import { useAppTheme } from "../theme";
 
 /** Signs out everywhere: revokes every refresh token for this account, then clears this device. */
 export async function signOutEverywhere() {
+  // Changes made offline go up first if the connection allows (L2).
+  await flush().catch(() => undefined);
   await resetPurchaser().catch(() => undefined);
   const auth = getSupabase().auth;
   const { error } = await auth.signOut({ scope: "global" });

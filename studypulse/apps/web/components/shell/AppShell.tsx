@@ -59,16 +59,16 @@ export function AppShell({ children }: { children: ReactNode }) {
             <Icon name="search" />
           </Link>
           <Link
-            href="/notifications"
+            href="/settings#reminders-heading"
             className={`${styles.iconButton} ${styles.hideOnPhone}`}
-            aria-label="Notifications"
+            aria-label="Reminder settings"
           >
             <Icon name="notifications" />
           </Link>
           <Link
-            href="/settings/account"
+            href="/settings"
             className={`${styles.iconButton} ${styles.hideOnPhone}`}
-            aria-label="Account and profile"
+            aria-label="Account and settings"
           >
             <Icon name="account" />
           </Link>

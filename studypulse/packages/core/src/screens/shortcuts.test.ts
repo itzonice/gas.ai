@@ -35,3 +35,15 @@ describe("keyboard shortcuts", () => {
     expect(describeKeys(["g", "t"])).toBe("g then t");
   });
 });
+
+describe("search matching", () => {
+  it("needs every word, ignoring case and accents", async () => {
+    const { matches, searchTerms } = await import("./search.ts");
+    const terms = searchTerms("  bio LAB ");
+    expect(terms).toEqual(["bio", "lab"]);
+    expect(matches(terms, "Lab 3: Enzymes", "BIO 201")).toBe(true);
+    expect(matches(terms, "Lab 3: Enzymes", "CHEM 101")).toBe(false);
+    expect(matches(searchTerms("ramirez"), "Dr. Ramírez")).toBe(true);
+    expect(matches(searchTerms(""), "anything")).toBe(false);
+  });
+});

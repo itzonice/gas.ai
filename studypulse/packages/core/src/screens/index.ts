@@ -7,6 +7,7 @@ export * from "./focus.ts";
 export * from "./focus-alerts.ts";
 export * from "./format.ts";
 export * from "./onboarding.ts";
+export * from "./search.ts";
 export * from "./shortcuts.ts";
 export * from "./stats.ts";
 export * from "./syllabus.ts";

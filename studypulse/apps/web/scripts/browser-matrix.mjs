@@ -7,8 +7,9 @@
 // Signs in as the demo account and, in each browser: loads every screen, moves around the
 // calendar grid with the arrow keys, opens the shortcuts list with "?", starts and pauses
 // the focus timer and checks the clock counts down, and opens and closes the Add score
-// dialog. Any uncaught page error or failed step fails the run; console errors are
-// listed in the report. Browsers that aren't installed are reported, not skipped silently.
+// dialog. Any uncaught page error
+// or failed step fails the run; console errors are listed in the report. Browsers that
+// aren't installed are reported, not skipped silently.
 import { writeFileSync } from "node:fs";
 
 import { chromium, firefox, webkit } from "playwright";
@@ -32,11 +33,38 @@ const SCREENS = [
 const failures = [];
 const consoleErrors = [];
 
-async function step(where, name, fn) {
+/**
+ * WebKit rejects fetches that a navigation cancels (Next's link prefetches, requests of
+ * the page being left) with this message, as unhandled errors. Chromium and Firefox drop
+ * them quietly. They're listed, not failed; any other uncaught error fails the run.
+ */
+const CANCELLED_FETCH =
+  /Fetch API cannot load .* due to access control checks|^TypeError: Load failed$/;
+
+async function step(where, name, fn, page) {
   try {
     await fn();
   } catch (e) {
-    failures.push({ ...where, step: name, error: String(e).split("\n")[0].slice(0, 300) });
+    // What the page looked like, so a failure in CI can be read from the log alone.
+    const state = page
+      ? await page
+          .evaluate(() => ({
+            h1: document.querySelector("h1")?.textContent ?? null,
+            dialogs: [...document.querySelectorAll("dialog")].map((d) => ({
+              label: d.getAttribute("aria-labelledby"),
+              open: d.open,
+              size: `${String(Math.round(d.getBoundingClientRect().width))}x${String(Math.round(d.getBoundingClientRect().height))}`,
+            })),
+            focused: document.activeElement?.outerHTML.slice(0, 120) ?? null,
+          }))
+          .catch(() => null)
+      : null;
+    failures.push({
+      ...where,
+      step: name,
+      error: String(e).split("\n")[0].slice(0, 300),
+      ...(page ? { url: page.url(), state } : {}),
+    });
   }
 }
 
@@ -80,7 +108,16 @@ async function run(browserName, size) {
     ...(size.touch && browserName !== "firefox" ? { isMobile: true, hasTouch: true } : {}),
   });
   const page = await context.newPage();
+  const check = (name, fn) => step(where, name, fn, page);
   page.on("pageerror", (err) => {
+    if (CANCELLED_FETCH.test(err.message)) {
+      consoleErrors.push({
+        ...where,
+        path: new URL(page.url()).pathname,
+        text: `cancelled by navigation: ${err.message.slice(0, 200)}`,
+      });
+      return;
+    }
     failures.push({
       ...where,
       step: `uncaught error on ${new URL(page.url()).pathname}`,
@@ -98,17 +135,17 @@ async function run(browserName, size) {
   });
 
   try {
-    await step(where, "sign in", () => signIn(page));
+    await check("sign in", () => signIn(page));
 
     for (const [path, heading] of SCREENS) {
-      await step(where, `load ${path}`, async () => {
+      await check(`load ${path}`, async () => {
         await page.goto(`${BASE}${path}`);
         await page.getByRole("heading", { level: 1, name: heading }).waitFor({ timeout: 30_000 });
       });
     }
 
     if (!size.touch) {
-      await step(where, "calendar arrow keys", async () => {
+      await check("calendar arrow keys", async () => {
         await page.goto(`${BASE}/calendar`);
         const grid = page.getByRole("grid");
         await grid.waitFor();
@@ -122,17 +159,20 @@ async function run(browserName, size) {
         }
       });
 
-      await step(where, "shortcuts list", async () => {
+      await check("shortcuts list", async () => {
         await page.goto(`${BASE}/today`);
         await page.getByRole("heading", { level: 1, name: "Today" }).waitFor();
-        await page.locator("body").click({ position: { x: 5, y: 300 } });
+        // Nothing focused, so the key goes to the page (not a link or field).
+        await page.evaluate(() => {
+          if (document.activeElement instanceof HTMLElement) document.activeElement.blur();
+        });
         await page.keyboard.press("?");
         await page.getByRole("dialog", { name: "Keyboard shortcuts" }).waitFor({ timeout: 5_000 });
         await page.keyboard.press("Escape");
       });
     }
 
-    await step(where, "focus timer counts down, pauses, ends", async () => {
+    await check("focus timer counts down, pauses, ends", async () => {
       await page.goto(`${BASE}/focus`);
       const target = page.getByLabel("Working on");
       await target.waitFor();
@@ -153,10 +193,12 @@ async function run(browserName, size) {
       await page.getByRole("button", { name: "Start focus" }).first().waitFor();
     });
 
-    await step(where, "course detail and Add score dialog", async () => {
+    await check("course detail and Add score dialog", async () => {
       await page.goto(`${BASE}/courses`);
       await page.getByRole("heading", { level: 1, name: "Courses" }).waitFor();
       await page.locator("a[href^='/courses/']:not([href='/courses/upload'])").first().click();
+      await page.waitForURL(/\/courses\/[0-9a-f-]{36}$/);
+      await page.getByRole("heading", { name: "Grade categories" }).waitFor();
       await page.getByRole("button", { name: "Add score" }).first().click();
       await page.getByRole("dialog", { name: "Add score" }).waitFor();
       await page.keyboard.press("Escape");
@@ -186,7 +228,10 @@ if (consoleErrors.length) {
 }
 if (failures.length) {
   console.log(`Browser matrix: ${String(failures.length)} failure(s).`);
-  for (const f of failures) console.log(`  ${f.browser}/${f.size}: ${f.step}: ${f.error}`);
+  for (const f of failures) {
+    console.log(`  ${f.browser}/${f.size}: ${f.step}: ${f.error}`);
+    if (f.url) console.log(`      at ${f.url}; ${JSON.stringify(f.state)}`);
+  }
   process.exitCode = 1;
 } else {
   console.log(`Browser matrix: every flow passed in ${wanted.join(", ")}.`);

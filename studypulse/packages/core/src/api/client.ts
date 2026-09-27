@@ -39,6 +39,12 @@ import {
   exportCardsInputSchema,
   generateCardsRequestSchema,
   registerPushTokenInputSchema,
+  unregisterPushTokenInputSchema,
+  termsVersionSchema,
+  organizationNameSchema,
+  joinCodeSchema,
+  focusSummaryWeeksSchema,
+  privacyChoicesInputSchema,
   updateAssignmentInputSchema,
   startSessionInputSchema,
   stopSessionInputSchema,
@@ -565,7 +571,9 @@ export function createApiClient(db: Db) {
       },
       /** Records that the user accepted this Terms version (S21). */
       async acceptTerms(version: string): Promise<void> {
-        const { error } = await db.rpc("accept_terms", { p_version: version });
+        const { error } = await db.rpc("accept_terms", {
+          p_version: validate(termsVersionSchema, version),
+        });
         if (error) throw fromPostgrestError(error);
       },
       /** Saves the answers and marks onboarding done. */
@@ -685,9 +693,10 @@ export function createApiClient(db: Db) {
       },
       /** Removes this device's token (call on sign-out). */
       async unregisterPushToken(provider: "expo" | "web_push", token: string): Promise<void> {
+        const valid = validate(unregisterPushTokenInputSchema, { provider, token });
         const { error } = await db.rpc("unregister_push_token", {
-          p_provider: provider,
-          p_token: token,
+          p_provider: valid.provider,
+          p_token: valid.token,
         });
         if (error) throw fromPostgrestError(error);
       },
@@ -768,14 +777,18 @@ export function createApiClient(db: Db) {
       },
       /** Creates an organization; the caller becomes its admin. Returns the join code. */
       async create(name: string) {
-        const rows = unwrap(await db.rpc("create_organization", { p_name: name }));
+        const rows = unwrap(
+          await db.rpc("create_organization", { p_name: validate(organizationNameSchema, name) }),
+        );
         const row = rows[0];
         if (!row) throw new ApiError(500, "invalid_response", "Organization not created");
         return row;
       },
       /** Joins as a student. Focus-hour sharing stays off until setSharing(true). */
       async join(joinCode: string): Promise<string> {
-        return unwrap(await db.rpc("join_organization", { p_join_code: joinCode }));
+        return unwrap(
+          await db.rpc("join_organization", { p_join_code: validate(joinCodeSchema, joinCode) }),
+        );
       },
       async leave(organizationId: string): Promise<void> {
         const { error } = await db.rpc("leave_organization", {
@@ -791,7 +804,7 @@ export function createApiClient(db: Db) {
       async setSharing(organizationId: string, share: boolean): Promise<void> {
         const { error } = await db.rpc("set_focus_sharing", {
           p_organization_id: validate(uuidSchema, organizationId),
-          p_share: share,
+          p_share: validate(z.boolean(), share),
         });
         if (error) throw fromPostgrestError(error);
       },
@@ -800,7 +813,7 @@ export function createApiClient(db: Db) {
         return unwrap(
           await db.rpc("org_focus_summary", {
             p_organization_id: validate(uuidSchema, organizationId),
-            p_weeks: weeks,
+            p_weeks: validate(focusSummaryWeeksSchema, weeks),
           }),
         );
       },
@@ -913,10 +926,11 @@ export function createApiClient(db: Db) {
         choices: { analytics: boolean; errorReports: boolean },
         source: "banner" | "settings" | "signin",
       ): Promise<void> {
+        const valid = validate(privacyChoicesInputSchema, { ...choices, source });
         const { error } = await db.rpc("set_privacy_choices", {
-          p_analytics: choices.analytics,
-          p_error_reports: choices.errorReports,
-          p_source: source,
+          p_analytics: valid.analytics,
+          p_error_reports: valid.errorReports,
+          p_source: valid.source,
         });
         if (error) throw fromPostgrestError(error);
       },

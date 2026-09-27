@@ -42,6 +42,8 @@ jobs:
       - run: pnpm test
       # Fails on GPL, AGPL, source-available, or unreviewed dependency licenses (S27).
       - run: pnpm licenses:check
+      # Fails on any advisory for Next.js or React, or high/critical in production deps (S29).
+      - run: pnpm deps:audit
 
   secret-scan:
     name: Client bundle secret scan

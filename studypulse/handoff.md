@@ -24,6 +24,8 @@
   - S30: CI check that every edge function has auth, zod validation and a rate limit.
   - S31: gitleaks in a pre-commit hook and CI (full history), `.env*` ignored, and
     secrets, emails and syllabus text redacted from logs and Sentry.
+  - S29–S30 follow-up: SQL test 670 for `SECURITY DEFINER` functions, zod coverage of
+    every RPC argument, proxy redirect tests, and `pnpm deps:audit` in CI.
 - **Not started:** S32–S34 and L1–L10.
 - **Beta testing is still blocked:**
   - The environment's network policy denies `api.vercel.com` and `api.supabase.com`.
@@ -94,11 +96,6 @@ This session:
 
 ## 6. Next Steps
 
-- [ ] **Close the S30 gap:** extend the CI check to database functions. Flag every
-      `SECURITY DEFINER` function that doesn't check `auth.uid()` (about 120 definitions
-      in the migrations), and cover the web route handler.
-- [ ] **Close the S29 gap:** an automated test that signed-out requests to app pages are
-      redirected, and a check that Next.js is on a patched version.
 - [ ] **S32:** an admin role stored in `app_metadata`, checked server-side, with tests
       that non-admins get a 403.
 - [ ] **S33:**

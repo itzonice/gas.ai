@@ -29,7 +29,8 @@
     "secrets:scan": "node scripts/secret-scan.mjs --build",
     "licenses:check": "node scripts/license-check.mjs",
     "secrets:history": "bash scripts/gitleaks.sh history",
-    "prepare": "git config core.hooksPath studypulse/.githooks 2>/dev/null || true"
+    "prepare": "git config core.hooksPath studypulse/.githooks 2>/dev/null || true",
+    "deps:audit": "node scripts/deps-audit.mjs"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.0",

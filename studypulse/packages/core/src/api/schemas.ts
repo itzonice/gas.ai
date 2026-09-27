@@ -511,3 +511,28 @@ export type AssignmentListInput = z.input<typeof assignmentListInputSchema>;
 /** A birth month, "YYYY-MM" (launch safety S12 age gate). */
 export const birthMonthSchema = z.string().regex(/^(19|20)\d{2}-(0[1-9]|1[0-2])$/, "Use YYYY-MM");
 export const ageResultSchema = z.enum(["confirmed", "blocked"]);
+
+/** Removing this device's push token on sign-out. */
+export const unregisterPushTokenInputSchema = z.object({
+  provider: z.enum(["expo", "web_push"]),
+  token: z.string().min(1).max(2048),
+});
+
+/** A Terms of Use version: the date it took effect. */
+export const termsVersionSchema = z.iso.date();
+
+/** Organizations (prompt 66): names as the database allows, codes as it issues them. */
+export const organizationNameSchema = z.string().trim().min(1).max(200);
+export const joinCodeSchema = z
+  .string()
+  .trim()
+  .toLowerCase()
+  .regex(/^[0-9a-f]{12}$/, "Enter the 12-character join code");
+export const focusSummaryWeeksSchema = z.number().int().min(1).max(52);
+
+/** The privacy choices a user makes in the banner or Settings (S23). */
+export const privacyChoicesInputSchema = z.object({
+  analytics: z.boolean(),
+  errorReports: z.boolean(),
+  source: z.enum(["banner", "settings", "signin"]),
+});

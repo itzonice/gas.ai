@@ -587,3 +587,32 @@ Every call to Anthropic, Stripe, Expo, Resend, Google, and PostHog goes through
 - **Secrets found: none to rotate.** The only history finding was the published RFC
   8291 example keys. Test files that need key-shaped values assemble them at runtime so
   the scanner stays strict.
+
+## S29–S30 follow-up: the rest of the prompts' scope
+
+Re-reading S29 and S30 against what was built found three gaps, now closed:
+
+- **Database functions (S30).** SQL test `670_security_definer_auth` fails when a
+  `SECURITY DEFINER` function that users can call doesn't check `auth.uid()` (directly,
+  or through a helper that does, such as `private.is_org_admin`), when one can be called
+  signed out, or when one leaves `search_path` unpinned. It also pins the exact list of
+  42 RPCs signed-in users can call, so exposing a new one is a reviewed change. Of 109
+  definer functions, 27 are callable by users; all check the caller. The one reviewed
+  exception is the PostgREST pre-request guard from S5, which must run signed out.
+- **RPC arguments (S30).** `rpc-validation.test.ts` fails when an API-client method
+  passes arguments to an RPC without a zod `validate(...)`, or when an app calls
+  `.rpc(` directly. It found five methods that didn't validate (Terms acceptance,
+  removing a push token, creating and joining an organization, privacy choices); they
+  now do, along with the weeks and share arguments of two organization methods.
+- **Route handlers (S30).** The web app has one, `/api/consent-region`: public by
+  design, it takes no input and returns only whether the visitor's country needs a
+  consent banner. There are no server actions.
+- **Redirect tests and a patched Next.js (S29).** `proxy.test.ts` checks that signed-out
+  and forged-cookie requests to app pages get a 307 to sign-in with the destination
+  kept, verified users and public pages pass, and an Auth outage doesn't lock everyone
+  out. `pnpm deps:audit` runs in CI and fails on any advisory for Next.js or React, or
+  any high or critical advisory in production dependencies.
+- **Not covered, stated plainly:** Supabase has no per-function rate limits for RPCs
+  called through PostgREST. Expensive work (AI, exports, email) runs in edge functions,
+  which are rate limited per user and IP; the RPCs are bounded queries (S8 caps page
+  sizes at 100) and write paths have their own daily caps.

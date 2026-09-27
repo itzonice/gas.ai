@@ -12,3 +12,4 @@ export { SwipeRow, useHorizontalSwipe, type SwipeAction } from "./SwipeRow";
 export { TaskRow, type TaskRowProps } from "./TaskRow";
 export { TextField } from "./TextField";
 export { Sheet } from "./Sheet";
+export { useUndoDelete } from "./UndoBar";

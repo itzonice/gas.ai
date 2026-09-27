@@ -4,10 +4,15 @@
 // the web review screen, from @studypulse/core/syllabus).
 import { ApiError } from "@studypulse/core/api";
 import { itemDateText, KIND_LABELS } from "@studypulse/core/screens";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
+  draftChanged,
   draftToPayload,
   needsReview,
   parseResultSchema,
+  parseSavedDraft,
+  savedDraftKey,
+  serializeDraft,
   toReviewDraft,
   totalWeight,
   type DraftIssue,
@@ -39,7 +44,7 @@ type Load =
   | { status: "error"; message: string }
   | { status: "committed"; courseId: string | null }
   | { status: "unreadable" }
-  | { status: "ready"; uploadId: string; draft: ReviewDraft };
+  | { status: "ready"; uploadId: string; original: ReviewDraft; draft: ReviewDraft };
 
 export default function ReviewScreen() {
   const theme = useAppTheme();
@@ -49,33 +54,50 @@ export default function ReviewScreen() {
   const [issues, setIssues] = useState<DraftIssue[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [note, setNote] = useState<string | null>(null);
 
   useEffect(() => {
     let live = true;
-    getApi()
-      .syllabus.get(uploadId)
-      .then(
-        (row) => {
-          if (!live) return;
-          if (row.status === "committed") {
-            setLoad({ status: "committed", courseId: row.course_id });
-            return;
-          }
-          const parsed = parseResultSchema.safeParse(row.parse_result);
-          setLoad(
-            parsed.success
-              ? { status: "ready", uploadId: row.id, draft: toReviewDraft(parsed.data) }
-              : { status: "unreadable" },
-          );
-        },
-        (e: unknown) => {
-          if (live) setLoad({ status: "error", message: errorMessage(e) });
-        },
-      );
+    void (async () => {
+      try {
+        const row = await getApi().syllabus.get(uploadId);
+        if (!live) return;
+        if (row.status === "committed") {
+          setLoad({ status: "committed", courseId: row.course_id });
+          return;
+        }
+        const parsed = parseResultSchema.safeParse(row.parse_result);
+        if (!parsed.success) {
+          setLoad({ status: "unreadable" });
+          return;
+        }
+        // Autosave (L3): edits are kept on this device until saved, and restored here.
+        const original = toReviewDraft(parsed.data);
+        const saved = parseSavedDraft(
+          await AsyncStorage.getItem(savedDraftKey(row.id)).catch(() => null),
+          row.id,
+        );
+        if (!live) return;
+        setLoad({ status: "ready", uploadId: row.id, original, draft: saved ?? original });
+        if (saved) setNote("Your unsaved changes to this review were restored.");
+      } catch (e) {
+        if (live) setLoad({ status: "error", message: errorMessage(e) });
+      }
+    })();
     return () => {
       live = false;
     };
   }, [uploadId]);
+
+  const readyDraft = load.status === "ready" ? load : null;
+  useEffect(() => {
+    if (!readyDraft) return;
+    const key = savedDraftKey(readyDraft.uploadId);
+    const write = draftChanged(readyDraft.original, readyDraft.draft)
+      ? AsyncStorage.setItem(key, serializeDraft(readyDraft.uploadId, readyDraft.draft))
+      : AsyncStorage.removeItem(key);
+    write.catch(() => undefined);
+  }, [readyDraft]);
 
   const frame = (
     children: ReactNode,
@@ -160,6 +182,7 @@ export default function ReviewScreen() {
     setSaving(true);
     try {
       const courseId = await getApi().syllabus.commit(load.uploadId, out.payload);
+      await AsyncStorage.removeItem(savedDraftKey(load.uploadId)).catch(() => undefined);
       announce("Saved to your calendar.");
       router.replace(`/courses/${courseId}`);
     } catch (e) {
@@ -191,6 +214,7 @@ export default function ReviewScreen() {
             : { detail: "Everything is checked" })}
         />
       </MetricGrid>
+      {note ? <Notice>{note}</Notice> : null}
       {error ? <Notice tone="error">{error}</Notice> : null}
       {otherIssues.map((i) => (
         <Notice key={i.path} tone="error">

@@ -465,3 +465,53 @@
 .checkHint {
   padding-left: 32px;
 }
+
+/* -------------------------------------------------------------- undo toast */
+
+/* Always in the DOM so the live region is registered before a message appears. */
+.toastRegion {
+  position: fixed;
+  left: 50%;
+  bottom: calc(
+    var(--sp-layout-bottom-bar-height) + var(--sp-space-card) + 56px + var(--sp-space-related) +
+      env(safe-area-inset-bottom)
+  );
+  z-index: 12;
+  transform: translateX(-50%);
+  width: min(560px, calc(100vw - 2 * var(--sp-space-card)));
+  pointer-events: none;
+}
+@media (min-width: 600px) {
+  .toastRegion {
+    bottom: var(--sp-space-section);
+  }
+}
+.toast {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-space-related);
+  padding: var(--sp-space-related) var(--sp-space-related) var(--sp-space-related)
+    var(--sp-space-card);
+  border-radius: var(--sp-radius-control);
+  background: var(--sp-color-inverse-surface);
+  color: var(--sp-color-inverse-on-surface);
+  box-shadow: 0 3px 6px color-mix(in srgb, var(--sp-color-shadow) 25%, transparent);
+  pointer-events: auto;
+}
+.toastAction {
+  min-height: var(--sp-layout-min-target);
+  min-width: var(--sp-layout-min-target);
+  padding: 0 var(--sp-space-card);
+  border: 0;
+  border-radius: var(--sp-radius-full);
+  background: transparent;
+  color: var(--sp-color-inverse-primary);
+  font: inherit;
+  font-weight: var(--sp-type-label-large-weight);
+  cursor: pointer;
+}
+.toastAction:focus-visible {
+  outline-color: var(--sp-color-inverse-primary);
+}

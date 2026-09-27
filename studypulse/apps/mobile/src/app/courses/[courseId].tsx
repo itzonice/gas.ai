@@ -34,6 +34,7 @@ import {
   SwipeRow,
   TaskRow,
   TextField,
+  useUndoDelete,
 } from "../../components/ui";
 import { errorMessage } from "../../lib/errors";
 import { announce, useLoad } from "../../lib/hooks";
@@ -55,8 +56,23 @@ export default function CourseDetailScreen() {
   const [targetOpen, setTargetOpen] = useState(false);
   const [done, setDone] = useState<Record<string, boolean>>({});
   const [message, setMessage] = useState<{ text: string; error: boolean } | null>(null);
+  const undo = useUndoDelete({
+    onError: () => {
+      say("Couldn't delete that assignment. It's back in the list.", true);
+    },
+    onCommitted: () => void reload(),
+  });
 
-  const detail = data?.detail;
+  // Deleted assignments leave the list and the grade at once (L3).
+  const loaded = data?.detail;
+  const { hidden } = undo;
+  const detail = useMemo(
+    () =>
+      loaded
+        ? { ...loaded, assignments: loaded.assignments.filter((a) => !hidden.has(a.id)) }
+        : undefined,
+    [loaded, hidden],
+  );
   const input = useMemo(
     () =>
       detail
@@ -123,7 +139,7 @@ export default function CourseDetailScreen() {
   }
 
   const { course, categories, assignments, timezone } = detail;
-  const now = data.now;
+  const now = data?.now ?? new Date();
   const scale = letterScaleSchema.safeParse(course.letter_scale);
   const grade = currentGrade(input);
   const target = course.target_grade === null ? null : Number(course.target_grade);
@@ -322,6 +338,15 @@ export default function CourseDetailScreen() {
                           },
                         },
                         {
+                          label: "Delete assignment",
+                          destructive: true,
+                          onSelect: () => {
+                            undo.remove({ id: a.id, label: `Deleted ${a.title}.` }, () =>
+                              getApi().assignments.remove(a.id),
+                            );
+                          },
+                        },
+                        {
                           label: "Start focus on this",
                           onSelect: () => {
                             router.push({
@@ -364,6 +389,7 @@ export default function CourseDetailScreen() {
           void reload();
         }}
       />
+      {undo.bar}
       <TargetSheet
         visible={targetOpen}
         courseId={course.id}
@@ -403,16 +429,41 @@ function ScoreSheet({
   const [possible, setPossible] = useState("");
   const [errors, setErrors] = useState<{ earned?: string; possible?: string; form?: string }>({});
   const [busy, setBusy] = useState(false);
+  // Typed but unsaved scores, per assignment, kept while this screen is open (L3).
+  const [drafts, setDrafts] = useState<Record<string, ScoreFields>>({});
 
   // Fill the fields from the chosen assignment (during render, when the choice changes).
   if (selected && selected.id !== shownId) {
+    const fields = drafts[selected.id] ?? savedFields(selected);
     setShownId(selected.id);
-    setEarned(selected.points_earned === null ? "" : String(Number(selected.points_earned)));
-    setPossible(selected.points_possible === null ? "" : String(Number(selected.points_possible)));
+    setEarned(fields.earned);
+    setPossible(fields.possible);
     setErrors({});
   } else if (!selected && shownId !== null) {
     setShownId(null);
   }
+  const restored =
+    !!selected &&
+    drafts[selected.id] !== undefined &&
+    (earned !== savedFields(selected).earned || possible !== savedFields(selected).possible);
+
+  /** Keeps what's typed for the current assignment (or forgets it once it matches). */
+  function stash() {
+    if (!selected) return;
+    const saved = savedFields(selected);
+    const dirty = earned !== saved.earned || possible !== saved.possible;
+    const id = selected.id;
+    setDrafts((d) => {
+      const next = { ...d };
+      if (dirty) next[id] = { earned, possible };
+      else delete next[id];
+      return next;
+    });
+  }
+  const close = () => {
+    stash();
+    onClose();
+  };
 
   async function save() {
     if (!selected) return;
@@ -430,6 +481,12 @@ function ScoreSheet({
         pointsEarned: e,
         pointsPossible: p,
         status: "done",
+      });
+      const id = selected.id;
+      setDrafts((d) => {
+        const next = { ...d };
+        delete next[id];
+        return next;
       });
       onSaved(`Score saved for ${selected.title}.`);
     } catch (err) {
@@ -449,13 +506,19 @@ function ScoreSheet({
   if (selected && !shortlist.includes(selected)) shortlist.unshift(selected);
 
   return (
-    <Sheet visible={selected !== null} title="Add a score" onClose={onClose}>
+    <Sheet visible={selected !== null} title="Add a score" onClose={close}>
       <ChoiceChips
         label="Assignment"
         options={shortlist.map((a) => ({ value: a.id, label: a.title }))}
         value={selectedId}
-        onChange={onSelect}
+        onChange={(id) => {
+          stash();
+          onSelect(id);
+        }}
       />
+      {restored ? (
+        <Notice>This is the score you typed earlier; it isn&apos;t saved yet.</Notice>
+      ) : null}
       <TextField
         label="Points you got"
         keyboardType="decimal-pad"
@@ -477,7 +540,7 @@ function ScoreSheet({
           disabled={busy}
           onPress={() => void save()}
         />
-        <Button variant="text" label="Cancel" onPress={onClose} />
+        <Button variant="text" label="Cancel" onPress={close} />
       </View>
     </Sheet>
   );
@@ -555,4 +618,16 @@ function TargetSheet({
       </View>
     </Sheet>
   );
+}
+
+interface ScoreFields {
+  earned: string;
+  possible: string;
+}
+
+function savedFields(a: Assignment): ScoreFields {
+  return {
+    earned: a.points_earned === null ? "" : String(Number(a.points_earned)),
+    possible: a.points_possible === null ? "" : String(Number(a.points_possible)),
+  };
 }

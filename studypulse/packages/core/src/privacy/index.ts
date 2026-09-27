@@ -111,6 +111,13 @@ export const STORAGE_INVENTORY: readonly StorageItem[] = [
     lifetime: "Until the session ends",
   },
   {
+    name: "studypulse.review-draft.<upload>",
+    kind: "localStorage",
+    purpose: "Keeps your unsaved edits to a syllabus review if you leave the page.",
+    essential: true,
+    lifetime: "Until you save the review, or 14 days",
+  },
+  {
     name: "sp_age_blocked_at",
     kind: "localStorage",
     purpose: "Remembers an age check that didn't pass, for a day (required by law).",

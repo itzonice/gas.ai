@@ -8,3 +8,4 @@ export { PageHeader, type PrimaryAction } from "./PageHeader";
 export { TaskList, TaskRow, type TaskRowProps } from "./TaskRow";
 export { CheckboxField, SelectField, TextArea, TextField } from "./TextField";
 export { Dialog } from "./Dialog";
+export { useUndoDelete } from "./UndoToast";

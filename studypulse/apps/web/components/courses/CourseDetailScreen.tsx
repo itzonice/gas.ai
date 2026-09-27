@@ -18,7 +18,16 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useApi } from "@/components/auth/SessionProvider";
 import { KIND_LABELS } from "@studypulse/core/screens";
 import { dueText } from "@studypulse/core/screens";
-import { Button, EmptyState, Icon, MetricCard, MetricGrid, PageHeader } from "@/components/ui";
+import {
+  Button,
+  EmptyState,
+  Icon,
+  MetricCard,
+  MetricGrid,
+  OverflowMenu,
+  PageHeader,
+  useUndoDelete,
+} from "@/components/ui";
 
 import { AddScoreDialog } from "./AddScoreDialog";
 import styles from "./courses.module.css";
@@ -58,7 +67,23 @@ export function CourseDetailScreen({ courseId }: { courseId: string }) {
     void refresh();
   }, [refresh]);
 
-  const detail = load.status === "ready" ? load.detail : null;
+  const undo = useUndoDelete({
+    onError: () => {
+      setMessage("Couldn't delete that assignment. It's back in the list.");
+    },
+    onCommitted: () => void refresh(),
+  });
+
+  // Deleted assignments leave the list and the grade at once (L3).
+  const loaded = load.status === "ready" ? load.detail : null;
+  const { hidden } = undo;
+  const detail = useMemo(
+    () =>
+      loaded
+        ? { ...loaded, assignments: loaded.assignments.filter((a) => !hidden.has(a.id)) }
+        : null,
+    [loaded, hidden],
+  );
   const input: GradeInput | null = useMemo(
     () =>
       detail
@@ -68,6 +93,24 @@ export function CourseDetailScreen({ courseId }: { courseId: string }) {
           )
         : null,
     [detail],
+  );
+
+  function deleteAssignment(a: CourseAssignment) {
+    undo.remove({ id: a.id, label: `Deleted ${a.title}.` }, () => api.assignments.remove(a.id));
+  }
+  const assignmentMenu = (a: CourseAssignment) => (
+    <OverflowMenu
+      label={`More actions for ${a.title}`}
+      items={[
+        {
+          label: "Delete assignment",
+          destructive: true,
+          onSelect: () => {
+            deleteAssignment(a);
+          },
+        },
+      ]}
+    />
   );
 
   if (!detail || !input) {
@@ -274,6 +317,9 @@ export function CourseDetailScreen({ courseId }: { courseId: string }) {
                       Score
                     </th>
                     <th scope="col">Status</th>
+                    <th scope="col">
+                      <span className="sp-visually-hidden">Actions</span>
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
@@ -289,6 +335,7 @@ export function CourseDetailScreen({ courseId }: { courseId: string }) {
                         {formatScore(a.points_earned, a.points_possible)}
                       </td>
                       <td>{statusCell(a)}</td>
+                      <td className={styles.actions}>{assignmentMenu(a)}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -306,6 +353,7 @@ export function CourseDetailScreen({ courseId }: { courseId: string }) {
                     <span className={styles.meta}>
                       Score: {formatScore(a.points_earned, a.points_possible)} · {statusCell(a)}
                     </span>
+                    <span className={styles.listMenu}>{assignmentMenu(a)}</span>
                   </li>
                 ))}
               </ul>
@@ -316,6 +364,7 @@ export function CourseDetailScreen({ courseId }: { courseId: string }) {
         <p role="status" className="sp-visually-hidden">
           {message}
         </p>
+        {undo.toast}
       </div>
 
       <WhatIfPanel

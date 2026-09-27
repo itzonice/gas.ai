@@ -1,7 +1,9 @@
 "use client";
 
 // "Add score": pick an assignment, enter points earned (and possible). Saving marks it
-// done; the grade and plan update server-side.
+// done; the grade and plan update server-side. Typed but unsaved scores are kept per
+// assignment while the page is open (closing the dialog or switching assignments doesn't
+// lose them), and the browser asks before the page closes with one unsaved (L3).
 import { ApiError } from "@studypulse/core/api";
 import { useEffect, useState, type FormEvent } from "react";
 
@@ -33,25 +35,58 @@ export function AddScoreDialog({
   const [possible, setPossible] = useState("");
   const [errors, setErrors] = useState<Partial<Record<"earned" | "possible" | "form", string>>>({});
   const [busy, setBusy] = useState(false);
+  const [drafts, setDrafts] = useState<Record<string, ScoreFields>>({});
   const selected = assignments.find((a) => a.id === id);
+  const dirty =
+    !!selected &&
+    (earned !== savedFields(selected).earned || possible !== savedFields(selected).possible);
+  const restored = !!selected && drafts[selected.id] !== undefined && dirty;
+
+  const fieldsFor = (a: CourseAssignment | undefined) =>
+    a ? (drafts[a.id] ?? savedFields(a)) : { earned: "", possible: "" };
+
+  /** Keeps what's typed for the current assignment (or forgets it once it matches). */
+  function stash() {
+    if (!selected) return;
+    const current = { earned, possible };
+    setDrafts((d) => (dirty ? { ...d, [selected.id]: current } : omit(d, selected.id)));
+  }
 
   useEffect(() => {
     if (!open) return;
     /* eslint-disable react-hooks/set-state-in-effect -- resetting the form on open */
     const first = ordered[0];
+    const fields = fieldsFor(first);
     setId(first?.id ?? "");
-    setEarned(first?.points_earned === null || !first ? "" : String(first.points_earned));
-    setPossible(first?.points_possible === null || !first ? "" : String(first.points_possible));
+    setEarned(fields.earned);
+    setPossible(fields.possible);
     setErrors({});
     /* eslint-enable react-hooks/set-state-in-effect */
     // eslint-disable-next-line react-hooks/exhaustive-deps -- only when it opens
   }, [open]);
 
+  useEffect(() => {
+    if (!open || !dirty) return;
+    const warn = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+    };
+    window.addEventListener("beforeunload", warn);
+    return () => {
+      window.removeEventListener("beforeunload", warn);
+    };
+  }, [open, dirty]);
+
   function pick(nextId: string) {
+    stash();
     setId(nextId);
-    const a = assignments.find((x) => x.id === nextId);
-    setEarned(a?.points_earned === null || !a ? "" : String(a.points_earned));
-    setPossible(a?.points_possible === null || !a ? "" : String(a.points_possible));
+    const fields = fieldsFor(assignments.find((x) => x.id === nextId));
+    setEarned(fields.earned);
+    setPossible(fields.possible);
+  }
+
+  function close() {
+    stash();
+    onClose();
   }
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
@@ -73,6 +108,7 @@ export function AddScoreDialog({
         pointsPossible: p,
         status: "done",
       });
+      setDrafts((d) => omit(d, selected.id));
       onSaved(`Score saved for ${selected.title}.`);
     } catch (err) {
       setErrors({
@@ -91,12 +127,12 @@ export function AddScoreDialog({
   return (
     <Dialog
       open={open}
-      onClose={onClose}
+      onClose={close}
       labelledBy="add-score-title"
       title="Add score"
       footer={
         <>
-          <Button variant="text" onClick={onClose}>
+          <Button variant="text" onClick={close}>
             Cancel
           </Button>
           <Button variant="filled" type="submit" form="add-score-form" disabled={busy || !selected}>
@@ -117,6 +153,11 @@ export function AddScoreDialog({
           {errors.form ? (
             <p role="alert" className={styles.alert}>
               {errors.form}
+            </p>
+          ) : null}
+          {restored ? (
+            <p className={styles.note}>
+              This is the score you typed earlier; it isn&apos;t saved yet.
             </p>
           ) : null}
           <SelectField
@@ -169,4 +210,22 @@ export function AddScoreDialog({
       )}
     </Dialog>
   );
+}
+
+interface ScoreFields {
+  earned: string;
+  possible: string;
+}
+
+function savedFields(a: CourseAssignment): ScoreFields {
+  return {
+    earned: a.points_earned === null ? "" : String(a.points_earned),
+    possible: a.points_possible === null ? "" : String(a.points_possible),
+  };
+}
+
+function omit(drafts: Record<string, ScoreFields>, id: string): Record<string, ScoreFields> {
+  const next = { ...drafts };
+  delete next[id];
+  return next;
 }

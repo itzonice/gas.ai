@@ -339,6 +339,15 @@ export function createApiClient(db: Db) {
           timezone: profile.data?.timezone ?? "UTC",
         };
       },
+      /**
+       * Deletes a course and everything in it (assignments, sessions, study blocks,
+       * cards). The apps call this only after the undo window closes (launch audit L3).
+       */
+      async remove(courseId: string): Promise<void> {
+        const id = validate(uuidSchema, courseId);
+        const { error } = await db.from("courses").delete().eq("id", id);
+        if (error) throw fromPostgrestError(error);
+      },
       /** The grade the student is aiming for (null to clear it). */
       async setTarget(input: CourseTargetInput): Promise<void> {
         const { courseId, targetGrade } = validate(courseTargetInputSchema, input);

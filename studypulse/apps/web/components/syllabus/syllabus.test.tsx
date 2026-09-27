@@ -106,6 +106,7 @@ const row = (extra: Record<string, unknown> = {}) => ({
 
 beforeEach(() => {
   vi.clearAllMocks();
+  window.localStorage.clear();
   api.syllabus.get.mockResolvedValue(row());
   api.syllabus.commit.mockResolvedValue("course-1");
   api.settings.get.mockResolvedValue(withAi(true));
@@ -145,6 +146,37 @@ describe("ReviewScreen", () => {
     expect(screen.getByRole("button", { name: /^Quiz week 5/ })).toHaveTextContent(
       "Mon, Feb 15 at 9:00 AM",
     );
+  });
+
+  it("keeps unsaved edits in this browser and restores them on return (L3)", async () => {
+    const user = userEvent.setup();
+    const first = render(<ReviewScreen uploadId={uploadId} />);
+    await user.click(await screen.findByRole("checkbox", { name: "Include HW 1 in schedule" }));
+    first.unmount();
+
+    render(<ReviewScreen uploadId={uploadId} />);
+    expect(
+      await screen.findByText("Your unsaved changes to this review were restored."),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("checkbox", { name: "Include HW 1 in schedule" })).not.toBeChecked();
+
+    // Saving clears the kept copy.
+    await user.click(screen.getByRole("button", { name: "Save to calendar" }));
+    expect(window.localStorage.getItem(`studypulse.review-draft.${uploadId}`)).toBeNull();
+  });
+
+  it("warns before leaving the page with unsaved edits", async () => {
+    const user = userEvent.setup();
+    render(<ReviewScreen uploadId={uploadId} />);
+    const leave = () => {
+      const event = new Event("beforeunload", { cancelable: true });
+      window.dispatchEvent(event);
+      return event.defaultPrevented;
+    };
+    await screen.findByRole("checkbox", { name: "Include HW 1 in schedule" });
+    expect(leave()).toBe(false);
+    await user.click(screen.getByRole("checkbox", { name: "Include HW 1 in schedule" }));
+    expect(leave()).toBe(true);
   });
 
   it("saves the reviewed schedule, leaving out unchecked items", async () => {

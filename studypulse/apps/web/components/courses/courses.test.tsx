@@ -15,8 +15,8 @@ vi.mock("next/link", () => ({
 }));
 
 const api = {
-  courses: { overview: vi.fn(), get: vi.fn(), setTarget: vi.fn() },
-  assignments: { update: vi.fn() },
+  courses: { overview: vi.fn(), get: vi.fn(), setTarget: vi.fn(), remove: vi.fn() },
+  assignments: { update: vi.fn(), remove: vi.fn() },
 };
 vi.mock("@/components/auth/SessionProvider", () => ({ useApi: () => api }));
 
@@ -109,6 +109,8 @@ beforeEach(() => {
   api.courses.get.mockResolvedValue(detail);
   api.assignments.update.mockResolvedValue({});
   api.courses.setTarget.mockResolvedValue(undefined);
+  api.courses.remove.mockResolvedValue(undefined);
+  api.assignments.remove.mockResolvedValue(undefined);
 });
 
 describe("CoursesScreen", () => {
@@ -125,6 +127,29 @@ describe("CoursesScreen", () => {
       "href",
       "/courses/upload",
     );
+  });
+
+  it("deletes a course with an undo toast instead of a confirmation (L3)", async () => {
+    const user = userEvent.setup();
+    const view = render(<CoursesScreen />);
+    await user.click(await screen.findByRole("button", { name: "More actions for BIO 201" }));
+    await user.click(screen.getByRole("menuitem", { name: "Delete course" }));
+    expect(screen.queryByRole("link", { name: /BIO 201/ })).not.toBeInTheDocument();
+    expect(screen.getByText("Deleted BIO 201 and its assignments.")).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Undo" }));
+    expect(screen.getByRole("link", { name: /BIO 201/ })).toBeInTheDocument();
+    view.unmount();
+    expect(api.courses.remove).not.toHaveBeenCalled();
+  });
+
+  it("really deletes when the screen closes before Undo", async () => {
+    const user = userEvent.setup();
+    const view = render(<CoursesScreen />);
+    await user.click(await screen.findByRole("button", { name: "More actions for BIO 201" }));
+    await user.click(screen.getByRole("menuitem", { name: "Delete course" }));
+    expect(api.courses.remove).not.toHaveBeenCalled();
+    view.unmount();
+    expect(api.courses.remove).toHaveBeenCalledWith(courseId);
   });
 
   it("offers an upload when there are no courses", async () => {
@@ -191,6 +216,36 @@ describe("CourseDetailScreen", () => {
       status: "done",
     });
     expect(api.courses.get).toHaveBeenCalledTimes(2);
+  });
+
+  it("deletes an assignment with undo, and the grade updates at once (L3)", async () => {
+    const user = userEvent.setup();
+    const view = render(<CourseDetailScreen courseId={courseId} />);
+    const table = await screen.findByRole("table", { name: /Assignments in BIO 201 Biology/ });
+    await user.click(within(table).getByRole("button", { name: "More actions for Midterm" }));
+    await user.click(screen.getByRole("menuitem", { name: "Delete assignment" }));
+    expect(within(table).queryByRole("row", { name: /Midterm/ })).not.toBeInTheDocument();
+    expect(screen.getByText("Deleted Midterm.")).toBeInTheDocument();
+    // Without the midterm, only homework is graded: 90%.
+    const metrics = screen.getByRole("list", { name: "Grade" });
+    expect(within(metrics).getByText("Current grade").nextSibling).toHaveTextContent("90%");
+    view.unmount();
+    expect(api.assignments.remove).toHaveBeenCalledWith("m1");
+  });
+
+  it("keeps a typed score when the dialog is closed without saving (L3)", async () => {
+    const user = userEvent.setup();
+    render(<CourseDetailScreen courseId={courseId} />);
+    await user.click(await screen.findByRole("button", { name: "Add score" }));
+    let dialog = screen.getByRole("dialog", { name: "Add score" });
+    await user.type(within(dialog).getByLabelText("Points earned"), "7");
+    await user.click(within(dialog).getByRole("button", { name: "Cancel" }));
+    expect(api.assignments.update).not.toHaveBeenCalled();
+
+    await user.click(screen.getByRole("button", { name: "Add score" }));
+    dialog = screen.getByRole("dialog", { name: "Add score" });
+    expect(within(dialog).getByLabelText("Points earned")).toHaveValue(7);
+    expect(within(dialog).getByText(/score you typed earlier/)).toBeInTheDocument();
   });
 
   it("says when a course doesn't exist", async () => {

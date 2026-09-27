@@ -5,9 +5,13 @@
 // commits the reviewed draft with commit_parsed_syllabus.
 import { ApiError } from "@studypulse/core/api";
 import {
+  draftChanged,
   draftToPayload,
   needsReview,
   parseResultSchema,
+  parseSavedDraft,
+  savedDraftKey,
+  serializeDraft,
   toReviewDraft,
   totalWeight,
   type DraftIssue,
@@ -132,13 +136,35 @@ function groupIssues(list: DraftIssue[]): Issues {
 function ReviewEditor({ row, result }: { row: UploadRow; result: ParseResult }) {
   const api = useApi();
   const router = useRouter();
-  const [draft, setDraft] = useState<ReviewDraft>(() => toReviewDraft(result));
+  // Autosave (L3): edits are kept in this browser until saved, and restored on return.
+  const [original] = useState<ReviewDraft>(() => toReviewDraft(result));
+  const [restored] = useState<ReviewDraft | null>(() => readSavedDraft(row.id));
+  const [draft, setDraft] = useState<ReviewDraft>(() => restored ?? original);
   const [openKey, setOpenKey] = useState<string | null>(null);
   const [issues, setIssues] = useState<Issues>(noIssues);
   const [error, setError] = useState<{ text: string; upgrade?: boolean } | null>(null);
   const [saving, setSaving] = useState(false);
-  const [message, setMessage] = useState("");
+  const [message, setMessage] = useState(
+    restored ? "Your unsaved changes to this review were restored." : "",
+  );
   const alertRef = useRef<HTMLDivElement>(null);
+  const changed = draftChanged(original, draft);
+
+  useEffect(() => {
+    writeSavedDraft(row.id, changed && !saving ? draft : null);
+  }, [row.id, draft, changed, saving]);
+
+  // Leaving with unsaved changes: the browser asks first (the draft is also kept).
+  useEffect(() => {
+    if (!changed || saving) return;
+    const warn = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+    };
+    window.addEventListener("beforeunload", warn);
+    return () => {
+      window.removeEventListener("beforeunload", warn);
+    };
+  }, [changed, saving]);
 
   useEffect(() => {
     if (error) alertRef.current?.focus();
@@ -236,6 +262,7 @@ function ReviewEditor({ row, result }: { row: UploadRow; result: ParseResult }) 
     setSaving(true);
     try {
       const courseId = await api.syllabus.commit(row.id, out.payload);
+      writeSavedDraft(row.id, null);
       router.push(`/courses/${courseId}`);
     } catch (e) {
       setSaving(false);
@@ -640,4 +667,22 @@ function ReviewEditor({ row, result }: { row: UploadRow; result: ParseResult }) 
       />
     </div>
   );
+}
+
+function readSavedDraft(uploadId: string): ReviewDraft | null {
+  try {
+    return parseSavedDraft(window.localStorage.getItem(savedDraftKey(uploadId)), uploadId);
+  } catch {
+    return null;
+  }
+}
+
+function writeSavedDraft(uploadId: string, draft: ReviewDraft | null) {
+  try {
+    if (draft)
+      window.localStorage.setItem(savedDraftKey(uploadId), serializeDraft(uploadId, draft));
+    else window.localStorage.removeItem(savedDraftKey(uploadId));
+  } catch {
+    // Storage full or blocked: the review still works, it just isn't kept.
+  }
 }

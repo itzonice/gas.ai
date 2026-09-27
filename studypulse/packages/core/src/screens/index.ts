@@ -8,3 +8,4 @@ export * from "./format.ts";
 export * from "./stats.ts";
 export * from "./syllabus.ts";
 export * from "./today.ts";
+export * from "./undo.ts";

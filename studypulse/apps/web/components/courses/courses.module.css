@@ -203,3 +203,32 @@
   background: var(--sp-color-error-container);
   color: var(--sp-color-on-error-container);
 }
+
+/* A course card with its own overflow menu beside (not inside) the card's link. */
+.cardItem {
+  position: relative;
+}
+.cardItem .card {
+  padding-right: calc(var(--sp-layout-min-target) + var(--sp-space-related));
+}
+.cardMenu {
+  position: absolute;
+  top: var(--sp-space-half);
+  right: var(--sp-space-half);
+}
+
+/* Assignment actions: a menu cell in the table, and beside each row in the phone list. */
+.actions {
+  width: var(--sp-layout-min-target);
+  padding-block: 0;
+  text-align: end;
+}
+.listItem {
+  position: relative;
+  padding-right: calc(var(--sp-layout-min-target) + var(--sp-space-related));
+}
+.listMenu {
+  position: absolute;
+  top: var(--sp-space-half);
+  right: var(--sp-space-half);
+}

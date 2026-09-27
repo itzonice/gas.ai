@@ -17,7 +17,7 @@
 - **PR #1** is open, green on all four CI jobs (lint/typecheck/test, migrations and SQL
   tests, cross-user access, client bundle secret scan) and mergeable. Its head is
   `e66be16`.
-- **Done and pushed:** S1–S33. The latest items:
+- **Done and pushed:** S1–S34 (all launch-safety items). The latest items:
   - S27: license check.
   - S28: business details in the footer and at checkout.
   - S29: web session in cookies, verified with `getUser` in `proxy.ts`.
@@ -32,7 +32,10 @@
   - S33: test-only switches refused in production, source maps never served, API exposes
     only `public`, RLS on every table we own, every bucket private, and a guard against
     debug, seed, and test endpoints.
-- **Not started:** S32–S34 and L1–L10.
+  - S34: 10-character passwords (plus leaked-password protection in production), a clear
+    message when Supabase refuses a password, strict request schemas everywhere except
+    documented outside senders, and checks against dynamic SQL.
+- **Not started:** L1–L10.
 - **Beta testing is still blocked:**
   - The environment's network policy denies `api.vercel.com` and `api.supabase.com`.
   - These secrets are missing: `SUPABASE_ACCESS_TOKEN`, `SUPABASE_PROJECT_REF`,
@@ -104,12 +107,6 @@ This session:
 
 - [ ] **CSP nonces:** per-request nonces in `proxy.ts` to drop `'unsafe-inline'` from
       `script-src` (makes every page dynamic; measure the cost first).
-- [ ] **S34:**
-  - email confirmation;
-  - a minimum password length of 10;
-  - leaked-password protection;
-  - dynamic SQL through `format()` or bound parameters;
-  - request zod schemas made `.strict()`.
 - [ ] **L1–L10** from `docs/launch-audit.md`. The mobile tabs (L1) and the AI consent
       step (L2) come first; both block store review.
 - [ ] **Manual, for the owner:**

@@ -62,7 +62,7 @@ function finish(outcome: "connected" | "denied" | "expired" | "failed"): Respons
 async function start(req: Request): Promise<Response> {
   requireMethod(req, "POST");
   const user = await requireUser(req);
-  const { institution_id } = await parseJsonBody(req, z.object({ institution_id: z.uuid() }));
+  const { institution_id } = await parseJsonBody(req, z.strictObject({ institution_id: z.uuid() }));
   const db = adminClient();
   const { data: institutions, error } = await db.rpc("lms_institution_client", {
     p_institution_id: institution_id,
@@ -143,7 +143,7 @@ async function callback(
 async function disconnect(req: Request): Promise<Response> {
   requireMethod(req, "POST");
   const user = await requireUser(req);
-  const { connection_id } = await parseJsonBody(req, z.object({ connection_id: z.uuid() }));
+  const { connection_id } = await parseJsonBody(req, z.strictObject({ connection_id: z.uuid() }));
   const db = adminClient();
   const { data, error } = await db.rpc("lms_connection_credentials", {
     p_connection_id: connection_id,

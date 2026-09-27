@@ -12,13 +12,13 @@ export const uuidSchema = z.uuid();
 const termHints = { term_start: isoDateSchema.optional(), term_end: isoDateSchema.optional() };
 
 export const uploadSyllabusInputSchema = z.discriminatedUnion("source", [
-  z.object({
+  z.strictObject({
     source: z.literal("file"),
     file_path: z.string().min(3).max(300),
     original_filename: z.string().trim().min(1).max(255).optional(),
     ...termHints,
   }),
-  z.object({
+  z.strictObject({
     source: z.literal("text"),
     text: z
       .string()
@@ -27,7 +27,7 @@ export const uploadSyllabusInputSchema = z.discriminatedUnion("source", [
       .max(200_000),
     ...termHints,
   }),
-  z.object({
+  z.strictObject({
     source: z.literal("url"),
     url: z.url({ protocol: /^https?$/ }).max(2048),
     ...termHints,
@@ -37,7 +37,7 @@ export type UploadSyllabusInput = z.infer<typeof uploadSyllabusInputSchema>;
 
 /** A syllabus file picked on the device, before it goes to storage. */
 export const SYLLABUS_UPLOAD_TYPES = ["application/pdf", "image/png", "image/jpeg", "image/webp"];
-export const uploadSyllabusFileInputSchema = z.object({
+export const uploadSyllabusFileInputSchema = z.strictObject({
   filename: z.string().trim().min(1).max(255),
   type: z.enum(SYLLABUS_UPLOAD_TYPES, {
     error: "Upload a PDF or a photo (PNG, JPEG, or WebP)",
@@ -52,7 +52,7 @@ export const uploadSyllabusFileInputSchema = z.object({
 });
 export type UploadSyllabusFileInput = z.input<typeof uploadSyllabusFileInputSchema>;
 
-export const todayFeedInputSchema = z.object({ date: isoDateSchema.optional() }).default({});
+export const todayFeedInputSchema = z.strictObject({ date: isoDateSchema.optional() }).default({});
 export type TodayFeedInput = z.infer<typeof todayFeedInputSchema>;
 
 const numeric = z.coerce.number();
@@ -216,7 +216,7 @@ export const focusOverviewSchema = z.object({
 });
 export type FocusOverview = z.infer<typeof focusOverviewSchema>;
 
-export const focusOverviewInputSchema = z.object({
+export const focusOverviewInputSchema = z.strictObject({
   assignmentId: uuidSchema.optional(),
   blockId: uuidSchema.optional(),
 });
@@ -318,7 +318,7 @@ export const notificationPrefsUpdateSchema = z
   .partial();
 export type NotificationPrefsUpdate = z.infer<typeof notificationPrefsUpdateSchema>;
 
-export const onboardingInputSchema = z.object({
+export const onboardingInputSchema = z.strictObject({
   displayName: z.string().trim().max(100),
   timezone: timezoneSchema,
   dailyStudyMinutes: z.number().int().min(15).max(960),
@@ -339,14 +339,14 @@ export const featuresResponseSchema = z.object({
 });
 export type Features = z.infer<typeof featuresResponseSchema>["features"];
 
-export const courseTargetInputSchema = z.object({
+export const courseTargetInputSchema = z.strictObject({
   courseId: uuidSchema,
   targetGrade: z.number().min(0).max(100).nullable(),
 });
 export type CourseTargetInput = z.infer<typeof courseTargetInputSchema>;
 
 export const calendarRangeInputSchema = z
-  .object({ from: isoDateSchema, to: isoDateSchema })
+  .strictObject({ from: isoDateSchema, to: isoDateSchema })
   .refine((r) => r.to >= r.from, { message: "End date is before start date", path: ["to"] })
   // Same limit as get_calendar(): a month view plus its leading and trailing days.
   .refine((r) => Date.parse(r.to) - Date.parse(r.from) <= 62 * 86_400_000, {
@@ -380,13 +380,13 @@ export const calendarRangeSchema = z.object({
 export type CalendarRange = z.infer<typeof calendarRangeSchema>;
 export type CalendarItem = CalendarRange["items"][number];
 
-export const blockStatusInputSchema = z.object({
+export const blockStatusInputSchema = z.strictObject({
   id: uuidSchema,
   status: z.enum(["planned", "done", "missed"]),
 });
 export type BlockStatusInput = z.infer<typeof blockStatusInputSchema>;
 
-export const exportCardsInputSchema = z.object({
+export const exportCardsInputSchema = z.strictObject({
   courseId: uuidSchema,
   format: z.enum(["anki", "quizlet"]).default("anki"),
 });
@@ -411,7 +411,7 @@ export interface GeneratedCardsResponse {
   task_completed: boolean;
 }
 
-export const startSessionInputSchema = z.object({
+export const startSessionInputSchema = z.strictObject({
   /** Client-generated id; reuse it when retrying so the start is idempotent. */
   id: uuidSchema,
   courseId: uuidSchema,
@@ -421,7 +421,7 @@ export const startSessionInputSchema = z.object({
 });
 export type StartSessionInput = z.input<typeof startSessionInputSchema>;
 
-export const stopSessionInputSchema = z.object({
+export const stopSessionInputSchema = z.strictObject({
   id: uuidSchema,
   endedAt: z.iso.datetime({ offset: true }).optional(),
 });
@@ -441,7 +441,7 @@ const assignmentFields = {
 };
 
 export const createAssignmentInputSchema = z
-  .object({ courseId: uuidSchema, ...assignmentFields })
+  .strictObject({ courseId: uuidSchema, ...assignmentFields })
   .partial({
     kind: true,
     categoryId: true,
@@ -459,20 +459,20 @@ export const createAssignmentInputSchema = z
 export type CreateAssignmentInput = z.input<typeof createAssignmentInputSchema>;
 
 export const updateAssignmentInputSchema = z
-  .object({ id: uuidSchema, ...assignmentFields })
+  .strictObject({ id: uuidSchema, ...assignmentFields })
   .partial()
   .required({ id: true })
   .refine((a) => Object.keys(a).length > 1, { message: "Nothing to update" });
 export type UpdateAssignmentInput = z.input<typeof updateAssignmentInputSchema>;
 
 export const registerPushTokenInputSchema = z
-  .object({
+  .strictObject({
     provider: z.enum(["expo", "web_push"]),
     token: z.string().min(1).max(2048),
     platform: z.enum(["ios", "android", "web"]),
     deviceId: z.string().max(200).optional(),
     appVersion: z.string().max(50).optional(),
-    webPushKeys: z.object({ p256dh: z.string().min(1), auth: z.string().min(1) }).optional(),
+    webPushKeys: z.strictObject({ p256dh: z.string().min(1), auth: z.string().min(1) }).optional(),
   })
   .refine(
     (t) => t.provider !== "expo" || /^(Exponent|Expo)PushToken\[[A-Za-z0-9_-]+\]$/.test(t.token),
@@ -492,7 +492,7 @@ export const registerPushTokenInputSchema = z
 
 /** Every list endpoint returns pages of at most 100 rows (PostgREST max_rows is 100 too). */
 export const MAX_PAGE_SIZE = 100;
-export const pageInputSchema = z.object({
+export const pageInputSchema = z.strictObject({
   limit: z.number().int().min(1).max(MAX_PAGE_SIZE).default(50),
   offset: z.number().int().min(0).max(10_000).default(0),
 });
@@ -513,7 +513,7 @@ export const birthMonthSchema = z.string().regex(/^(19|20)\d{2}-(0[1-9]|1[0-2])$
 export const ageResultSchema = z.enum(["confirmed", "blocked"]);
 
 /** Removing this device's push token on sign-out. */
-export const unregisterPushTokenInputSchema = z.object({
+export const unregisterPushTokenInputSchema = z.strictObject({
   provider: z.enum(["expo", "web_push"]),
   token: z.string().min(1).max(2048),
 });
@@ -531,7 +531,7 @@ export const joinCodeSchema = z
 export const focusSummaryWeeksSchema = z.number().int().min(1).max(52);
 
 /** The privacy choices a user makes in the banner or Settings (S23). */
-export const privacyChoicesInputSchema = z.object({
+export const privacyChoicesInputSchema = z.strictObject({
   analytics: z.boolean(),
   errorReports: z.boolean(),
   source: z.enum(["banner", "settings", "signin"]),

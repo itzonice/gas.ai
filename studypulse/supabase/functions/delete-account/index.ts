@@ -16,7 +16,7 @@ import { json, parseJsonBody, requireMethod } from "../_shared/http.ts";
 import { removeUserFolder } from "../_shared/storage.ts";
 import { adminClient, requireUser } from "../_shared/supabase.ts";
 
-const bodySchema = z.object({
+const bodySchema = z.strictObject({
   confirm: z.literal("DELETE", { message: 'Send { "confirm": "DELETE" } to delete your account' }),
 });
 

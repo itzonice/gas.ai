@@ -51,6 +51,24 @@ interface Res {
   json: Json;
 }
 
+/**
+ * POSTs to an edge function. Request bodies are strict (S34), so a function refuses keys
+ * it doesn't know; drop the ones it names and try again, so the call still reaches the
+ * function's ownership checks with B's ids.
+ */
+async function postFunction(url: string, token: string, body: Record<string, unknown>) {
+  const first = await http(url, { method: "POST", token, body });
+  const details = (first.json as { details?: { message?: string }[] } | null)?.details ?? [];
+  const unknown = details.flatMap((d) =>
+    /^Unrecognized keys?:/.test(d.message ?? "")
+      ? [...(d.message ?? "").matchAll(/"([^"]+)"/g)].map((m) => m[1]!)
+      : [],
+  );
+  if (first.status !== 400 || unknown.length === 0) return first;
+  const trimmed = Object.fromEntries(Object.entries(body).filter(([k]) => !unknown.includes(k)));
+  return http(url, { method: "POST", token, body: trimmed });
+}
+
 async function http(
   url: string,
   init: {
@@ -826,7 +844,14 @@ Deno.test({
         "function",
         fn,
         "POST with B's ids",
-        await http(`${FUNCTIONS}/${fn}`, { method: "POST", token: a.token, body: bodyB }),
+        await postFunction(`${FUNCTIONS}/${fn}`, a.token, bodyB),
+        supplied,
+      );
+      record(
+        "function",
+        fn,
+        "GET with only B's course id",
+        await http(`${FUNCTIONS}/${fn}?course_id=${bd.courseId}`, { token: a.token }),
         supplied,
       );
       record(

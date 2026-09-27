@@ -6,7 +6,7 @@ export const billingIntervalSchema = z.enum(["monthly", "yearly"]);
 export type BillingInterval = z.infer<typeof billingIntervalSchema>;
 
 export const checkoutInputSchema = z
-  .object({
+  .strictObject({
     interval: billingIntervalSchema,
     /** Apply the student discount (requires a confirmed academic email). */
     student: z.boolean().optional(),

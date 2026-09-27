@@ -2,6 +2,13 @@
 
 // The page a reset link opens: the link signs the user in for recovery (the Supabase
 // client reads it from the URL), then they choose a new password.
+import {
+  AUTH_MESSAGES,
+  isWeakPasswordError,
+  PASSWORD_HINT,
+  PASSWORD_MIN_LENGTH,
+  passwordProblem,
+} from "@studypulse/core/auth";
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 
@@ -20,15 +27,20 @@ export function UpdatePasswordForm() {
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (password.length < 8) {
-      setError("Use at least 8 characters.");
+    const problem = passwordProblem(password);
+    if (problem) {
+      setError(problem);
       return;
     }
     setBusy(true);
     const { error: updateError } = await getSupabase().auth.updateUser({ password });
     setBusy(false);
     if (updateError) {
-      setError("Couldn't save the new password. Request a new reset link and try again.");
+      setError(
+        isWeakPasswordError(updateError)
+          ? AUTH_MESSAGES.weakPassword
+          : "Couldn't save the new password. Request a new reset link and try again.",
+      );
       return;
     }
     router.replace("/today");
@@ -66,9 +78,9 @@ export function UpdatePasswordForm() {
           label="New password"
           type="password"
           autoComplete="new-password"
-          hint="At least 8 characters."
+          hint={PASSWORD_HINT}
           required
-          minLength={8}
+          minLength={PASSWORD_MIN_LENGTH}
           value={password}
           onChange={(e) => setPassword(e.currentTarget.value)}
         />

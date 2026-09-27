@@ -171,6 +171,10 @@ Numbers are starting points; raise them as usage grows.
       `RATE_LIMITS_DISABLED` in production; with `APP_ENV=production` the functions refuse
       to start if any is set.
 
+- [ ] **Auth hardening (S34):** Authentication, Providers, Email: confirm email ON;
+      minimum password length 10 (matches `supabase/config.toml`); Password security:
+      "Prevent use of leaked passwords" ON (Pro plan).
+
 ## 2. Backups and recovery
 
 - [ ] Daily backups confirmed (Database → Backups); **point-in-time recovery** enabled.

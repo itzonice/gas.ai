@@ -18,7 +18,7 @@ import { createHandler } from "../_shared/handler.ts";
 import { HttpError, json, parseJsonBody, requireMethod } from "../_shared/http.ts";
 import { adminClient, requireUser, userClient } from "../_shared/supabase.ts";
 
-const bodySchema = z.object({
+const bodySchema = z.strictObject({
   course_id: z.uuid(),
   assignment_id: z.uuid().optional(),
   notes: z

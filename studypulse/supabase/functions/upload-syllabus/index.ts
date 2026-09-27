@@ -45,13 +45,13 @@ const termHints = {
 
 const bodySchema = z
   .discriminatedUnion("source", [
-    z.object({
+    z.strictObject({
       source: z.literal("file"),
       file_path: z.string().min(3).max(300),
       original_filename: z.string().trim().min(1).max(255).optional(),
       ...termHints,
     }),
-    z.object({
+    z.strictObject({
       source: z.literal("text"),
       text: z
         .string()
@@ -60,7 +60,7 @@ const bodySchema = z
         .max(MAX_PASTED_CHARS, "That's too long for one syllabus"),
       ...termHints,
     }),
-    z.object({
+    z.strictObject({
       source: z.literal("url"),
       url: z.string().trim().max(2048),
       ...termHints,

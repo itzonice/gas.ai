@@ -25,7 +25,7 @@ const CONCURRENCY = 4;
 /** Stop starting new users after this long so the run finishes inside the function limit. */
 const TIME_BUDGET_MS = 110_000;
 
-const bodySchema = z.object({ user_ids: z.array(z.uuid()).max(200).optional() }).default({});
+const bodySchema = z.strictObject({ user_ids: z.array(z.uuid()).max(200).optional() }).default({});
 
 Deno.serve(
   createHandler("nightly-replan", async (req, { log }) => {

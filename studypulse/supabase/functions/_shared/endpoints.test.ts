@@ -102,3 +102,43 @@ Deno.test("request input is only read through zod", () => {
     if (input.includes("none")) assertEquals(input, ["none"], `${name}: none means none`);
   }
 });
+
+/** Request schemas declared outside the function, and the file that declares them. */
+const IMPORTED_SCHEMAS: Record<string, string> = {
+  checkoutInputSchema: "../../../packages/core/src/billing/plans.ts",
+  oauthCallbackQuery: "./http.ts",
+  revenueCatWebhookSchema: "../../../packages/core/src/billing/revenuecat.ts",
+};
+
+/** The text of `const <name> = …` up to the end of the statement. */
+function declaration(source: string, name: string): string | null {
+  const start = source.search(new RegExp(`(?:const|let) ${name}\\b[^=]*=`));
+  if (start < 0) return null;
+  const end = source.indexOf(";\n", start);
+  return source.slice(start, end < 0 ? undefined : end);
+}
+
+const isStrict = (text: string) => /\bstrictObject\(|\.strict\(\)/.test(text);
+
+Deno.test("request schemas refuse unknown keys unless the endpoint says why (S34)", async () => {
+  for (const [name, source] of sources) {
+    const loose: string[] = [];
+    for (const m of source.matchAll(/parse(?:JsonBody|Query)\(\s*req,\s*(z\.\w+\(|\w+)/g)) {
+      const ref = m[1]!;
+      let text: string | null;
+      if (ref.startsWith("z.")) text = ref;
+      else if (ref in IMPORTED_SCHEMAS) {
+        const file = await Deno.readTextFile(new URL(IMPORTED_SCHEMAS[ref]!, import.meta.url));
+        text = declaration(file, ref);
+      } else text = declaration(source, ref);
+      assert(text, `${name}: can't find the declaration of ${ref}`);
+      if (!isStrict(text)) loose.push(ref);
+    }
+    const reason = ENDPOINTS[name]!.looseInput;
+    if (loose.length > 0) {
+      assert(reason, `${name}: ${loose.join(", ")} accept unknown keys; make them strict`);
+    } else {
+      assertEquals(reason, undefined, `${name}: every schema is strict; drop looseInput`);
+    }
+  }
+});

@@ -8,7 +8,7 @@ import { createHandler } from "../_shared/handler.ts";
 import { HttpError, parseQuery, requireMethod } from "../_shared/http.ts";
 import { requireUser, userClient } from "../_shared/supabase.ts";
 
-const querySchema = z.object({
+const querySchema = z.strictObject({
   course_id: z.uuid(),
   format: z.enum(["anki", "quizlet"]).default("anki"),
 });

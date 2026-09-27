@@ -71,7 +71,7 @@ Deno.serve(
     }
 
     const user = await requireUser(req);
-    const body = await parseJsonBody(req, z.object({ connection_id: z.uuid().optional() }), {
+    const body = await parseJsonBody(req, z.strictObject({ connection_id: z.uuid().optional() }), {
       allowEmpty: true,
     });
     let query = db

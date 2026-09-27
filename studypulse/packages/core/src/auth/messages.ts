@@ -10,6 +10,9 @@ export const AUTH_MESSAGES = {
   resetSent: "If an account exists for that email, we've sent a link to reset the password.",
   rateLimited: "Too many attempts. Wait a few minutes and try again.",
   unavailable: "Couldn't reach StudyPulse. Check your connection and try again.",
+  // Checked before Supabase looks the email up, so it reveals nothing about accounts.
+  weakPassword:
+    "Choose a different password: at least 10 characters, and not one that has appeared in a known data breach.",
 } as const;
 
 export type AuthOutcome = keyof typeof AUTH_MESSAGES;
@@ -39,6 +42,7 @@ export function authErrorMessage(
     return AUTH_MESSAGES.unavailable;
   }
   if (flow === "sign-in") return AUTH_MESSAGES.signInFailed;
+  if (flow === "sign-up" && error.code === "weak_password") return AUTH_MESSAGES.weakPassword;
   // "User already registered", "email not confirmed", and the like: same as success.
   return flow === "sign-up" ? AUTH_MESSAGES.signUpSent : AUTH_MESSAGES.resetSent;
 }

@@ -664,3 +664,34 @@ Re-reading S29 and S30 against what was built found three gaps, now closed:
   table in any schema we own has RLS off (tables in `private` now have it too, with no
   policies, as a second lock behind their missing grants), if any storage bucket is
   public, or if API roles have any privilege on a private table.
+
+## S34: Auth and query tightening
+
+- **Email confirmation** was already required (`[auth.email] enable_confirmations`).
+- **Passwords: at least 10 characters.** `minimum_password_length = 10` in Supabase Auth
+  (tested live: 9 characters gets `weak_password`, 10 is accepted), mirrored by
+  `PASSWORD_MIN_LENGTH` in `@studypulse/core/auth` so the web and mobile forms say so
+  before submitting; a test keeps the two equal. Passwords over 72 bytes are refused
+  rather than silently truncated by bcrypt.
+- **Leaked-password protection** is a hosted Supabase setting (checks HaveIBeenPwned;
+  Pro plan). It's on the launch checklist. When Supabase refuses a password for either
+  reason, sign-up and password change now say so ("choose a different password"),
+  instead of the neutral "check your email", which would have left the student stuck.
+  This reveals nothing about accounts: the password is checked before the email is
+  looked up. Sign-in still gives one message for every failure (S6).
+- **Dynamic SQL.** No function in the database uses `EXECUTE` at all; SQL test 690 fails
+  if one ever builds a statement with `||` or format's unquoted `%s` (a probe function
+  proves it catches it). A core test checks migrations the same way; two applied
+  migrations format a constant list of function signatures with `%s` at deploy time and
+  are listed with that reason (applied migrations are never edited). The one
+  user-supplied search (`canvasSchools`) strips LIKE wildcards, and supabase-js encodes
+  every filter value; no PostgREST filter string is built from input.
+- **Strict request schemas.** Every edge-function request schema and every API-client
+  input schema refuses unknown keys (`z.strictObject`). The S30 manifest test fails on a
+  loose one unless the endpoint states why: only inputs from outside senders stay loose
+  (RevenueCat's webhook, OAuth callbacks from Google and Canvas, calendar-feed and
+  unsubscribe links, which apps and mail scanners append parameters to). A core test
+  sends an unexpected `user_id` to each of the 18 API input schemas and expects
+  `unrecognized_keys`. The cross-user suite drops keys a function names as unknown and
+  retries, so it still reaches every function's ownership checks (448 attempts, 0
+  failures).

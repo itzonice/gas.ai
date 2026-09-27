@@ -2,7 +2,16 @@
 
 // Email and password sign-in (and account creation). Errors are announced in an alert
 // and tied to the form; after signing in the user goes back where they were headed.
-import { AGE_MESSAGES, authErrorMessage, isOldEnough, toBirthMonth } from "@studypulse/core/auth";
+import {
+  AGE_MESSAGES,
+  AUTH_MESSAGES,
+  authErrorMessage,
+  isOldEnough,
+  PASSWORD_HINT,
+  PASSWORD_MIN_LENGTH,
+  passwordProblem,
+  toBirthMonth,
+} from "@studypulse/core/auth";
 import { TERMS_VERSION } from "@studypulse/core/legal";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -44,6 +53,11 @@ export function SignInForm() {
     setBirthError(undefined);
     let birthMonth: string | null = null;
     if (mode === "sign-up") {
+      const problem = passwordProblem(password);
+      if (problem) {
+        setError(problem);
+        return;
+      }
       // Age gate (S12): checked here and again on the server; under 13 never reaches it.
       birthMonth = toBirthMonth(Number(birth.year), Number(birth.month));
       if (!birthMonth) {
@@ -71,7 +85,12 @@ export function SignInForm() {
     // The wording never reveals whether an account exists for this email (S6).
     if (mode === "sign-up" && (result.error || !result.data.session)) {
       const message = authErrorMessage("sign-up", result.error);
-      if (result.error?.status === 429 || (result.error?.status ?? 400) >= 500) setError(message);
+      if (
+        result.error?.status === 429 ||
+        (result.error?.status ?? 400) >= 500 ||
+        message === AUTH_MESSAGES.weakPassword
+      )
+        setError(message);
       else {
         setNotice(message);
         setMode("sign-in");
@@ -127,8 +146,7 @@ export function SignInForm() {
           name="password"
           autoComplete={mode === "sign-in" ? "current-password" : "new-password"}
           required
-          minLength={8}
-          {...(mode === "sign-up" ? { hint: "At least 8 characters." } : {})}
+          {...(mode === "sign-up" ? { hint: PASSWORD_HINT, minLength: PASSWORD_MIN_LENGTH } : {})}
           value={password}
           onChange={(e) => {
             setPassword(e.currentTarget.value);

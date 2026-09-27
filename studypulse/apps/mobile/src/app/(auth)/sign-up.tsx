@@ -1,4 +1,11 @@
-import { AGE_MESSAGES, authErrorMessage, isOldEnough, toBirthMonth } from "@studypulse/core/auth";
+import {
+  AGE_MESSAGES,
+  authErrorMessage,
+  isOldEnough,
+  PASSWORD_HINT,
+  passwordProblem,
+  toBirthMonth,
+} from "@studypulse/core/auth";
 import { TERMS_VERSION } from "@studypulse/core/legal";
 import { Link } from "expo-router";
 import { useEffect, useState } from "react";
@@ -28,6 +35,11 @@ export default function SignUpScreen() {
 
   async function signUp() {
     setMessage("");
+    const problem = passwordProblem(password);
+    if (problem) {
+      setMessage(problem);
+      return;
+    }
     // Age gate (S12): checked here and again on the server; under 13 never reaches it.
     const birthMonth = toBirthMonth(Number(birth.year), Number(birth.month));
     if (!birthMonth) {
@@ -89,6 +101,7 @@ export default function SignUpScreen() {
         secureTextEntry
         autoComplete="new-password"
         textContentType="newPassword"
+        hint={PASSWORD_HINT}
         value={password}
         onChangeText={setPassword}
       />

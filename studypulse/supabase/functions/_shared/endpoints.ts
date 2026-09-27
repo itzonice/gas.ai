@@ -30,20 +30,35 @@ export interface Endpoint {
   input: readonly EndpointInput[];
   /** For url-token: the call in the source that checks the token. */
   tokenCheck?: string;
+  /**
+   * Why this endpoint accepts unknown keys (S34). Request schemas are strict otherwise:
+   * only inputs from outside senders that add fields of their own stay loose.
+   */
+  looseInput?: string;
   publicReason?: string;
 }
 
 export const ENDPOINTS: Record<string, Endpoint> = {
   "admin-refund": { auth: ["admin"], input: ["json"] },
   "ai-cost-monitor": { auth: ["cron"], input: ["none"] },
-  "calendar-feed": { auth: ["url-token"], input: ["query"], tokenCheck: "tokenFrom(req)" },
-  "canvas-oauth": { auth: ["user", "oauth-state"], input: ["json", "query"] },
+  "calendar-feed": {
+    auth: ["url-token"],
+    input: ["query"],
+    tokenCheck: "tokenFrom(req)",
+    looseInput: "Calendar apps append their own query parameters; only the token is read.",
+  },
+  "canvas-oauth": {
+    auth: ["user", "oauth-state"],
+    input: ["json", "query"],
+    looseInput: "The OAuth callback query comes from Canvas, which may add parameters.",
+  },
   "canvas-sync": { auth: ["user", "cron"], input: ["json"] },
   "delete-account": { auth: ["user"], input: ["json"] },
   "email-unsubscribe": {
     auth: ["url-token"],
     input: ["query"],
     tokenCheck: "verifyUnsubscribeToken(",
+    looseInput: "Mail clients and link scanners can append tracking parameters to the link.",
   },
   "export-cards": { auth: ["user"], input: ["query"] },
   "export-data": { auth: ["user"], input: ["none"] },
@@ -55,10 +70,18 @@ export const ENDPOINTS: Record<string, Endpoint> = {
   "flush-analytics": { auth: ["cron"], input: ["none"] },
   "generate-cards": { auth: ["user"], input: ["json"] },
   "google-calendar-sync": { auth: ["user", "cron"], input: ["none"] },
-  "google-oauth": { auth: ["user", "oauth-state"], input: ["query"] },
+  "google-oauth": {
+    auth: ["user", "oauth-state"],
+    input: ["query"],
+    looseInput: "Google adds scope, authuser, hd, and prompt to the OAuth callback query.",
+  },
   "nightly-replan": { auth: ["cron"], input: ["json"] },
   "plan-study": { auth: ["user"], input: ["none"] },
-  "revenuecat-webhook": { auth: ["shared-secret"], input: ["json"] },
+  "revenuecat-webhook": {
+    auth: ["shared-secret"],
+    input: ["json"],
+    looseInput: "RevenueCat adds fields to its webhook payload over time.",
+  },
   "send-email-digests": { auth: ["cron"], input: ["none"] },
   "send-reminders": { auth: ["cron"], input: ["none"] },
   "stripe-checkout": { auth: ["user"], input: ["json"] },

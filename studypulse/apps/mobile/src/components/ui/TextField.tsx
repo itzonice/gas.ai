@@ -2,19 +2,23 @@ import { Text, TextInput, View, type TextInputProps } from "react-native";
 
 import { useAppTheme } from "../../theme";
 
-/** A labeled text input: the visible label is also the input's accessible name. */
+/**
+ * A labeled text input: the visible label is also the input's accessible name. An error
+ * (or else the hint) is shown under the field and read out as its accessibility hint.
+ */
 export function TextField({
   label,
   error,
+  hint,
   ...props
-}: { label: string; error?: string | null } & Omit<TextInputProps, "style">) {
+}: { label: string; error?: string | null; hint?: string } & Omit<TextInputProps, "style">) {
   const theme = useAppTheme();
   return (
     <View style={{ gap: theme.spacing.half }}>
       <Text style={[theme.type.labelLarge, { color: theme.colors.onSurface }]}>{label}</Text>
       <TextInput
         accessibilityLabel={label}
-        {...(error ? { accessibilityHint: error } : {})}
+        {...(error || hint ? { accessibilityHint: error ?? hint } : {})}
         placeholderTextColor={theme.colors.onSurfaceVariant}
         style={[
           theme.type.bodyLarge,
@@ -32,6 +36,8 @@ export function TextField({
       />
       {error ? (
         <Text style={[theme.type.label, { color: theme.colors.error }]}>{error}</Text>
+      ) : hint ? (
+        <Text style={[theme.type.label, { color: theme.colors.onSurfaceVariant }]}>{hint}</Text>
       ) : null}
     </View>
   );

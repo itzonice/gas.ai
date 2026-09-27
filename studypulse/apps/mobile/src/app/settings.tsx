@@ -13,6 +13,7 @@ import { BusinessLine, LegalLinks } from "../components/LegalLinks";
 import { Screen } from "../components/Screen";
 import { Button } from "../components/ui/Button";
 import { env } from "../env";
+import { clearAppStorage } from "../lib/app-storage";
 import { getApi, getSupabase } from "../lib/supabase";
 import { resetPurchaser } from "../purchases";
 import { useSession } from "../session";
@@ -25,6 +26,7 @@ export async function signOutEverywhere() {
   const { error } = await auth.signOut({ scope: "global" });
   // Offline or already revoked: still forget the session on this device.
   if (error) await auth.signOut({ scope: "local" });
+  await clearAppStorage();
 }
 
 export default function SettingsScreen() {
@@ -93,6 +95,7 @@ export default function SettingsScreen() {
       await getSupabase()
         .auth.signOut({ scope: "local" })
         .catch(() => undefined);
+      await clearAppStorage();
       router.replace("/sign-in");
     } catch (error) {
       setBusy(false);

@@ -67,7 +67,7 @@ CCPA: below the thresholds; nothing to do beyond the above.
 | Tauri permissions                                       | ➖     | No desktop app.                                                                                                                                                                                                                                                                            | —                 |
 | Friendly errors; stack traces only in logs              | 🟡     | The UI shows plain messages; Sentry gets the details. Generic errors with a request id are still to come.                                                                                                                                                                                  | S33               |
 | Back up the database and test a restore                 | 👤     | Steps are in launch-checklist §2 (PITR plus a restore drill); has to be done on the real project.                                                                                                                                                                                          | 👤                |
-| Security review of the whole codebase                   | 🟡     | [security-audit.md](security-audit.md) plus the cross-user suite. Do a final review after S9–S34.                                                                                                                                                                                          | L10               |
+| Security review of the whole codebase                   | ✅     | [security-audit.md](security-audit.md) (S1–S34, then the L10 pass over L1–L9: two fixes, listed there), the cross-user suite, and the browser, Lighthouse, and accessibility job in CI.                                                                                                    | L10               |
 
 ## Accessibility (WCAG 2.2 AA)
 
@@ -210,7 +210,7 @@ These join S9–S34, in this order after S10, because L1 and L2-AI block store a
   - Written information security program, retention schedule, and lawful basis per
     purpose (for the privacy policy).
   - Breach runbook (72-hour regulator notice).
-- **L10 Final security review** after S9–S34 and L1–L9.
+- **L10 Final security review** after S9–S34 and L1–L9 (done, 2026-09-27; see security-audit.md).
 
 ## What needs you (not code)
 

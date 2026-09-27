@@ -12,6 +12,7 @@ import { LegalLinks } from "../components/LegalLinks";
 import { Screen } from "../components/Screen";
 import { Button } from "../components/ui/Button";
 import { recordAgeBlock } from "../lib/age-block";
+import { clearAppStorage } from "../lib/app-storage";
 import { getApi, getSupabase } from "../lib/supabase";
 import { useAppTheme } from "../theme";
 
@@ -39,6 +40,7 @@ export default function ConfirmAgeScreen() {
         await getSupabase()
           .auth.signOut({ scope: "local" })
           .catch(() => undefined);
+        await clearAppStorage();
         return;
       }
       await getApi().onboarding.acceptTerms(TERMS_VERSION);

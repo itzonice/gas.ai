@@ -695,3 +695,63 @@ Re-reading S29 and S30 against what was built found three gaps, now closed:
   `unrecognized_keys`. The cross-user suite drops keys a function names as unknown and
   retries, so it still reaches every function's ownership checks (448 attempts, 0
   failures).
+
+## L10: Final security review
+
+A second pass over everything added after S34: the launch-audit items L1–L9 (native
+mobile screens, AI consent, undo and autosave, timer alerts, onboarding and shortcuts,
+public pages, the browser and Lighthouse job) and the scripts that came with them.
+
+**Found and fixed**
+
+- **Mobile kept a signed-out user's data.** The focus run, timer choices, and unsaved
+  syllabus reviews (which hold syllabus text) stayed in AsyncStorage after sign-out, so
+  the next person on the phone could see them, and a paused run from the last account
+  was picked up. They're now cleared on sign-out, account deletion, an under-13 block,
+  and any `SIGNED_OUT` (a session revoked from another device), matching the web's
+  `clearAppStorage`. The age block (`sp_age_blocked_at`) is kept on purpose.
+- **The reviewer script could reset a real account.** `pnpm reviewer:seed` resets the
+  password and replaces the courses of the account for `REVIEWER_EMAIL`; a typo matching
+  a student's address would have done that to them. It now marks the account it creates
+  (`app_metadata.reviewer_demo`, which only the service role can set) and refuses any
+  other account (tested against the seeded demo student: refused, nothing changed).
+- **Dead links in the app bar** (not a security issue, found by the same pass): the
+  search box, bell, and account button opened 404s on every page. There is now a search
+  page, and the bell and account button open Settings.
+- **Mobile accounts were stored in UTC.** Mobile had no onboarding and sign-up sent no
+  timezone, so "today" and due times were off by hours. Onboarding (L5) saves the phone's
+  zone, and sign-up sends it (the server falls back to UTC for anything invalid).
+
+**Checked, no change needed**
+
+- **Deletes (L3)** go through the existing owner-only delete policies on `courses` and
+  `assignments`, which the cross-user suite attacks. The undo window is client-side only:
+  nothing is deleted until it closes, and a delete cut off by closing the tab leaves the
+  data in place (the safe direction).
+- **Device storage** (review drafts, timer choices, shortcut setting) is parsed with zod
+  before use, expires (drafts after 14 days), is cleared on sign-out, and is listed in the
+  storage inventory on the cookies page.
+- **No new third parties.** The chime is generated in the browser; notifications show
+  only after the student allows them. The accessibility audit's network check (every
+  route, signed in and out) saw only the app and Supabase.
+- **Client-made ids.** Focus session ids made on phones without `crypto.randomUUID` fall
+  back to `Math.random`; they're idempotency keys under RLS, not secrets.
+- **Shortcuts and search** only navigate to fixed routes and filter data the student can
+  already read.
+- **Pattern sweep** of web, mobile, core, and edge functions: no `dangerouslySetInnerHTML`,
+  `eval`, `new Function`, or `innerHTML` writes; no service-role key in client code; every
+  `target="_blank"` has `noreferrer`.
+- **Dependencies.** Lighthouse is a pinned dev dependency (never shipped); its one
+  unlabeled license was reviewed (BSD-3-Clause text). The production advisory audit is
+  unchanged.
+
+**Open, with reasons**
+
+- **CSP `script-src` still allows `'unsafe-inline'`** for Next's inline bootstrap.
+  Per-request nonces would remove it but make every page dynamic. With Lighthouse budgets
+  in CI, that cost can now be measured before deciding. Risk is low: React escapes all
+  text, and no user content is rendered as HTML (sweep above).
+- **A mobile notification when the timer ends in the background** needs
+  `expo-notifications` and a new store build (L4).
+- **Hosted settings** (leaked-password protection, the API's exposed schemas, backups)
+  stay on the launch checklist for the owner.

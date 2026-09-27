@@ -2,6 +2,7 @@
 import type { Session } from "@supabase/supabase-js";
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 
+import { clearAppStorage } from "./lib/app-storage";
 import { getSupabase } from "./lib/supabase";
 
 export type SessionState =
@@ -20,7 +21,9 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     void auth.getSession().then(({ data }) => {
       apply(data.session);
     });
-    const { data } = auth.onAuthStateChange((_event, session) => {
+    const { data } = auth.onAuthStateChange((event, session) => {
+      // Signed out here or elsewhere (a revoked session): the next person starts clean.
+      if (event === "SIGNED_OUT") void clearAppStorage();
       apply(session);
     });
     return () => {

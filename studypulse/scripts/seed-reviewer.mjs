@@ -69,7 +69,15 @@ async function findUser() {
 
 // 1. The account: created confirmed, with the age and terms answers a real sign-up gives.
 const metadata = { timezone: REVIEWER_TIMEZONE, display_name: "App Review" };
+// Only the account this script made is ever touched: a typo in REVIEWER_EMAIL that
+// matches a real student must not reset their password or delete their courses.
 let user = await findUser();
+if (user && user.app_metadata?.reviewer_demo !== true) {
+  console.error(
+    `${email} belongs to an account this script didn't create, so it was left alone. Use an address only for store review.`,
+  );
+  process.exit(1);
+}
 if (user) {
   await call("PUT", `/auth/v1/admin/users/${user.id}`, {
     password,
@@ -82,6 +90,8 @@ if (user) {
     password,
     email_confirm: true,
     user_metadata: { ...metadata, birth_month: "2000-01", terms_version: TERMS_VERSION },
+    // Marks the review account (only the service role can set app_metadata).
+    app_metadata: { reviewer_demo: true },
   });
 }
 const userId = user.id;

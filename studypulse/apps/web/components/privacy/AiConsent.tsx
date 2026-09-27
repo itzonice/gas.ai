@@ -127,7 +127,7 @@ export function AiConsentSetting({ initial }: { initial: boolean }) {
         onChange={(e) => void change(e.target.checked)}
       />
       <details>
-        <summary>What this means</summary>
+        <summary className={styles.summary}>What this means</summary>
         <AiDisclosure />
       </details>
       <p role="status" className={styles.text}>

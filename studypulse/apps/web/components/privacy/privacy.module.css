@@ -50,3 +50,12 @@
   font-size: var(--sp-type-label-large-size);
   line-height: var(--sp-type-label-large-line-height);
 }
+
+/* A 48 px tap target for "What this means" (design rule; the a11y audit checks it). */
+.summary {
+  /* list-item keeps the disclosure arrow; the line height makes the row 48 px tall. */
+  display: list-item;
+  min-height: var(--sp-layout-min-target);
+  line-height: var(--sp-layout-min-target);
+  cursor: pointer;
+}

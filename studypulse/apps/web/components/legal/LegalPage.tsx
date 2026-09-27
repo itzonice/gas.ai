@@ -8,7 +8,7 @@ import { SiteFooter } from "./BusinessInfo";
 import styles from "./legal.module.css";
 
 export const LEGAL_DRAFT = true;
-export const LEGAL_UPDATED = "September 25, 2026";
+export const LEGAL_UPDATED = "September 26, 2026";
 
 export function LegalPage({ title, children }: { title: string; children: ReactNode }) {
   return (

@@ -28,6 +28,7 @@ import {
   TextField,
 } from "@/components/ui";
 import { SupportEmail } from "@/components/legal/SupportEmail";
+import { AiConsentSetting } from "@/components/privacy/AiConsent";
 import { PrivacyChoicesForm } from "@/components/privacy/PrivacyChoicesForm";
 import { clearAppStorage, signOutEverywhere } from "@/lib/sign-out";
 import { getSupabase } from "@/lib/supabase";
@@ -427,6 +428,8 @@ export function SettingsScreen() {
         <p className={styles.muted}>
           What each one means is in the <Link href="/cookies">cookie policy</Link>.
         </p>
+        <h3 className={styles.subHeading}>AI features</h3>
+        <AiConsentSetting initial={settings.profile.ai_processing_allowed} />
       </section>
 
       <section className={styles.section} aria-labelledby="legal-heading">

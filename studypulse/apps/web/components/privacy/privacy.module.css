@@ -37,3 +37,16 @@
   display: grid;
   gap: var(--sp-space-related);
 }
+
+/* L2-AI disclosure: the prompt before the first AI request, and Settings. */
+.disclosure {
+  display: grid;
+  gap: var(--sp-space-related);
+}
+
+.list {
+  margin: 0;
+  padding-inline-start: 1.25rem;
+  font-size: var(--sp-type-label-large-size);
+  line-height: var(--sp-type-label-large-line-height);
+}

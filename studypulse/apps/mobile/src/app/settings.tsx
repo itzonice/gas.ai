@@ -1,11 +1,13 @@
 // Settings on mobile: account, subscription, legal links, sign out, and account deletion
 // (App Store guideline 5.1.1(v): deletion must be in the app). Delete account is one
-// tap from here, then one confirmation.
+// tap from here, then one confirmation. The AI switch (launch audit L2-AI) withdraws or
+// gives consent to send syllabi and notes to Anthropic.
 import { ApiError } from "@studypulse/core/api";
 import { DEFAULT_WEB_ORIGIN, STORE_SUBSCRIPTION_URLS } from "@studypulse/core/legal";
+import { AI_DISCLOSURE } from "@studypulse/core/privacy";
 import { router } from "expo-router";
-import { useState } from "react";
-import { Alert, Linking, Platform, Text, View } from "react-native";
+import { useEffect, useState } from "react";
+import { Alert, Linking, Platform, Switch, Text, View } from "react-native";
 
 import { BusinessLine, LegalLinks } from "../components/LegalLinks";
 import { Screen } from "../components/Screen";
@@ -30,6 +32,31 @@ export default function SettingsScreen() {
   const session = useSession();
   const [busy, setBusy] = useState(false);
   const email = session.status === "signed-in" ? session.session.user.email : undefined;
+  const [aiAllowed, setAiAllowed] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    let live = true;
+    getApi()
+      .settings.get()
+      .then((s) => {
+        if (live) setAiAllowed(s.profile.ai_processing_allowed);
+      })
+      .catch(() => undefined);
+    return () => {
+      live = false;
+    };
+  }, []);
+
+  async function changeAi(next: boolean) {
+    const previous = aiAllowed;
+    setAiAllowed(next);
+    try {
+      await getApi().privacy.setAiConsent(next, "settings");
+    } catch {
+      setAiAllowed(previous);
+      Alert.alert("Not saved", "Couldn't change the AI setting. Try again.");
+    }
+  }
 
   const heading = (text: string) => (
     <Text
@@ -105,6 +132,24 @@ export default function SettingsScreen() {
           variant="tonal"
           onPress={() => void manageSubscription()}
         />
+      </View>
+      <View style={{ gap: theme.spacing.related }}>
+        {heading("AI features")}
+        <View style={{ flexDirection: "row", alignItems: "center", gap: theme.spacing.related }}>
+          <Text style={[theme.type.body, { color: theme.colors.onSurface, flex: 1 }]}>
+            {AI_DISCLOSURE.settingLabel}
+          </Text>
+          <Switch
+            accessibilityLabel={AI_DISCLOSURE.settingLabel}
+            accessibilityHint={AI_DISCLOSURE.settingHint}
+            value={aiAllowed === true}
+            disabled={aiAllowed === null}
+            onValueChange={(v) => void changeAi(v)}
+          />
+        </View>
+        <Text style={[theme.type.body, { color: theme.colors.onSurfaceVariant }]}>
+          {AI_DISCLOSURE.settingHint} {AI_DISCLOSURE.notSent}
+        </Text>
       </View>
       <View style={{ gap: theme.spacing.related }}>
         {heading("Legal")}

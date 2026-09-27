@@ -81,6 +81,10 @@ Deno.serve(
       if (insertError.code === "SPB01") {
         throw new HttpError(429, "ai_budget_exceeded", insertError.message);
       }
+      // L2-AI: nothing goes to the AI provider until the student allows it.
+      if (insertError.code === "SPA15") {
+        throw new HttpError(403, "ai_consent_required", insertError.message);
+      }
       throw insertError;
     }
 

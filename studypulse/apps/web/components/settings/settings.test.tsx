@@ -43,6 +43,10 @@ const api = {
     prices: vi.fn(() => Promise.resolve<PricesResponse>({ monthly: null, yearly: null })),
   },
   account: { exportData: vi.fn(), delete: vi.fn() },
+  privacy: {
+    setChoices: vi.fn(() => Promise.resolve()),
+    setAiConsent: vi.fn(() => Promise.resolve()),
+  },
   features: vi.fn(),
 };
 vi.mock("@/components/auth/SessionProvider", () => ({
@@ -59,6 +63,7 @@ const profile = {
   card_tasks_enabled: true,
   plan_tier: "free" as const,
   onboarded_at: "2027-01-01T00:00:00Z",
+  ai_processing_allowed: true,
 };
 const notifications = {
   push_enabled: true,
@@ -146,6 +151,18 @@ describe("SettingsScreen", () => {
     render(<SettingsScreen />);
     await screen.findByRole("checkbox", { name: "Send reminders" });
     await expectNoAxeViolations();
+  });
+
+  it("lets the student withdraw AI consent, saved right away (L2-AI)", async () => {
+    render(<SettingsScreen />);
+    const ai = await screen.findByRole("checkbox", {
+      name: "Use AI to read syllabi and make study cards",
+    });
+    expect(ai).toBeChecked();
+    expect(ai).toHaveAccessibleDescription(/Anthropic/);
+    await userEvent.click(ai);
+    expect(api.privacy.setAiConsent).toHaveBeenCalledWith(false, "settings");
+    expect(await screen.findByText(/Nothing new is sent to Anthropic/)).toBeInTheDocument();
   });
 
   it("saves changed fields and announces it", async () => {

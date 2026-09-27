@@ -262,6 +262,9 @@ export const settingsSchema = z.object({
     card_tasks_enabled: z.boolean(),
     plan_tier: z.enum(["free", "pro"]),
     onboarded_at: z.string().nullable(),
+    // L2-AI: whether syllabi and notes may be sent to the AI provider. Older servers
+    // without the field mean "not yet asked".
+    ai_processing_allowed: z.boolean().default(false),
   }),
   notifications: z.object({
     push_enabled: z.boolean(),

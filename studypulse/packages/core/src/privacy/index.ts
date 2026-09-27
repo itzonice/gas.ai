@@ -142,3 +142,31 @@ export const OPTIONAL_PROCESSING = [
   },
 ];
 export * from "./data-inventory.ts";
+
+/**
+ * The in-app AI disclosure (launch audit L2-AI; App Store 5.1.2(i), Google Play user data
+ * policy). Shown before the first syllabus or card generation, and in Settings. It must
+ * name the provider, say what is sent and why, and ask for a clear yes. Web, mobile, and
+ * the privacy policy all render this text, so they can't drift apart.
+ */
+export const AI_DISCLOSURE = {
+  provider: "Anthropic",
+  providerUrl: "https://www.anthropic.com/legal/privacy",
+  title: "Send this to our AI provider?",
+  purpose:
+    "StudyPulse uses Claude, an AI model made by Anthropic, to read your syllabi and turn your notes into study cards.",
+  sent: [
+    "The syllabus you upload, paste, or link (its text, or the PDF or photo itself)",
+    "Notes you ask to turn into study cards, and the course name",
+  ],
+  notSent: "Your name, email address, grades, and account details are not sent.",
+  use: "Anthropic processes it only to send the result back to us and, under its commercial terms, doesn't train its models on it.",
+  accuracy: "AI can make mistakes. You review every date and grade before anything is saved.",
+  choice:
+    "You can turn this off anytime in Settings. You can still add courses and assignments by hand.",
+  allow: "Allow and continue",
+  decline: "Not now",
+  settingLabel: "Use AI to read syllabi and make study cards",
+  settingHint:
+    "Sends the syllabus or notes you submit to Anthropic, our AI provider. Nothing else is sent.",
+} as const;

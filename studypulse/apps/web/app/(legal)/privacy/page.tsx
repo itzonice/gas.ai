@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 
+import { AI_DISCLOSURE as AI } from "@studypulse/core/privacy";
+
 import { CompanyAddress, CompanyName } from "@/components/legal/BusinessInfo";
 import { LegalPage, legalStyles as styles } from "@/components/legal/LegalPage";
 import { SupportEmail } from "@/components/legal/SupportEmail";
@@ -23,7 +25,7 @@ const PROCESSORS: { name: string; purpose: string; data: string }[] = [
   {
     name: "Anthropic",
     purpose: "Reading syllabi and turning notes into study cards",
-    data: "The syllabus text or images and notes you submit; no name or email is sent",
+    data: "Only after you allow it: the syllabus text or images and notes you submit; no name or email is sent",
   },
   {
     name: "Stripe",
@@ -118,6 +120,30 @@ export default function PrivacyPage() {
         can change this in the <Link href="/cookies">cookie policy</Link> or in Settings.
       </p>
 
+      <h2 id="ai">How we use AI</h2>
+      <p>{AI.purpose}</p>
+      <ul>
+        {AI.sent.map((item) => (
+          <li key={item}>{item}</li>
+        ))}
+      </ul>
+      <p>
+        {AI.notSent} {AI.use} See{" "}
+        <a href={AI.providerUrl} target="_blank" rel="noreferrer">
+          {AI.provider}&apos;s privacy policy
+        </a>
+        .
+      </p>
+      <p>
+        <strong>We ask first.</strong> Nothing is sent to {AI.provider} until you tap &quot;
+        {AI.allow}&quot; in the app, and you can turn it off anytime in Settings, AI features. When
+        it&apos;s off, nothing new is sent, and you can still add courses and assignments by hand.
+      </p>
+      <p>
+        {AI.accuracy} StudyPulse doesn&apos;t make decisions about you with AI: it only suggests a
+        schedule that you check and edit.
+      </p>
+
       <h2>Who else handles your data</h2>
       <p>
         These companies process data for us, under contracts that limit them to providing their
@@ -154,6 +180,32 @@ export default function PrivacyPage() {
         sees only weekly focus-hour totals, never your grades or individual sessions.
       </p>
 
+      <h2>Legal bases (EU, EEA, UK, and Switzerland)</h2>
+      <ul>
+        <li>
+          <strong>To provide the service you asked for</strong> (performance of a contract): your
+          account, courses, grades, plans, reminders you turn on, payments, and support.
+        </li>
+        <li>
+          <strong>With your consent</strong>, which you can withdraw anytime in Settings: sending
+          syllabi and notes to our AI provider, product analytics, browser error reports, and
+          marketing email.
+        </li>
+        <li>
+          <strong>Legitimate interests</strong> in keeping StudyPulse secure and working: rate
+          limits, abuse prevention, and server error logs with personal details removed.
+        </li>
+        <li>
+          <strong>Legal obligations</strong>: tax and payment records, and answering lawful
+          requests.
+        </li>
+      </ul>
+      <p>
+        Our providers may process data outside your country, including in the United States, under
+        safeguards such as the European Commission&apos;s Standard Contractual Clauses. You can
+        complain to your local data protection authority.
+      </p>
+
       <h2>Children</h2>
       <p>
         StudyPulse is not for children under 13. Sign-up (or, with Apple or Google, the first screen
@@ -175,7 +227,11 @@ export default function PrivacyPage() {
       <h2>Your choices and rights</h2>
       <ul>
         <li>Download everything we hold about you: Settings, Export my data.</li>
-        <li>Delete your account and data: Settings, Delete account (web and apps).</li>
+        <li>
+          Delete your account and data: Settings, Delete account (web and apps). Can&apos;t sign in?
+          See <Link href="/delete-account">how to delete your account</Link>.
+        </li>
+        <li>Turn AI features off: Settings, AI features.</li>
         <li>Turn reminders and emails off: Settings, Reminders; or the link in any email.</li>
         <li>Disconnect Canvas or Google Calendar at any time.</li>
         <li>

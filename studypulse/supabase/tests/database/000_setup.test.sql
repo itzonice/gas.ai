@@ -21,7 +21,11 @@ declare
 begin
   insert into auth.users (id, instance_id, aud, role, email, raw_user_meta_data, created_at, updated_at)
   values (user_id, '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated',
-          email, meta, now(), now());
+          email, meta - 'no_ai_consent', now(), now());
+  -- Test users have allowed AI processing (L2-AI) unless a test says otherwise.
+  if not metadata ? 'no_ai_consent' then
+    update public.profiles set ai_processing_allowed = true where id = user_id;
+  end if;
   return user_id;
 end;
 $$;

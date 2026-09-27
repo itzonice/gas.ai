@@ -171,6 +171,8 @@ async function createUser(label: string, displayName: string): Promise<User> {
     p_daily_study_minutes: 120,
     p_study_start_time: "16:00",
   });
+  // Allowed AI processing (L2-AI), so B's syllabus upload and cards exist to attack.
+  await rest(token, "POST", "/rpc/set_ai_consent", { p_allowed: true, p_source: "prompt" });
   return { id: created.id, email, token };
 }
 

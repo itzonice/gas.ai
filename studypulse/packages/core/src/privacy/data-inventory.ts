@@ -15,7 +15,7 @@ const ACCOUNT = "Until the account is deleted";
 export const DATA_INVENTORY: Record<string, TableInventory> = {
   "public.profiles": {
     purpose:
-      "Name (optional), time zone, school (optional), study preferences, plan, consent and age-confirmation times. No birth date.",
+      "Name (optional), time zone, school (optional), study preferences, plan, privacy and AI-processing choices, consent and age-confirmation times. No birth date.",
     personal: true,
     retention: ACCOUNT,
   },

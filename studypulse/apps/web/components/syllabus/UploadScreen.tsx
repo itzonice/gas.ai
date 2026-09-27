@@ -3,10 +3,12 @@
 // Upload a syllabus as a file, pasted text, or a link, then wait for the parse and go
 // to the review screen. Nothing is saved to the calendar until the student reviews it.
 import { ApiError } from "@studypulse/core/api";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState, type DragEvent, type FormEvent } from "react";
 
 import { useApi } from "@/components/auth/SessionProvider";
+import { AiConsentDialog } from "@/components/privacy/AiConsent";
 import { Button, Icon, PageHeader, TextArea, TextField } from "@/components/ui";
 
 import { ParseProgress } from "./ParseProgress";
@@ -38,6 +40,25 @@ export function UploadScreen() {
   const [uploadId, setUploadId] = useState<string | null>(null);
   const alertRef = useRef<HTMLDivElement>(null);
   const upload = useUpload(api, uploadId);
+  // L2-AI: null until known. Nothing is uploaded until the student has allowed AI reading.
+  const [aiAllowed, setAiAllowed] = useState<boolean | null>(null);
+  const [askConsent, setAskConsent] = useState(false);
+
+  useEffect(() => {
+    let live = true;
+    api.settings
+      .get()
+      .then((s) => {
+        if (live) setAiAllowed(s.profile.ai_processing_allowed);
+      })
+      .catch(() => {
+        // Unknown: ask first. The server enforces it either way.
+        if (live) setAiAllowed(false);
+      });
+    return () => {
+      live = false;
+    };
+  }, [api]);
 
   // Parsed: go review it. Failed: back to the form with the reason.
   useEffect(() => {
@@ -60,14 +81,31 @@ export function UploadScreen() {
     event.preventDefault();
     setError(null);
     setFieldErrors({});
-    const terms = {
-      ...(termStart ? { term_start: termStart } : {}),
-      ...(termEnd ? { term_end: termEnd } : {}),
-    };
     if (source === "file" && !file) {
       setFieldErrors({ file: "Choose a file to upload." });
       return;
     }
+    // Still loading the choice: look it up now rather than guess.
+    const allowed =
+      aiAllowed ??
+      (await api.settings
+        .get()
+        .then((st) => st.profile.ai_processing_allowed)
+        .catch(() => false));
+    setAiAllowed(allowed);
+    if (!allowed) {
+      setAskConsent(true);
+      return;
+    }
+    await send();
+  }
+
+  async function send() {
+    setError(null);
+    const terms = {
+      ...(termStart ? { term_start: termStart } : {}),
+      ...(termEnd ? { term_end: termEnd } : {}),
+    };
     setBusy(true);
     try {
       const started =
@@ -86,6 +124,10 @@ export function UploadScreen() {
         }
         setFieldErrors(byField);
         setError("Some fields need attention.");
+      } else if (e instanceof ApiError && e.code === "ai_consent_required") {
+        // Consent was withdrawn elsewhere (another device, Settings): ask again.
+        setAiAllowed(false);
+        setAskConsent(true);
       } else if (e instanceof ApiError && e.code === "parse_limit_reached") {
         setError(`${e.message} Upgrade to Pro for more parses each day.`);
       } else {
@@ -252,6 +294,11 @@ export function UploadScreen() {
               </div>
             </fieldset>
 
+            <p className={styles.sourceHint}>
+              StudyPulse sends the syllabus to Anthropic, our AI provider, to read it.{" "}
+              <Link href="/privacy#ai">How we use AI</Link>
+            </p>
+
             <div>
               <Button type="submit" variant="filled" icon="upload" disabled={busy}>
                 {busy ? "Uploading…" : "Read syllabus"}
@@ -259,6 +306,18 @@ export function UploadScreen() {
             </div>
           </form>
         )}
+
+        <AiConsentDialog
+          open={askConsent}
+          onClose={() => {
+            setAskConsent(false);
+          }}
+          onAllowed={() => {
+            setAiAllowed(true);
+            setAskConsent(false);
+            void send();
+          }}
+        />
       </div>
     </div>
   );

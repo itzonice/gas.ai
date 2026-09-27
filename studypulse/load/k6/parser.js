@@ -59,6 +59,20 @@ function signIn() {
     fail(`signup failed: ${res.status} ${res.body}`);
   }
   token = res.json("access_token");
+  // Same steps a new student takes before a first parse: the 13+ check (S12) and the
+  // AI consent prompt (L2-AI).
+  for (const [fn, body] of [
+    ["confirm_age", { p_birth_month: "2003-09" }],
+    ["set_ai_consent", { p_allowed: true, p_source: "prompt" }],
+  ]) {
+    const r = http.post(`${SUPABASE_URL}/rest/v1/rpc/${fn}`, JSON.stringify(body), {
+      headers: jsonHeaders(token),
+      tags: { step: fn },
+    });
+    if (!check(r, { [`${fn} ok`]: (x) => x.status === 200 || x.status === 204 })) {
+      fail(`${fn} failed: ${r.status} ${r.body}`);
+    }
+  }
   return token;
 }
 

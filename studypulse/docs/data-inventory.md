@@ -18,6 +18,7 @@ without an entry. Use this for the App Store privacy label, the Play data safety
 | Push tokens, device id, app version                                            | `notification_tokens`                                       | Reminders to the right device                         | Only with reminders on |
 | Google Calendar / Canvas tokens                                                | Supabase Vault (encrypted)                                  | Optional integrations                                 | No                     |
 | Consent records                                                                | `terms_acceptances`, `consent_log`                          | Proof of consent                                      | Yes                    |
+| AI processing choice (L2-AI)                                                   | `profiles.ai_processing_allowed`, `consent_log`             | Nothing goes to Anthropic without it                  | Only for AI features   |
 
 ## Collected automatically
 
@@ -66,4 +67,6 @@ Google (optional).
   - purchases (via the stores).
 - **Not collected:** location, contacts, browsing history, health, financial info (cards
   stay with Stripe/Apple/Google), sensitive info.
+- **Shared with a third party:** user content (syllabi, notes) with Anthropic, the AI
+  provider, only after the in-app consent prompt. Declare it on both forms.
 - **Tracking (ATT):** none; no data is used for advertising or shared with data brokers.

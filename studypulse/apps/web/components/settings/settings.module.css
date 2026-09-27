@@ -96,3 +96,10 @@
   background: var(--sp-color-error-container);
   color: var(--sp-color-on-error-container);
 }
+
+.subHeading {
+  margin: 0;
+  font-size: var(--sp-type-label-large-size);
+  line-height: var(--sp-type-label-large-line-height);
+  font-weight: var(--sp-type-label-large-weight);
+}

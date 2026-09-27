@@ -1316,6 +1316,7 @@ export type Database = {
       profiles: {
         Row: {
           age_confirmed_at: string | null;
+          ai_processing_allowed: boolean;
           analytics_allowed: boolean;
           calendar_token_hash: string | null;
           card_tasks_enabled: boolean;
@@ -1335,6 +1336,7 @@ export type Database = {
         };
         Insert: {
           age_confirmed_at?: string | null;
+          ai_processing_allowed?: boolean;
           analytics_allowed?: boolean;
           calendar_token_hash?: string | null;
           card_tasks_enabled?: boolean;
@@ -1354,6 +1356,7 @@ export type Database = {
         };
         Update: {
           age_confirmed_at?: string | null;
+          ai_processing_allowed?: boolean;
           analytics_allowed?: boolean;
           calendar_token_hash?: string | null;
           card_tasks_enabled?: boolean;
@@ -2321,6 +2324,10 @@ export type Database = {
       };
       set_plan_alerts: {
         Args: { p_alerts: Json; p_from: string; p_user_id: string };
+        Returns: undefined;
+      };
+      set_ai_consent: {
+        Args: { p_allowed: boolean; p_source?: string };
         Returns: undefined;
       };
       set_privacy_choices: {

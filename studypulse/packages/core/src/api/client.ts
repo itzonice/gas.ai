@@ -934,6 +934,14 @@ export function createApiClient(db: Db) {
         });
         if (error) throw fromPostgrestError(error);
       },
+      /**
+       * Allows or withdraws sending syllabi and notes to the AI provider (L2-AI). Ask with
+       * the in-context prompt ("prompt") before the first AI feature; "settings" to change it.
+       */
+      async setAiConsent(allowed: boolean, source: "prompt" | "settings"): Promise<void> {
+        const { error } = await db.rpc("set_ai_consent", { p_allowed: allowed, p_source: source });
+        if (error) throw fromPostgrestError(error);
+      },
     },
     billing: {
       /**

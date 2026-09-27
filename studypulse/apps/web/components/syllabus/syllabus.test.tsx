@@ -20,7 +20,10 @@ vi.mock("next/link", () => ({
 
 const api = {
   syllabus: { get: vi.fn(), commit: vi.fn(), upload: vi.fn(), uploadFile: vi.fn() },
+  settings: { get: vi.fn() },
+  privacy: { setAiConsent: vi.fn() },
 };
+const withAi = (allowed: boolean) => ({ profile: { ai_processing_allowed: allowed } });
 vi.mock("@/components/auth/SessionProvider", () => ({ useApi: () => api }));
 
 const flags = {
@@ -105,6 +108,8 @@ beforeEach(() => {
   vi.clearAllMocks();
   api.syllabus.get.mockResolvedValue(row());
   api.syllabus.commit.mockResolvedValue("course-1");
+  api.settings.get.mockResolvedValue(withAi(true));
+  api.privacy.setAiConsent.mockResolvedValue(undefined);
 });
 
 describe("ReviewScreen", () => {
@@ -264,5 +269,55 @@ describe("UploadScreen", () => {
     expect(screen.getByLabelText("Syllabus text")).toHaveAccessibleDescription(
       /at least a few paragraphs/,
     );
+  });
+
+  it("asks before sending anything to the AI provider, and sends nothing on Not now", async () => {
+    api.settings.get.mockResolvedValue(withAi(false));
+    api.syllabus.upload.mockResolvedValue({ upload_id: uploadId, status: "pending" });
+    const user = userEvent.setup();
+    render(<UploadScreen />);
+    await user.click(screen.getByRole("radio", { name: /Paste text/ }));
+    await user.type(screen.getByLabelText("Syllabus text"), "BIO 201 syllabus");
+    await user.click(screen.getByRole("button", { name: "Read syllabus" }));
+
+    const dialog = await screen.findByRole("dialog", { name: "Send this to our AI provider?" });
+    expect(dialog).toHaveTextContent("Anthropic");
+    expect(dialog).toHaveTextContent("The syllabus you upload, paste, or link");
+    expect(dialog).toHaveTextContent("You can turn this off anytime in Settings");
+    await expectNoAxeViolations(dialog);
+    await user.click(within(dialog).getByRole("button", { name: "Not now" }));
+    expect(api.privacy.setAiConsent).not.toHaveBeenCalled();
+    expect(api.syllabus.upload).not.toHaveBeenCalled();
+
+    await user.click(screen.getByRole("button", { name: "Read syllabus" }));
+    await user.click(
+      within(await screen.findByRole("dialog")).getByRole("button", {
+        name: "Allow and continue",
+      }),
+    );
+    expect(api.privacy.setAiConsent).toHaveBeenCalledWith(true, "prompt");
+    await vi.waitFor(() =>
+      expect(api.syllabus.upload).toHaveBeenCalledWith({
+        source: "text",
+        text: "BIO 201 syllabus",
+      }),
+    );
+    expect(api.privacy.setAiConsent.mock.invocationCallOrder[0]).toBeLessThan(
+      api.syllabus.upload.mock.invocationCallOrder[0]!,
+    );
+  });
+
+  it("asks again if the server says consent was withdrawn", async () => {
+    api.syllabus.upload.mockRejectedValueOnce(
+      new ApiError(403, "ai_consent_required", "Allow StudyPulse to send this to Anthropic"),
+    );
+    const user = userEvent.setup();
+    render(<UploadScreen />);
+    await user.click(screen.getByRole("radio", { name: /Paste text/ }));
+    await user.type(screen.getByLabelText("Syllabus text"), "BIO 201 syllabus");
+    await user.click(screen.getByRole("button", { name: "Read syllabus" }));
+    expect(
+      await screen.findByRole("dialog", { name: "Send this to our AI provider?" }),
+    ).toBeInTheDocument();
   });
 });

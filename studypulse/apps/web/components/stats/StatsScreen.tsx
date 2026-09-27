@@ -7,7 +7,7 @@ import type { StatsOverview } from "@studypulse/core/api";
 import { useCallback, useEffect, useState } from "react";
 
 import { useApi } from "@/components/auth/SessionProvider";
-import { formatMinutes } from "@/components/today/model";
+import { formatMinutes } from "@studypulse/core/screens";
 import {
   Button,
   CourseChip,
@@ -27,7 +27,7 @@ import {
   PERIOD_OPTIONS,
   statsCsv,
   summarize,
-} from "./model";
+} from "@studypulse/core/screens";
 import styles from "./stats.module.css";
 
 type Load =

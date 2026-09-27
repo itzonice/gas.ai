@@ -16,13 +16,13 @@ import {
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { useApi } from "@/components/auth/SessionProvider";
-import { KIND_LABELS } from "@/components/syllabus/labels";
-import { dueText } from "@/components/today/model";
+import { KIND_LABELS } from "@studypulse/core/screens";
+import { dueText } from "@studypulse/core/screens";
 import { Button, EmptyState, Icon, MetricCard, MetricGrid, PageHeader } from "@/components/ui";
 
 import { AddScoreDialog } from "./AddScoreDialog";
 import styles from "./courses.module.css";
-import { formatPercent, formatScore, targetStatus } from "./format";
+import { formatPercent, formatScore, targetStatus } from "@studypulse/core/screens";
 import { TargetDialog } from "./TargetDialog";
 import { WhatIfPanel } from "./WhatIfPanel";
 

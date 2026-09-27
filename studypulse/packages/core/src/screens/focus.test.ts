@@ -9,10 +9,13 @@ import {
   formatClock,
   parseStoredRun,
   phaseOf,
+  reconcile,
   remainingMs,
   sessionWhen,
+  targetOptions,
   type FocusRun,
-} from "./model";
+} from "./focus.ts";
+import type { FocusOverview } from "../api/index.ts";
 
 const target = {
   courseId: "c1",
@@ -92,5 +95,66 @@ describe("focus timer", () => {
     expect(parseStoredRun({ ...running, lengthMinutes: -1 })).toBeNull();
     expect(parseStoredRun({ ...running, current: { sessionId: 1 } })).toBeNull();
     expect(parseStoredRun("nope")).toBeNull();
+  });
+});
+
+describe("reconcile and targetOptions", () => {
+  const U = (n: number) => `00000000-0000-4000-8000-00000000000${String(n)}`;
+  const running: FocusOverview["running"] = {
+    id: U(1),
+    started_at: t0,
+    assignment_id: null,
+    title: "Study BIO 201",
+    course_id: U(2),
+    course_code: "BIO 201",
+    course_name: "Biology",
+    course_color: null,
+  };
+  const stored: FocusRun = {
+    target,
+    lengthMinutes: 50,
+    doneMs: 60_000,
+    current: { sessionId: U(1), startedAt: t0 },
+  };
+
+  it("keeps this device's run when the server is running the same session", () => {
+    expect(reconcile(stored, running)).toBe(stored);
+  });
+
+  it("adopts a session started on another device", () => {
+    const run = reconcile(null, running);
+    expect(run?.current).toEqual({ sessionId: U(1), startedAt: t0 });
+    expect(run?.lengthMinutes).toBe(25);
+    expect(run?.target.courseCode).toBe("BIO 201");
+  });
+
+  it("drops a run that was stopped elsewhere, but keeps a paused one", () => {
+    expect(reconcile(stored, null)).toBeNull();
+    const paused = { ...stored, current: null };
+    expect(reconcile(paused, null)).toBe(paused);
+  });
+
+  it("lists tasks first, the current target if missing, then courses", () => {
+    const overview = {
+      choices: [
+        {
+          assignment_id: U(3),
+          title: "Lab 4",
+          due_at: null,
+          course_id: U(2),
+          course_code: null,
+          course_name: "Biology",
+          course_color: null,
+        },
+      ],
+      courses: [{ id: U(2), code: "BIO 201", name: "Biology", color: null }],
+    } as unknown as FocusOverview;
+    const options = targetOptions(overview, { ...target, assignmentId: U(4) });
+    expect(options.map((o) => o.label)).toEqual([
+      "Lab 3 (BIO 201)",
+      "Lab 4 (Biology)",
+      "Study BIO 201",
+    ]);
+    expect(options.map((o) => o.group)).toEqual(["task", "task", "course"]);
   });
 });

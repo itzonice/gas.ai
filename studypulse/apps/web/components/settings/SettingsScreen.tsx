@@ -17,7 +17,7 @@ import { useCallback, useEffect, useState, type FormEvent } from "react";
 
 import { useApi } from "@/components/auth/SessionProvider";
 import { DAILY_MINUTES_OPTIONS, timezoneOptions } from "@/components/onboarding/timezones";
-import { formatMinutes } from "@/components/today/model";
+import { formatMinutes } from "@studypulse/core/screens";
 import {
   Button,
   CheckboxField,

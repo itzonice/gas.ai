@@ -29,7 +29,7 @@ import {
   reviewMeta,
   taskMeta,
   timeRange,
-} from "./model";
+} from "@studypulse/core/screens";
 import styles from "./today.module.css";
 
 type Load =

@@ -1,6 +1,9 @@
 // Pure timer math and wording for the Focus screen. Time is always derived from
 // timestamps (never from counting ticks), so a backgrounded tab or a sleeping laptop
 // shows the right time when it wakes up.
+import type { FocusOverview } from "../api/index.ts";
+
+import { formatRange } from "./format.ts";
 
 export const LENGTH_OPTIONS = [15, 25, 45, 50, 60, 90] as const;
 export const DEFAULT_LENGTH = 25;
@@ -66,7 +69,7 @@ export function formatClock(ms: number): string {
   const m = Math.floor((total % 3600) / 60);
   const s = total % 60;
   const mm = h > 0 ? String(m).padStart(2, "0") : String(m);
-  return `${h > 0 ? `${h}:` : ""}${mm}:${String(s).padStart(2, "0")}`;
+  return `${h > 0 ? `${String(h)}:` : ""}${mm}:${String(s).padStart(2, "0")}`;
 }
 
 /** The same time in words, for the timer's accessible name ("24 minutes 30 seconds left"). */
@@ -75,8 +78,8 @@ export function clockInWords(ms: number): string {
   const m = Math.floor(total / 60);
   const s = total % 60;
   const parts: string[] = [];
-  if (m > 0) parts.push(`${m} ${m === 1 ? "minute" : "minutes"}`);
-  if (s > 0 || m === 0) parts.push(`${s} ${s === 1 ? "second" : "seconds"}`);
+  if (m > 0) parts.push(`${String(m)} ${m === 1 ? "minute" : "minutes"}`);
+  if (s > 0 || m === 0) parts.push(`${String(s)} ${s === 1 ? "second" : "seconds"}`);
   return `${parts.join(" ")} left`;
 }
 
@@ -90,15 +93,15 @@ export const announce = {
   start(run: FocusRun, resumed: boolean): string {
     return resumed
       ? `Focus resumed on ${run.target.title}.`
-      : `Focus started: ${run.lengthMinutes} minutes on ${run.target.title}.`;
+      : `Focus started: ${String(run.lengthMinutes)} minutes on ${run.target.title}.`;
   },
   pause(run: FocusRun, now: Date): string {
     const left = minutesLeft(remainingMs(run, now));
-    return `Paused with ${left} ${left === 1 ? "minute" : "minutes"} left.`;
+    return `Paused with ${String(left)} ${left === 1 ? "minute" : "minutes"} left.`;
   },
   finish(run: FocusRun, studiedMs: number, early: boolean): string {
     const mins = Math.floor(studiedMs / 60_000);
-    const what = `${mins} ${mins === 1 ? "minute" : "minutes"} on ${run.target.title}`;
+    const what = `${String(mins)} ${mins === 1 ? "minute" : "minutes"} on ${run.target.title}`;
     return early ? `Session ended: ${what}.` : `Focus session finished: ${what}.`;
   },
 };
@@ -120,7 +123,7 @@ export function sessionWhen(startedAt: string, endedAt: string, timeZone: string
   const start = new Date(startedAt);
   const end = new Date(endedAt);
   // ICU puts thin and narrow no-break spaces around the dash and before AM/PM.
-  return `${day.format(start)}, ${time.formatRange(start, end)}`.replace(/[\u2009\u202f]/g, " ");
+  return `${day.format(start)}, ${formatRange(time, start, end)}`.replace(/[\u2009\u202f]/g, " ");
 }
 
 /** Validates a stored run (it comes from browser storage, so it is untrusted). */
@@ -151,4 +154,100 @@ export function parseStoredRun(value: unknown): FocusRun | null {
     return null;
   }
   return value as FocusRun;
+}
+
+export function targetFromLinked(linked: NonNullable<FocusOverview["linked"]>): FocusTarget {
+  return {
+    courseId: linked.course_id,
+    assignmentId: linked.assignment_id,
+    blockId: linked.block_id,
+    title: linked.title,
+    courseCode: linked.course_code ?? linked.course_name,
+    courseColor: linked.course_color,
+    dueAt: linked.due_at,
+  };
+}
+
+/** Rebuilds the run from the server: adopt a session started elsewhere, drop a stale one. */
+export function reconcile(
+  stored: FocusRun | null,
+  running: FocusOverview["running"],
+): FocusRun | null {
+  if (running) {
+    if (stored?.current?.sessionId === running.id) return stored;
+    return {
+      target: {
+        courseId: running.course_id,
+        assignmentId: running.assignment_id,
+        blockId: null,
+        title: running.title,
+        courseCode: running.course_code ?? running.course_name,
+        courseColor: running.course_color,
+        dueAt: null,
+      },
+      lengthMinutes: defaultLength(null),
+      doneMs: 0,
+      current: { sessionId: running.id, startedAt: running.started_at },
+    };
+  }
+  // A stretch we thought was running was stopped somewhere else: that run is over.
+  return stored?.current ? null : stored;
+}
+
+export interface TargetOption {
+  value: string;
+  label: string;
+  group: "task" | "course";
+  target: FocusTarget;
+}
+
+/** Open tasks (soonest due first), the current target if it's not among them, then courses. */
+export function targetOptions(
+  overview: FocusOverview,
+  current: FocusTarget | null,
+): TargetOption[] {
+  const tasks: TargetOption[] = overview.choices.map((c) => {
+    const code = c.course_code ?? c.course_name;
+    return {
+      value: `a:${c.assignment_id}`,
+      label: `${c.title} (${code})`,
+      group: "task",
+      target: {
+        courseId: c.course_id,
+        assignmentId: c.assignment_id,
+        blockId: null,
+        title: c.title,
+        courseCode: code,
+        courseColor: c.course_color,
+        dueAt: c.due_at,
+      },
+    };
+  });
+  const currentId = current?.assignmentId;
+  if (current && currentId && !tasks.some((t) => t.value === `a:${currentId}`)) {
+    tasks.unshift({
+      value: `a:${currentId}`,
+      label: `${current.title} (${current.courseCode})`,
+      group: "task",
+      target: current,
+    });
+  }
+  const courses: TargetOption[] = overview.courses.map((c) => {
+    const code = c.code ?? c.name;
+    return {
+      value: `c:${c.id}`,
+      label: `Study ${code}`,
+      group: "course",
+      target: {
+        courseId: c.id,
+        assignmentId: null,
+        blockId: null,
+        title: `Study ${code}`,
+        courseCode: code,
+        courseColor: c.color,
+        dueAt: null,
+      },
+    };
+  });
+  return [...tasks, ...courses];
 }

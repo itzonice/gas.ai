@@ -1,8 +1,8 @@
 // Pure wording and export for the Stats screen. The numbers (minutes, grades, the
 // average) come from get_stats_overview; this only describes them.
-import type { StatsOverview } from "@studypulse/core/api";
+import type { StatsOverview } from "../api/index.ts";
 
-import { formatMinutes } from "@/components/today/model";
+import { formatMinutes } from "./today.ts";
 
 export type StatsCourse = StatsOverview["courses"][number];
 
@@ -53,7 +53,7 @@ export function correlation(points: readonly (readonly [number, number])[]): num
 /** The chart's text summary: a few plain sentences a screen reader can read in order. */
 export function summarize(stats: StatsOverview): string[] {
   const { courses, weeks } = stats;
-  const window = weeks === 1 ? "this week" : `the last ${weeks} weeks`;
+  const window = weeks === 1 ? "this week" : `the last ${String(weeks)} weeks`;
   if (courses.length === 0) return ["Add a course to see how your focus time and grades line up."];
   const total = courses.reduce((s, c) => s + c.focus_minutes, 0);
   const lines: string[] = [];
@@ -62,7 +62,7 @@ export function summarize(stats: StatsOverview): string[] {
   } else {
     const studied = courses.filter((c) => c.focus_minutes > 0).length;
     lines.push(
-      `In ${window} you focused ${formatMinutes(total)} across ${studied} ${studied === 1 ? "course" : "courses"}.`,
+      `In ${window} you focused ${formatMinutes(total)} across ${String(studied)} ${studied === 1 ? "course" : "courses"}.`,
     );
     const most = [...courses].sort((a, b) => b.focus_minutes - a.focus_minutes)[0];
     if (most) {

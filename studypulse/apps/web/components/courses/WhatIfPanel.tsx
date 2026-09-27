@@ -15,7 +15,7 @@ import { Button, TextField } from "@/components/ui";
 
 import type { CourseAssignment } from "./CourseDetailScreen";
 import styles from "./courses.module.css";
-import { formatPercent } from "./format";
+import { formatPercent } from "@studypulse/core/screens";
 
 export function WhatIfPanel({
   input,

@@ -32,7 +32,7 @@ import {
   TextField,
 } from "@/components/ui";
 
-import { itemDateText, KIND_LABELS, meetingName, meetingText } from "./labels";
+import { itemDateText, KIND_LABELS, meetingName, meetingText } from "@studypulse/core/screens";
 import { ParseProgress } from "./ParseProgress";
 import { ReviewDrawer } from "./ReviewDrawer";
 import styles from "./syllabus.module.css";

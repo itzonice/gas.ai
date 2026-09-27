@@ -8,7 +8,7 @@ import { zonedTimeToUtc, type IsoDate } from "@studypulse/core/time";
 import { useEffect, useState, type FormEvent } from "react";
 
 import { useApi } from "@/components/auth/SessionProvider";
-import { KIND_LABELS } from "@/components/syllabus/labels";
+import { KIND_LABELS } from "@studypulse/core/screens";
 import { Button, Dialog, EmptyState, SelectField, TextField } from "@/components/ui";
 
 import styles from "./calendar.module.css";

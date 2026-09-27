@@ -9,7 +9,7 @@ import { useEffect, useRef, useState, type FormEvent } from "react";
 
 import { markOnboarded } from "@/components/auth/RequireAuth";
 import { useApi, useSession } from "@/components/auth/SessionProvider";
-import { formatMinutes } from "@/components/today/model";
+import { formatMinutes } from "@studypulse/core/screens";
 import { Button, Icon, SelectField, TextField } from "@/components/ui";
 import { enableWebPush, webPushSupported } from "@/lib/web-push";
 

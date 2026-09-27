@@ -8,7 +8,7 @@ import { ApiError, type FocusOverview } from "@studypulse/core/api";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { useApi } from "@/components/auth/SessionProvider";
-import { dueText, formatMinutes } from "@/components/today/model";
+import { dueText, formatMinutes } from "@studypulse/core/screens";
 import {
   Button,
   CourseChip,
@@ -31,11 +31,14 @@ import {
   LENGTH_OPTIONS,
   parseStoredRun,
   phaseOf,
+  reconcile,
   remainingMs,
   sessionWhen,
+  targetFromLinked,
+  targetOptions,
   type FocusRun,
   type FocusTarget,
-} from "./model";
+} from "@studypulse/core/screens";
 
 const STORAGE_KEY = "studypulse.focus-run";
 
@@ -61,41 +64,6 @@ function writeStoredRun(run: FocusRun | null) {
   } catch {
     // Storage unavailable (private window, blocked): the run just won't survive a reload.
   }
-}
-
-function targetFromLinked(linked: NonNullable<FocusOverview["linked"]>): FocusTarget {
-  return {
-    courseId: linked.course_id,
-    assignmentId: linked.assignment_id,
-    blockId: linked.block_id,
-    title: linked.title,
-    courseCode: linked.course_code ?? linked.course_name,
-    courseColor: linked.course_color,
-    dueAt: linked.due_at,
-  };
-}
-
-/** Rebuilds the run from the server: adopt a session started elsewhere, drop a stale one. */
-function reconcile(stored: FocusRun | null, running: FocusOverview["running"]): FocusRun | null {
-  if (running) {
-    if (stored?.current?.sessionId === running.id) return stored;
-    return {
-      target: {
-        courseId: running.course_id,
-        assignmentId: running.assignment_id,
-        blockId: null,
-        title: running.title,
-        courseCode: running.course_code ?? running.course_name,
-        courseColor: running.course_color,
-        dueAt: null,
-      },
-      lengthMinutes: defaultLength(null),
-      doneMs: 0,
-      current: { sessionId: running.id, startedAt: running.started_at },
-    };
-  }
-  // A stretch we thought was running was stopped somewhere else: that run is over.
-  return stored?.current ? null : stored;
 }
 
 export function FocusScreen({
@@ -488,58 +456,4 @@ export function FocusScreen({
       </aside>
     </div>
   );
-}
-
-interface TargetOption {
-  value: string;
-  label: string;
-  group: "task" | "course";
-  target: FocusTarget;
-}
-
-/** Open tasks (soonest due first), the current target if it's not among them, then courses. */
-function targetOptions(overview: FocusOverview, current: FocusTarget | null): TargetOption[] {
-  const tasks: TargetOption[] = overview.choices.map((c) => {
-    const code = c.course_code ?? c.course_name;
-    return {
-      value: `a:${c.assignment_id}`,
-      label: `${c.title} (${code})`,
-      group: "task",
-      target: {
-        courseId: c.course_id,
-        assignmentId: c.assignment_id,
-        blockId: null,
-        title: c.title,
-        courseCode: code,
-        courseColor: c.course_color,
-        dueAt: c.due_at,
-      },
-    };
-  });
-  if (current?.assignmentId && !tasks.some((t) => t.value === `a:${current.assignmentId}`)) {
-    tasks.unshift({
-      value: `a:${current.assignmentId}`,
-      label: `${current.title} (${current.courseCode})`,
-      group: "task",
-      target: current,
-    });
-  }
-  const courses: TargetOption[] = overview.courses.map((c) => {
-    const code = c.code ?? c.name;
-    return {
-      value: `c:${c.id}`,
-      label: `Study ${code}`,
-      group: "course",
-      target: {
-        courseId: c.id,
-        assignmentId: null,
-        blockId: null,
-        title: `Study ${code}`,
-        courseCode: code,
-        courseColor: c.color,
-        dueAt: null,
-      },
-    };
-  });
-  return [...tasks, ...courses];
 }

@@ -2,7 +2,7 @@ import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { barWidth, correlation, statsCsv, summarize } from "./model";
+import { barWidth, correlation, statsCsv, summarize } from "@studypulse/core/screens";
 import { StatsScreen } from "./StatsScreen";
 import { expectNoAxeViolations } from "@/test/axe";
 

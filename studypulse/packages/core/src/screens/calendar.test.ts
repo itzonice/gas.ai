@@ -1,4 +1,4 @@
-import type { CalendarItem } from "@studypulse/core/api";
+import type { CalendarItem } from "../api/index.ts";
 import { describe, expect, it } from "vitest";
 
 import {
@@ -11,7 +11,7 @@ import {
   rangeLabel,
   step,
   weekStart,
-} from "./model";
+} from "./calendar.ts";
 
 const item = (extra: Partial<CalendarItem>): CalendarItem => ({
   type: "due",

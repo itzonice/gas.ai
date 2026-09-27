@@ -7,7 +7,7 @@ import { ASSIGNMENT_KINDS, type ReviewCategory, type ReviewItem } from "@studypu
 
 import { Button, Dialog, SelectField, TextField } from "@/components/ui";
 
-import { KIND_LABELS } from "./labels";
+import { KIND_LABELS } from "@studypulse/core/screens";
 import styles from "./syllabus.module.css";
 
 export function ReviewDrawer({

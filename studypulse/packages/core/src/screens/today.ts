@@ -1,7 +1,9 @@
 // Pure formatting for the Today screen, kept out of the components so it is easy to test.
 // No business rules here: ranking, at-risk, and week bounds come from the server.
-import type { TodayFeedRow, TodayOverview } from "@studypulse/core/api";
-import { formatDue } from "@studypulse/core/notify";
+import type { TodayFeedRow, TodayOverview } from "../api/index.ts";
+import { formatDue } from "../notify/format.ts";
+
+import { formatRange } from "./format.ts";
 
 /** 95 -> "1.6", 120 -> "2", 0 -> "0". */
 export function focusHours(minutes: number): string {
@@ -30,16 +32,16 @@ export function taskMeta(row: Pick<TodayFeedRow, "grade_share" | "minutes_remain
 }
 
 export function formatMinutes(minutes: number): string {
-  if (minutes < 60) return `${minutes} min`;
+  if (minutes < 60) return `${String(minutes)} min`;
   const h = Math.floor(minutes / 60);
   const m = minutes % 60;
-  return m === 0 ? `${h} h` : `${h} h ${m} min`;
+  return m === 0 ? `${String(h)} h` : `${String(h)} h ${String(m)} min`;
 }
 
 /** "3:00–3:30 PM" in the user's timezone. */
 export function timeRange(startsAt: string, endsAt: string, timeZone: string): string {
   const fmt = new Intl.DateTimeFormat("en-US", { timeZone, hour: "numeric", minute: "2-digit" });
-  return fmt.formatRange(new Date(startsAt), new Date(endsAt));
+  return formatRange(fmt, new Date(startsAt), new Date(endsAt));
 }
 
 /** "Review · 1 h" or "Closed notes · 20 min" for a review item. */
@@ -56,7 +58,7 @@ export function reviewMeta(row: Pick<TodayFeedRow, "block_kind" | "planned_minut
 export function examCountdown(daysUntil: number): string {
   if (daysUntil <= 0) return "Today";
   if (daysUntil === 1) return "Tomorrow";
-  return `In ${daysUntil} days`;
+  return `In ${String(daysUntil)} days`;
 }
 
 function formatNumber(n: number): string {

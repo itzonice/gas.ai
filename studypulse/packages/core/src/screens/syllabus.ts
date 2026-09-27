@@ -1,4 +1,7 @@
-import type { AssignmentKind, ParsedMeeting, ReviewItem } from "@studypulse/core/syllabus";
+// Labels for syllabus items and class meetings (review screens, course detail, add forms).
+import type { AssignmentKind, ParsedMeeting, ReviewItem } from "../syllabus/index.ts";
+
+import { formatRange } from "./format.ts";
 
 export const KIND_LABELS: Record<AssignmentKind, string> = {
   assignment: "Assignment",
@@ -61,7 +64,7 @@ const clock = (hhmm: string) => clockFormat.format(at(hhmm));
 /** "Tuesday, 10:00–10:50 AM · Lecture · Hall 1". */
 export function meetingText(m: ParsedMeeting): string {
   const parts = [
-    `${WEEKDAY_NAMES[m.weekday]}, ${clockFormat.formatRange(at(m.start_time), at(m.end_time))}`,
+    `${WEEKDAY_NAMES[m.weekday]}, ${formatRange(clockFormat, at(m.start_time), at(m.end_time))}`,
     MEETING_KIND_LABELS[m.kind],
     m.location,
   ];

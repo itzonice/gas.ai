@@ -27,7 +27,7 @@ import {
   WEEKDAYS,
   WEEKDAYS_LONG,
   type CalendarView,
-} from "./model";
+} from "@studypulse/core/screens";
 
 type Load =
   | { status: "loading" }

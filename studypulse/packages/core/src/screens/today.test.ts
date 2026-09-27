@@ -8,7 +8,7 @@ import {
   formatMinutes,
   taskMeta,
   timeRange,
-} from "./model";
+} from "./today.ts";
 
 describe("Today formatting", () => {
   it("shows focus hours with at most one decimal", () => {

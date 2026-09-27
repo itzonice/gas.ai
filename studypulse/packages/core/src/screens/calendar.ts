@@ -1,8 +1,10 @@
 // Pure date math for the calendar screen. Dates are local calendar dates (YYYY-MM-DD) in
 // the user's timezone, which the server already applied; weeks start on Monday to match
 // the rest of StudyPulse.
-import type { CalendarItem } from "@studypulse/core/api";
-import { addDays, dayOfWeek, type IsoDate } from "@studypulse/core/time";
+import type { CalendarItem } from "../api/index.ts";
+import { addDays, dayOfWeek, type IsoDate } from "../time/index.ts";
+
+import { formatRange } from "./format.ts";
 
 export type CalendarView = "month" | "week";
 
@@ -96,7 +98,8 @@ const fmt = (options: Intl.DateTimeFormatOptions) =>
 export function rangeLabel(view: CalendarView, date: IsoDate): string {
   if (view === "month") return fmt({ month: "long", year: "numeric" }).format(utc(date));
   const days = weekDates(date);
-  return fmt({ month: "short", day: "numeric", year: "numeric" }).formatRange(
+  return formatRange(
+    fmt({ month: "short", day: "numeric", year: "numeric" }),
     utc(days[0] ?? date),
     utc(days[6] ?? date),
   );
@@ -136,7 +139,7 @@ export function itemTime(item: CalendarItem, timeZone: string): string {
           ? "Practice quiz"
           : "Study";
   return item.ends_at
-    ? `${label} ${time.formatRange(new Date(item.starts_at), new Date(item.ends_at))}`
+    ? `${label} ${formatRange(time, new Date(item.starts_at), new Date(item.ends_at))}`
     : `${label} ${time.format(new Date(item.starts_at))}`;
 }
 
@@ -146,8 +149,8 @@ export function daySummary(items: readonly CalendarItem[] | undefined): string {
   const due = items.filter((i) => i.type === "due").length;
   const study = items.length - due;
   const parts = [
-    due ? `${due} due` : null,
-    study ? `${study} study ${study === 1 ? "session" : "sessions"}` : null,
+    due ? `${String(due)} due` : null,
+    study ? `${String(study)} study ${study === 1 ? "session" : "sessions"}` : null,
   ].filter(Boolean);
-  return `${items.length} ${items.length === 1 ? "item" : "items"}: ${parts.join(", ")}`;
+  return `${String(items.length)} ${items.length === 1 ? "item" : "items"}: ${parts.join(", ")}`;
 }

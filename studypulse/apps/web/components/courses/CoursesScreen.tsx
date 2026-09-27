@@ -7,11 +7,11 @@ import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 
 import { useApi } from "@/components/auth/SessionProvider";
-import { dueText } from "@/components/today/model";
+import { dueText } from "@studypulse/core/screens";
 import { Button, courseVars, EmptyState, Icon, PageHeader } from "@/components/ui";
 
 import styles from "./courses.module.css";
-import { formatPercent, targetStatus } from "./format";
+import { formatPercent, targetStatus } from "@studypulse/core/screens";
 
 type Load =
   | { status: "loading" }

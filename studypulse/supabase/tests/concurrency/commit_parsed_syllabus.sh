@@ -22,6 +22,8 @@ q <<SQL >/dev/null
 insert into auth.users (id, instance_id, aud, role, email, raw_user_meta_data, created_at, updated_at)
 values ('$USER_ID', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated',
         'race-$USER_ID@example.com', '{"birth_month": "1995-02"}', now(), now());
+-- The student has allowed AI processing (L2-AI), as they must before any upload.
+update public.profiles set ai_processing_allowed = true where id = '$USER_ID';
 insert into public.syllabus_uploads (id, user_id, source, extracted_text, status, parse_result) values
   ('$UPLOAD_A', '$USER_ID', 'text', 'x', 'parsed', '$PAYLOAD'::jsonb),
   ('$UPLOAD_B', '$USER_ID', 'text', 'x', 'parsed', '$PAYLOAD'::jsonb);

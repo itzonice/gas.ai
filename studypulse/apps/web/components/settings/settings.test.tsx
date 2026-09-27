@@ -245,6 +245,24 @@ describe("OnboardingScreen", () => {
   });
 });
 
+describe("OnboardingScreen skipping", () => {
+  it("has a Skip on every step, keeping the defaults (L5)", async () => {
+    api.onboarding.complete.mockResolvedValue(undefined);
+    render(<OnboardingScreen />);
+    await userEvent.click(screen.getByRole("button", { name: "Skip" }));
+    expect(screen.getByRole("heading", { name: "Step 2 of 3: Study time" })).toHaveFocus();
+    await userEvent.click(screen.getByRole("button", { name: "Skip" }));
+    expect(screen.getByRole("heading", { name: "Step 3 of 3: Reminders" })).toHaveFocus();
+    await userEvent.click(screen.getByRole("button", { name: "Skip for now" }));
+    await waitFor(() =>
+      expect(api.onboarding.complete).toHaveBeenCalledWith(
+        expect.objectContaining({ displayName: "", dailyStudyMinutes: 120 }),
+      ),
+    );
+    expect(replace).toHaveBeenCalledWith("/today");
+  });
+});
+
 describe("UpgradeScreen", () => {
   it("compares plans and opens checkout", async () => {
     api.features.mockResolvedValue({ ...noFeatures, stripe: true });

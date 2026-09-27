@@ -8,6 +8,7 @@ import { Icon } from "../ui/icons";
 import { FocusFab } from "./FocusFab";
 import { NavLinks } from "./NavLinks";
 import { RouteFocus } from "./RouteFocus";
+import { Shortcuts } from "./Shortcuts";
 import styles from "./shell.module.css";
 
 export function AppShell({ children }: { children: ReactNode }) {
@@ -78,6 +79,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         <Suspense fallback={null}>
           <NavLinks />
         </Suspense>
+        <Shortcuts />
       </nav>
 
       <div className={styles.body}>

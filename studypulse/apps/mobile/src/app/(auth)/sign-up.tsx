@@ -55,7 +55,15 @@ export default function SignUpScreen() {
     const { data, error } = await getSupabase().auth.signUp({
       email: email.trim(),
       password,
-      options: { data: { birth_month: birthMonth, terms_version: TERMS_VERSION } },
+      options: {
+        data: {
+          birth_month: birthMonth,
+          terms_version: TERMS_VERSION,
+          // The phone's zone, so "today" is local from the start (the server falls back
+          // to UTC for anything it doesn't recognize; onboarding saves it again).
+          timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        },
+      },
     });
     setBusy(false);
     // With email confirmation on, there's no session yet; either way, the same words.

@@ -118,6 +118,13 @@ export const STORAGE_INVENTORY: readonly StorageItem[] = [
     lifetime: "Until you change it or clear your browser",
   },
   {
+    name: "studypulse.shortcuts",
+    kind: "localStorage",
+    purpose: "Remembers if you turned keyboard shortcuts off.",
+    essential: true,
+    lifetime: "Until you turn them back on or clear your browser",
+  },
+  {
     name: "studypulse.review-draft.<upload>",
     kind: "localStorage",
     purpose: "Keeps your unsaved edits to a syllabus review if you leave the page.",

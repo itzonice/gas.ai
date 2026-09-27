@@ -1,7 +1,7 @@
 // Timezone choices for onboarding and settings: the browser's IANA list, always
 // including the current value (and UTC) so a saved zone is never missing from the menu.
 
-export const DAILY_MINUTES_OPTIONS = [30, 60, 90, 120, 150, 180, 240, 300, 360] as const;
+export { DAILY_MINUTES_OPTIONS } from "@studypulse/core/screens";
 
 export function browserTimezone(): string {
   try {

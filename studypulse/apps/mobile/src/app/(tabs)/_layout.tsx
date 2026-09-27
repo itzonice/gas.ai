@@ -30,30 +30,38 @@ export default function TabsLayout() {
   const reduceMotion = useReduceMotion();
   const barHeight = rail ? insets.bottom : theme.layout.bottomBarHeight + insets.bottom;
   const userId = session.status === "signed-in" ? session.session.user.id : null;
-  // Accounts from Sign in with Apple/Google answer the age question first (S12).
-  const [ageChecked, setAgeChecked] = useState<{ user: string; ok: boolean } | null>(null);
+  // Accounts from Sign in with Apple/Google answer the age question first (S12); new
+  // accounts then go through onboarding, which saves the phone's timezone (L5).
+  const [gate, setGate] = useState<{ user: string; next: "tabs" | "age" | "onboarding" } | null>(
+    null,
+  );
   useEffect(() => {
     if (!userId) return;
     let cancelled = false;
-    getApi()
-      .onboarding.ageConfirmed()
+    const api = getApi();
+    api.onboarding
+      .ageConfirmed()
       .then(
-        (ok) => {
-          if (!cancelled) setAgeChecked({ user: userId, ok });
+        async (ok) => {
+          if (!ok) return "age" as const;
+          const needed = await api.onboarding.needed().catch(() => false);
+          return needed ? ("onboarding" as const) : ("tabs" as const);
         },
         // The server refuses unconfirmed accounts anyway; don't lock anyone out on a blip.
-        () => {
-          if (!cancelled) setAgeChecked({ user: userId, ok: true });
-        },
-      );
+        () => "tabs" as const,
+      )
+      .then((next) => {
+        if (!cancelled) setGate({ user: userId, next });
+      });
     return () => {
       cancelled = true;
     };
   }, [userId]);
   if (session.status === "loading") return null;
   if (session.status === "signed-out") return <Redirect href="/sign-in" />;
-  if (ageChecked?.user !== userId) return null;
-  if (!ageChecked.ok) return <Redirect href="/confirm-age" />;
+  if (gate?.user !== userId) return null;
+  if (gate.next === "age") return <Redirect href="/confirm-age" />;
+  if (gate.next === "onboarding") return <Redirect href="/onboarding" />;
 
   return (
     <View style={{ flex: 1, backgroundColor: theme.colors.surface }}>

@@ -215,7 +215,13 @@ export function OnboardingScreen() {
             <span />
           )}
           {step < STEPS.length - 1 ? (
-            <Button type="submit">Continue</Button>
+            <div className={styles.finish}>
+              {/* Skipping keeps the defaults for this step (L5). */}
+              <Button variant="text" onClick={() => go(step + 1)}>
+                Skip
+              </Button>
+              <Button type="submit">Continue</Button>
+            </div>
           ) : (
             <div className={styles.finish}>
               <Button variant="text" disabled={saving} onClick={() => void finish("/today")}>

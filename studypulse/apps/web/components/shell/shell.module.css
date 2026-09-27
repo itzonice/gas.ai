@@ -347,3 +347,45 @@
       color var(--sp-motion-short) var(--sp-motion-easing);
   }
 }
+
+/* "Shortcuts" in the rail and sidebar (keyboards live on tablets and computers; the phone
+   bottom bar keeps its five destinations). */
+.shortcutsButton {
+  display: none;
+  width: 100%;
+  border: 0;
+  background: transparent;
+  font-family: inherit;
+  cursor: pointer;
+}
+@media (min-width: 600px) {
+  .shortcutsButton {
+    display: flex;
+  }
+}
+
+.shortcutTable {
+  width: 100%;
+  border-collapse: collapse;
+}
+.shortcutTable th,
+.shortcutTable td {
+  padding: var(--sp-space-related) var(--sp-space-half);
+  border-bottom: 1px solid var(--sp-color-outline-variant);
+  text-align: start;
+}
+.shortcutTable th {
+  color: var(--sp-color-on-surface-variant);
+  font-size: var(--sp-type-label-large-size);
+  font-weight: var(--sp-type-label-large-weight);
+}
+.kbd {
+  display: inline-block;
+  min-width: 1.75em;
+  padding: 0 var(--sp-space-half);
+  border: 1px solid var(--sp-color-outline);
+  border-radius: var(--sp-radius-control);
+  background: var(--sp-color-surface-container);
+  font-family: var(--sp-font-mono);
+  text-align: center;
+}

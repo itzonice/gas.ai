@@ -51,3 +51,12 @@ describe("Today formatting", () => {
     expect(examCountdown(12)).toBe("In 12 days");
   });
 });
+
+describe("onboarding choices", () => {
+  it("labels start times in 12-hour time", async () => {
+    const { clockLabel } = await import("./onboarding.ts");
+    expect(clockLabel("16:00")).toBe("4:00 PM");
+    expect(clockLabel("00:30")).toBe("12:30 AM");
+    expect(clockLabel("12:05")).toBe("12:05 PM");
+  });
+});

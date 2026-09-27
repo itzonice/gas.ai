@@ -154,3 +154,37 @@
   font-variant-numeric: tabular-nums;
   color: var(--sp-color-on-surface-variant);
 }
+
+/* Break offer and countdown (L4). */
+.break {
+  display: grid;
+  gap: var(--sp-space-related);
+  justify-items: center;
+  padding: var(--sp-space-card);
+  border-radius: var(--sp-radius-card);
+  background: var(--sp-color-secondary-container);
+  color: var(--sp-color-on-secondary-container);
+  text-align: center;
+}
+.break p {
+  margin: 0;
+}
+.breakClock {
+  font-variant-numeric: tabular-nums;
+  font-weight: var(--sp-type-label-large-weight);
+}
+
+/* "When the timer ends" choices. */
+.options {
+  display: grid;
+  gap: var(--sp-space-related);
+  margin: 0;
+  padding: var(--sp-space-card);
+  border: 1px solid var(--sp-color-outline-variant);
+  border-radius: var(--sp-radius-card);
+}
+.optionsTitle {
+  padding: 0 var(--sp-space-half);
+  font-size: var(--sp-type-card-title-size);
+  font-weight: var(--sp-type-card-title-weight);
+}

@@ -11,6 +11,7 @@ import { useApi } from "@/components/auth/SessionProvider";
 import { dueText, formatMinutes } from "@studypulse/core/screens";
 import {
   Button,
+  CheckboxField,
   CourseChip,
   EmptyState,
   Icon,
@@ -19,6 +20,7 @@ import {
   PageHeader,
   SelectField,
 } from "@/components/ui";
+import { allowNotifications, notifyIfHidden, playChime } from "@/lib/focus-alerts";
 
 import styles from "./focus.module.css";
 import {
@@ -31,6 +33,13 @@ import {
   LENGTH_OPTIONS,
   parseStoredRun,
   phaseOf,
+  alertText,
+  breakAfter,
+  DEFAULT_FOCUS_PREFS,
+  FOCUS_PREFS_KEY,
+  parseFocusPrefs,
+  sessionsToday,
+  type FocusPrefs,
   reconcile,
   remainingMs,
   sessionWhen,
@@ -57,6 +66,25 @@ function readStoredRun(): FocusRun | null {
     return null;
   }
 }
+// Timer-end choices (L4) are kept in this browser.
+function readPrefs(): FocusPrefs {
+  try {
+    return parseFocusPrefs(window.localStorage.getItem(FOCUS_PREFS_KEY));
+  } catch {
+    return DEFAULT_FOCUS_PREFS;
+  }
+}
+function writePrefs(prefs: FocusPrefs) {
+  try {
+    window.localStorage.setItem(FOCUS_PREFS_KEY, JSON.stringify(prefs));
+  } catch {
+    // Storage blocked: the choice lasts until the page is reloaded.
+  }
+}
+
+type BreakState =
+  { offer: { minutes: number; long: boolean } } | { endsAt: number; minutes: number };
+
 function writeStoredRun(run: FocusRun | null) {
   try {
     if (run) window.localStorage.setItem(STORAGE_KEY, JSON.stringify(run));
@@ -84,6 +112,9 @@ export function FocusScreen({
   const [announcement, setAnnouncement] = useState("");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
+  const [prefs, setPrefsState] = useState<FocusPrefs>(DEFAULT_FOCUS_PREFS);
+  const [prefsNote, setPrefsNote] = useState("");
+  const [breakState, setBreakState] = useState<BreakState | null>(null);
   const autoStarted = useRef(false);
   const finishing = useRef(false);
 
@@ -168,6 +199,7 @@ export function FocusScreen({
       document.getElementById("focus-target")?.focus();
       return;
     }
+    setBreakState(null);
     await startStretch({ target, lengthMinutes: length, doneMs: 0, current: null }, false);
   }, [length, startStretch, target]);
 
@@ -204,9 +236,28 @@ export function FocusScreen({
           await api.sessions.stop({ id: run.current.sessionId });
         }
         setRun(null);
-        setAnnouncement(announce.finish(run, studied, early));
         setLength(run.lengthMinutes);
-        await refresh().catch(() => undefined);
+        const minutes = Math.floor(studied / 60_000);
+        if (!early) {
+          if (prefs.sound) playChime();
+          if (prefs.notify) {
+            notifyIfHidden(
+              alertText.finishedTitle,
+              alertText.finishedBody(run.target.title, minutes),
+            );
+          }
+        }
+        const fresh = await refresh().catch(() => null);
+        const offer =
+          !early && prefs.breaks && fresh
+            ? breakAfter(minutes, sessionsToday(fresh.history, fresh.today, fresh.timezone))
+            : null;
+        setBreakState(offer ? { offer } : null);
+        setAnnouncement(
+          offer
+            ? `${announce.finish(run, studied, early)} ${alertText.breakOffer(offer)}`
+            : announce.finish(run, studied, early),
+        );
       } catch (e) {
         setError(`Couldn't end the session: ${e instanceof Error ? e.message : "try again."}`);
       } finally {
@@ -214,8 +265,51 @@ export function FocusScreen({
         finishing.current = false;
       }
     },
-    [api, refresh, run, setRun],
+    [api, prefs, refresh, run, setRun],
   );
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- read this browser's choices once
+    setPrefsState(readPrefs());
+  }, []);
+
+  function setPrefs(next: FocusPrefs) {
+    setPrefsState(next);
+    writePrefs(next);
+  }
+
+  async function changeNotify(on: boolean) {
+    setPrefsNote("");
+    if (!on) {
+      setPrefs({ ...prefs, notify: false });
+      return;
+    }
+    const allowed = await allowNotifications();
+    setPrefs({ ...prefs, notify: allowed });
+    if (!allowed) {
+      setPrefsNote(
+        "Notifications are blocked for this site. Allow them in your browser's site settings, then try again.",
+      );
+    }
+  }
+
+  // A running break counts down on its own and chimes when it's over.
+  useEffect(() => {
+    if (!breakState || !("endsAt" in breakState)) return;
+    const id = window.setInterval(() => {
+      const t = Date.now();
+      setNow(new Date(t));
+      if (t < breakState.endsAt) return;
+      window.clearInterval(id);
+      setBreakState(null);
+      if (prefs.sound) playChime();
+      if (prefs.notify) notifyIfHidden(alertText.breakOver, "");
+      setAnnouncement(alertText.breakOver);
+    }, 1000);
+    return () => {
+      window.clearInterval(id);
+    };
+  }, [breakState, prefs]);
 
   // Tick once a second while running; finish when the countdown reaches zero.
   useEffect(() => {
@@ -362,6 +456,60 @@ export function FocusScreen({
               )}
             </div>
 
+            {phase === "idle" && breakState ? (
+              <div className={styles.break} role="group" aria-label="Break">
+                {"offer" in breakState ? (
+                  <>
+                    <p>{alertText.breakOffer(breakState.offer)}</p>
+                    <div className={styles.controls}>
+                      <Button
+                        variant="tonal"
+                        onClick={() => {
+                          const endsAt = Date.now() + breakState.offer.minutes * 60_000;
+                          setNow(new Date());
+                          setBreakState({ endsAt, minutes: breakState.offer.minutes });
+                          setAnnouncement(
+                            `Break started: ${String(breakState.offer.minutes)} minutes.`,
+                          );
+                        }}
+                      >
+                        Start break
+                      </Button>
+                      <Button
+                        variant="text"
+                        onClick={() => {
+                          setBreakState(null);
+                        }}
+                      >
+                        Skip break
+                      </Button>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <p>
+                      Break:{" "}
+                      <span className={styles.breakClock}>
+                        {formatClock(breakState.endsAt - now.getTime())}
+                      </span>{" "}
+                      left
+                    </p>
+                    <div className={styles.controls}>
+                      <Button
+                        variant="text"
+                        onClick={() => {
+                          setBreakState(null);
+                          setAnnouncement("Break ended.");
+                        }}
+                      >
+                        End break
+                      </Button>
+                    </div>
+                  </>
+                )}
+              </div>
+            ) : null}
+
             {phase === "idle" ? (
               <div className={styles.setup}>
                 <SelectField
@@ -425,7 +573,39 @@ export function FocusScreen({
           </section>
         )}
 
-        {/* Only start, pause, and finish are announced. */}
+        {overview.courses.length > 0 ? (
+          <fieldset className={styles.options}>
+            <legend className={styles.optionsTitle}>When the timer ends</legend>
+            <CheckboxField
+              label="Play a chime"
+              checked={prefs.sound}
+              onChange={(e) => {
+                setPrefs({ ...prefs, sound: e.currentTarget.checked });
+              }}
+            />
+            <CheckboxField
+              label="Notify me if this tab is in the background"
+              hint="Your browser asks for permission the first time."
+              checked={prefs.notify}
+              onChange={(e) => void changeNotify(e.currentTarget.checked)}
+            />
+            <CheckboxField
+              label="Suggest breaks"
+              hint="5 minutes after a session, 15 after every fourth."
+              checked={prefs.breaks}
+              onChange={(e) => {
+                setPrefs({ ...prefs, breaks: e.currentTarget.checked });
+              }}
+            />
+            {prefsNote ? (
+              <p role="alert" className={styles.muted}>
+                {prefsNote}
+              </p>
+            ) : null}
+          </fieldset>
+        ) : null}
+
+        {/* Only start, pause, finish, and breaks are announced. */}
         <p role="status" aria-live="polite" className="sp-visually-hidden">
           {announcement}
         </p>

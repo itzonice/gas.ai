@@ -15,6 +15,12 @@ vi.mock("next/link", () => ({
 
 const api = { sessions: { overview: vi.fn(), start: vi.fn(), stop: vi.fn() } };
 vi.mock("@/components/auth/SessionProvider", () => ({ useApi: () => api }));
+const alerts = vi.hoisted(() => ({
+  playChime: vi.fn(),
+  notifyIfHidden: vi.fn(),
+  allowNotifications: vi.fn(),
+}));
+vi.mock("@/lib/focus-alerts", () => alerts);
 
 const course = {
   course_id: "00000000-0000-0000-0000-00000000c001",
@@ -160,5 +166,80 @@ describe("FocusScreen", () => {
     render(<FocusScreen />);
     expect(await screen.findByText("Add a course to start focusing")).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Start focus" })).not.toBeInTheDocument();
+  });
+
+  it("chimes when the timer runs out and offers a break (L4)", async () => {
+    const user = userEvent.setup();
+    const sessionId = "00000000-0000-4000-8000-00000000f001";
+    const startedAt = new Date(Date.now() - 25 * 60_000 + 800).toISOString();
+    window.localStorage.setItem(
+      "studypulse.focus-prefs",
+      JSON.stringify({ sound: true, notify: true, breaks: true }),
+    );
+    window.localStorage.setItem(
+      "studypulse.focus-run",
+      JSON.stringify({
+        target: {
+          courseId: course.course_id,
+          assignmentId: lab.assignment_id,
+          blockId: null,
+          title: "Lab 3",
+          courseCode: "BIO 201",
+          courseColor: null,
+          dueAt: null,
+        },
+        lengthMinutes: 25,
+        doneMs: 0,
+        current: { sessionId, startedAt },
+      }),
+    );
+    api.sessions.overview.mockResolvedValue(overview());
+    api.sessions.overview.mockResolvedValueOnce(
+      overview({
+        running: {
+          id: sessionId,
+          started_at: startedAt,
+          assignment_id: lab.assignment_id,
+          title: "Lab 3",
+          ...course,
+        },
+      }),
+    );
+    render(<FocusScreen />);
+    expect(
+      await screen.findByText("Take a 5-minute break.", {}, { timeout: 4000 }),
+    ).toBeInTheDocument();
+    expect(alerts.playChime).toHaveBeenCalledOnce();
+    expect(alerts.notifyIfHidden).toHaveBeenCalledWith(
+      "Focus session finished",
+      "25 minutes on Lab 3.",
+    );
+    // The session ends exactly at its length, not when the tab noticed.
+    const stopped = api.sessions.stop.mock.calls[0]?.[0] as { endedAt: string };
+    expect(Date.parse(stopped.endedAt) - Date.parse(startedAt)).toBe(25 * 60_000);
+
+    await user.click(screen.getByRole("button", { name: "Start break" }));
+    expect(screen.getByRole("group", { name: "Break" })).toHaveTextContent(/Break: [45]:\d\d left/);
+    await user.click(screen.getByRole("button", { name: "End break" }));
+    expect(screen.queryByRole("group", { name: "Break" })).not.toBeInTheDocument();
+  });
+
+  it("keeps timer-end choices in this browser and asks before notifying", async () => {
+    const user = userEvent.setup();
+    alerts.allowNotifications.mockResolvedValue(false);
+    api.sessions.overview.mockResolvedValue(overview());
+    render(<FocusScreen />);
+    const breaks = await screen.findByRole("checkbox", { name: "Suggest breaks" });
+    expect(breaks).not.toBeChecked();
+    await user.click(breaks);
+    expect(JSON.parse(window.localStorage.getItem("studypulse.focus-prefs") ?? "{}")).toMatchObject(
+      {
+        breaks: true,
+      },
+    );
+    await user.click(screen.getByRole("checkbox", { name: /Notify me/ }));
+    expect(alerts.allowNotifications).toHaveBeenCalledOnce();
+    expect(screen.getByRole("checkbox", { name: /Notify me/ })).not.toBeChecked();
+    expect(screen.getByRole("alert")).toHaveTextContent("Notifications are blocked");
   });
 });

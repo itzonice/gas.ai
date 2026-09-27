@@ -4,6 +4,7 @@
 export * from "./calendar.ts";
 export * from "./courses.ts";
 export * from "./focus.ts";
+export * from "./focus-alerts.ts";
 export * from "./format.ts";
 export * from "./stats.ts";
 export * from "./syllabus.ts";

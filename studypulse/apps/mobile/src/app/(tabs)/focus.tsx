@@ -6,7 +6,15 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { ApiError, type FocusOverview } from "@studypulse/core/api";
 import {
+  alertText,
   announce as say,
+  breakAfter,
+  DEFAULT_FOCUS_PREFS,
+  END_VIBRATION,
+  FOCUS_PREFS_KEY,
+  parseFocusPrefs,
+  sessionsToday,
+  type FocusPrefs,
   clockInWords,
   defaultLength,
   dueText,
@@ -27,7 +35,7 @@ import {
 } from "@studypulse/core/screens";
 import { router, useLocalSearchParams } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Pressable, Text, View } from "react-native";
+import { Pressable, Switch, Text, Vibration, View } from "react-native";
 
 import { ListCard, SectionHeading, TabScreen } from "../../components/TabScreen";
 import {
@@ -65,6 +73,9 @@ function writeStoredRun(run: FocusRun | null) {
   ).catch(() => undefined);
 }
 
+type BreakState =
+  { offer: { minutes: number; long: boolean } } | { endsAt: number; minutes: number };
+
 const param = (v: string | string[] | undefined) => (typeof v === "string" && v ? v : undefined);
 
 export default function FocusScreen() {
@@ -88,6 +99,22 @@ export default function FocusScreen() {
   const [busy, setBusy] = useState(false);
   const autoStarted = useRef<string | null>(null);
   const finishing = useRef(false);
+  // Timer-end choices (L4), kept on this device.
+  const [prefs, setPrefsState] = useState<FocusPrefs>(DEFAULT_FOCUS_PREFS);
+  const [breakState, setBreakState] = useState<BreakState | null>(null);
+
+  useEffect(() => {
+    AsyncStorage.getItem(FOCUS_PREFS_KEY).then(
+      (raw) => {
+        setPrefsState(parseFocusPrefs(raw));
+      },
+      () => undefined,
+    );
+  }, []);
+  const setPrefs = (next: FocusPrefs) => {
+    setPrefsState(next);
+    AsyncStorage.setItem(FOCUS_PREFS_KEY, JSON.stringify(next)).catch(() => undefined);
+  };
 
   const setRun = useCallback((next: FocusRun | null) => {
     setRunState(next);
@@ -163,6 +190,7 @@ export default function FocusScreen() {
       setError("Choose what you're working on first.");
       return;
     }
+    setBreakState(null);
     await startStretch({ target, lengthMinutes: length, doneMs: 0, current: null }, false);
   }, [length, startStretch, target]);
 
@@ -198,9 +226,20 @@ export default function FocusScreen() {
           await getApi().sessions.stop({ id: run.current.sessionId });
         }
         setRun(null);
-        announce(say.finish(run, studied, early));
         setLength(run.lengthMinutes);
-        await refresh().catch(() => undefined);
+        const minutes = Math.floor(studied / 60_000);
+        if (!early && prefs.vibrate) Vibration.vibrate([...END_VIBRATION]);
+        const fresh = await refresh().catch(() => null);
+        const offer =
+          !early && prefs.breaks && fresh
+            ? breakAfter(minutes, sessionsToday(fresh.history, fresh.today, fresh.timezone))
+            : null;
+        setBreakState(offer ? { offer } : null);
+        announce(
+          offer
+            ? `${say.finish(run, studied, early)} ${alertText.breakOffer(offer)}`
+            : say.finish(run, studied, early),
+        );
       } catch (e) {
         setError(`Couldn't end the session: ${errorMessage(e)}`);
       } finally {
@@ -208,8 +247,25 @@ export default function FocusScreen() {
         finishing.current = false;
       }
     },
-    [refresh, run, setRun],
+    [prefs, refresh, run, setRun],
   );
+
+  // A running break counts down on its own and buzzes when it's over.
+  useEffect(() => {
+    if (!breakState || !("endsAt" in breakState)) return;
+    const id = setInterval(() => {
+      const t = Date.now();
+      setNow(new Date(t));
+      if (t < breakState.endsAt) return;
+      clearInterval(id);
+      setBreakState(null);
+      if (prefs.vibrate) Vibration.vibrate([...END_VIBRATION]);
+      announce(alertText.breakOver);
+    }, 1000);
+    return () => {
+      clearInterval(id);
+    };
+  }, [breakState, prefs]);
 
   // Tick once a second while running; finish when the countdown reaches zero.
   useEffect(() => {
@@ -371,6 +427,96 @@ export default function FocusScreen() {
           )}
 
           {error ? <Notice tone="error">{error}</Notice> : null}
+
+          {phase === "idle" && breakState ? (
+            <View
+              accessibilityLabel="Break"
+              style={{
+                gap: theme.spacing.related,
+                alignItems: "center",
+                padding: theme.spacing.card,
+                borderRadius: theme.radii.card,
+                backgroundColor: theme.colors.secondaryContainer,
+              }}
+            >
+              <Text
+                style={[
+                  theme.type.bodyLarge,
+                  { color: theme.colors.onSecondaryContainer, textAlign: "center" },
+                ]}
+              >
+                {"offer" in breakState
+                  ? alertText.breakOffer(breakState.offer)
+                  : `Break: ${formatClock(breakState.endsAt - now.getTime())} left`}
+              </Text>
+              <View style={{ flexDirection: "row", flexWrap: "wrap", gap: theme.layout.targetGap }}>
+                {"offer" in breakState ? (
+                  <>
+                    <Button
+                      variant="tonal"
+                      label="Start break"
+                      onPress={() => {
+                        const minutes = breakState.offer.minutes;
+                        setNow(new Date());
+                        setBreakState({ endsAt: Date.now() + minutes * 60_000, minutes });
+                        announce(`Break started: ${String(minutes)} minutes.`);
+                      }}
+                    />
+                    <Button
+                      variant="text"
+                      label="Skip break"
+                      onPress={() => {
+                        setBreakState(null);
+                      }}
+                    />
+                  </>
+                ) : (
+                  <Button
+                    variant="text"
+                    label="End break"
+                    onPress={() => {
+                      setBreakState(null);
+                      announce("Break ended.");
+                    }}
+                  />
+                )}
+              </View>
+            </View>
+          ) : null}
+
+          {hasCourses ? (
+            <View style={{ gap: theme.spacing.related }}>
+              <SectionHeading>When the timer ends</SectionHeading>
+              {(
+                [
+                  ["vibrate", "Vibrate"],
+                  ["breaks", "Suggest breaks (5 minutes, 15 after every fourth session)"],
+                ] as const
+              ).map(([key, label]) => (
+                <View
+                  key={key}
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    gap: theme.spacing.card,
+                    minHeight: theme.layout.minTarget,
+                  }}
+                >
+                  <Text style={[theme.type.bodyLarge, { color: theme.colors.onSurface, flex: 1 }]}>
+                    {label}
+                  </Text>
+                  <Switch
+                    accessibilityLabel={label}
+                    value={prefs[key]}
+                    onValueChange={(v) => {
+                      setPrefs({ ...prefs, [key]: v });
+                    }}
+                  />
+                </View>
+              ))}
+            </View>
+          ) : null}
 
           {hasCourses && phase === "idle" ? (
             <>

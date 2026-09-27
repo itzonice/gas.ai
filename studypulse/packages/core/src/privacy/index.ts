@@ -111,6 +111,13 @@ export const STORAGE_INVENTORY: readonly StorageItem[] = [
     lifetime: "Until the session ends",
   },
   {
+    name: "studypulse.focus-prefs",
+    kind: "localStorage",
+    purpose: "Remembers what happens when a focus timer ends (chime, notification, breaks).",
+    essential: true,
+    lifetime: "Until you change it or clear your browser",
+  },
+  {
     name: "studypulse.review-draft.<upload>",
     kind: "localStorage",
     purpose: "Keeps your unsaved edits to a syllabus review if you leave the page.",

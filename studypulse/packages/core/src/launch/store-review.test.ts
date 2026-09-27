@@ -38,6 +38,27 @@ describe("App Store review guardrails", () => {
     expect(Object.keys(pkg.dependencies ?? {})).not.toContain("react-native-webview");
   });
 
+  it("has real mobile screens for all five tabs, not placeholders (guideline 4.2)", () => {
+    for (const tab of ["today", "calendar", "courses", "focus", "stats"]) {
+      const screen = read(`apps/mobile/src/app/(tabs)/${tab}.tsx`);
+      expect(screen, tab).not.toContain("ScreenPlaceholder");
+      expect(screen, tab).toContain("getApi()");
+    }
+  });
+
+  it("asks for AI consent on mobile before a syllabus is sent (guideline 5.1.2(i), L2-AI)", () => {
+    const upload = read("apps/mobile/src/app/courses/upload.tsx");
+    expect(upload).toContain("<AiConsentSheet");
+    // The consent check comes before the upload call.
+    expect(upload.indexOf("aiAllowed()")).toBeGreaterThan(-1);
+    expect(upload.indexOf("aiAllowed()")).toBeLessThan(upload.indexOf("syllabus.upload("));
+  });
+
+  it("lets tablets rotate (iPad multitasking and Play large-screen quality)", () => {
+    const app = JSON.parse(read("apps/mobile/app.json")) as { expo: { orientation?: string } };
+    expect(app.expo.orientation ?? "default").toBe("default");
+  });
+
   it("keeps account deletion in the mobile app (guideline 5.1.1(v))", () => {
     const settings = read("apps/mobile/src/app/settings.tsx");
     expect(settings).toContain("account.delete(");

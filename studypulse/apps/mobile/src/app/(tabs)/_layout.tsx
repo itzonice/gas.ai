@@ -1,5 +1,6 @@
-// Bottom tabs for the five destinations, styled from the design tokens, plus the
-// floating "Start focus" button above the tab bar.
+// The five destinations, styled from the design tokens: bottom tabs on phones and a
+// navigation rail on tablets (600 pt and wider, portrait or landscape), plus the floating
+// "Start focus" button. Tab changes don't animate when the system asks for less motion.
 import { Redirect } from "expo-router";
 import { Tabs } from "expo-router/tabs";
 import { useEffect, useState } from "react";
@@ -8,6 +9,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { FocusFab } from "../../components/FocusFab";
 import { Icon, type IconName } from "../../components/ui/Icon";
+import { useReduceMotion, useWindowClass } from "../../lib/hooks";
 import { getApi } from "../../lib/supabase";
 import { useSession } from "../../session";
 import { useAppTheme } from "../../theme";
@@ -24,7 +26,9 @@ export default function TabsLayout() {
   const theme = useAppTheme();
   const insets = useSafeAreaInsets();
   const session = useSession();
-  const barHeight = theme.layout.bottomBarHeight + insets.bottom;
+  const rail = useWindowClass() !== "compact";
+  const reduceMotion = useReduceMotion();
+  const barHeight = rail ? insets.bottom : theme.layout.bottomBarHeight + insets.bottom;
   const userId = session.status === "signed-in" ? session.session.user.id : null;
   // Accounts from Sign in with Apple/Google answer the age question first (S12).
   const [ageChecked, setAgeChecked] = useState<{ user: string; ok: boolean } | null>(null);
@@ -56,15 +60,26 @@ export default function TabsLayout() {
       <Tabs
         screenOptions={{
           headerShown: false,
+          animation: reduceMotion ? "none" : "shift",
           sceneStyle: { backgroundColor: theme.colors.surface },
+          tabBarPosition: rail ? "left" : "bottom",
+          tabBarVariant: rail ? "material" : "uikit",
+          tabBarLabelPosition: "below-icon",
           tabBarActiveTintColor: theme.colors.onSecondaryContainer,
           tabBarInactiveTintColor: theme.colors.onSurfaceVariant,
-          tabBarStyle: {
-            minHeight: barHeight,
-            paddingTop: theme.spacing.related,
-            backgroundColor: theme.colors.surfaceContainer,
-            borderTopWidth: 0,
-          },
+          tabBarStyle: rail
+            ? {
+                width: theme.layout.railWidth,
+                paddingTop: insets.top + theme.spacing.section,
+                backgroundColor: theme.colors.surfaceContainer,
+                borderRightWidth: 0,
+              }
+            : {
+                minHeight: barHeight,
+                paddingTop: theme.spacing.related,
+                backgroundColor: theme.colors.surfaceContainer,
+                borderTopWidth: 0,
+              },
           tabBarItemStyle: { minHeight: theme.layout.minTarget },
           tabBarLabelStyle: {
             fontSize: theme.type.label.fontSize,

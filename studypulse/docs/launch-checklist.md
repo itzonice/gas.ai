@@ -236,9 +236,17 @@ Numbers are starting points; raise them as usage grows.
       track, including purchase with a sandbox account and restore purchases.
 - [ ] Submit: `eas submit --platform ios --profile production` and
       `eas submit --platform android --profile production`.
-- [ ] Store listing: screenshots per device size, description, keywords, support URL,
-      age rating questionnaire (13+), review notes with a demo account (reviewers need to
-      see a parsed syllabus without uploading their own).
+- [ ] Reviewer account: before each submission, run
+      `SUPABASE_URL=… SUPABASE_SERVICE_ROLE_KEY=… REVIEWER_EMAIL=… pnpm reviewer:seed`
+      against production (keys from the environment, never pasted into chat). It prints a
+      new password once unless `REVIEWER_PASSWORD` is set. Put the email and password in
+      the review notes in App Store Connect (App Review Information → Sign-in required)
+      and the Play Console (App content → App access).
+- [ ] Store listing: screenshots per device size (phone, and iPad / Android tablet in
+      landscape), description, keywords, support URL, age rating questionnaire (13+), and
+      review notes: sign in with the reviewer account; the courses were already read from
+      syllabi; to see the AI prompt, open Courses → Upload syllabus and paste any syllabus
+      text.
 - [ ] Legal URLs in both stores (App Store Connect → App Information; Play Console → App
       content → Privacy policy):
   - Privacy Policy: `https://app.studypulse.app/privacy`

@@ -39,6 +39,8 @@ export function SiteFooter({ className }: { className?: string }) {
         <Link href="/refunds">Refunds</Link>
         <Link href="/cookies">Cookies</Link>
         <Link href="/copyright">Copyright</Link>
+        <Link href="/accessibility">Accessibility</Link>
+        <Link href="/delete-account">Delete account</Link>
       </nav>
       <address className={styles.business}>
         <BusinessLine />

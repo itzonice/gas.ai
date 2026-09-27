@@ -21,6 +21,10 @@ describe("authRedirect (S29)", () => {
     for (const p of ["/sign-in", "/reset-password", "/update-password", "/privacy", "/terms"]) {
       expect(authRedirect(p, "", false), p).toBeNull();
     }
+    // Google Play checks that the deletion page opens without signing in (L6).
+    for (const p of ["/delete-account", "/accessibility"]) {
+      expect(authRedirect(p, "", false), p).toBeNull();
+    }
     expect(isPublicPath("/terms-and-more")).toBe(false);
     expect(isPublicPath("/sign-in/")).toBe(true);
   });

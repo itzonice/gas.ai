@@ -249,6 +249,8 @@ try {
       "/refunds",
       "/eula",
       "/cookies",
+      "/delete-account",
+      "/accessibility",
     ].flatMap((p) => [375, 1600].map((w) => [p, w]))) {
       await page.setViewportSize({ width, height: 1000 });
       await load(page, path, "h1");

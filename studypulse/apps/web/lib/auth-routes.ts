@@ -14,6 +14,9 @@ export const PUBLIC_PATHS = [
   "/cookies",
   "/copyright",
   "/eula",
+  // Launch audit L6: Google Play requires the deletion page to work signed out.
+  "/delete-account",
+  "/accessibility",
 ] as const;
 
 export function isPublicPath(pathname: string): boolean {

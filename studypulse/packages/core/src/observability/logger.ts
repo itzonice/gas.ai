@@ -1,6 +1,7 @@
 // Structured JSON logger. One line per entry so Supabase log search can filter by
-// request_id, function, or level. Credential-looking fields are redacted.
-import { redactSensitive } from "./index.ts";
+// request_id, function, or level. Credential-looking fields, secrets inside text, and
+// email addresses are redacted (S31).
+import { redactSensitive, redactText } from "./index.ts";
 
 export type LogLevel = "debug" | "info" | "warn" | "error";
 export type LogFields = Record<string, unknown>;
@@ -68,7 +69,7 @@ export function createLogger(options: LoggerOptions): Logger {
     const entry = {
       ts: (now?.() ?? new Date()).toISOString(),
       level,
-      msg,
+      msg: redactText(msg),
       request_id: requestId,
       ...redactSensitive(merged),
     };

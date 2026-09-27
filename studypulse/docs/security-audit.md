@@ -558,3 +558,32 @@ Every call to Anthropic, Stripe, Expo, Resend, Google, and PostHog goes through
   helpers (`parseJsonBody` gained `allowEmpty` for optional bodies).
 - **Live:** the cross-user suite (420 attempts, 22 functions) passes, and probes of the
   changed functions return the expected 404 / 400 / 401 / expired responses.
+
+## S31: Secret scanning and redaction
+
+- **gitleaks, pinned.** `scripts/gitleaks.sh` downloads gitleaks 8.28.0 into `.tools/`
+  (git-ignored), verifies its SHA-256 for the platform, and runs it with
+  `.gitleaks.toml` at the repository root (the default rules plus one exact allowlist:
+  the published RFC 8291 test vectors in `webpush.test.ts`).
+- **Pre-commit.** `pnpm install` sets `core.hooksPath` to `studypulse/.githooks`; the
+  `pre-commit` hook scans staged changes and blocks the commit on a finding (tested
+  with a staged fake Stripe live key).
+- **CI and history.** A `gitleaks` job scans every commit (`fetch-depth: 0`). The full
+  history scan (126 commits) is clean; its only finding was the RFC test vectors.
+- **`.env` files.** Every `.env*` file is ignored except `.env.example`, at the
+  repository root and in `studypulse/`. Only `.env.example` is tracked.
+- **Log and Sentry redaction.** Besides credential-named keys (now also
+  `signature`, `credential`, `jwt`, `private_key`), text is scrubbed everywhere it can
+  appear: JWTs, `Bearer` values, Stripe/Anthropic/Resend keys, webhook secrets,
+  credentials in URLs (`?token=`, `code`, `state`, `user:password@`), long opaque tokens
+  (calendar feed and unsubscribe tokens in paths), and email addresses. The logger
+  applies it to the message and serialized errors (message and stack). Sentry's
+  `beforeSend` applies it to the request URL and query, the error message, exception
+  values, breadcrumbs, extra, contexts, and tags. UUIDs and request ids stay readable.
+- **Syllabus and notes text.** Fields that carry it (`text`, `notes`, `content`,
+  `chunk`, `prompt`, `completion`, `parse_result`, …) are replaced with their length,
+  and any other string over 2,000 characters is dropped the same way (stack traces
+  excepted), so pasted documents can't end up in logs or Sentry.
+- **Secrets found: none to rotate.** The only history finding was the published RFC
+  8291 example keys. Test files that need key-shaped values assemble them at runtime so
+  the scanner stays strict.

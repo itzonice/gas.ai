@@ -17,14 +17,13 @@
 - **PR #1** is open, green on all four CI jobs (lint/typecheck/test, migrations and SQL
   tests, cross-user access, client bundle secret scan) and mergeable. Its head is
   `e66be16`.
-- **Done and pushed:** S1–S30. The latest items:
+- **Done and pushed:** S1–S31. The latest items:
   - S27: license check.
   - S28: business details in the footer and at checkout.
   - S29: web session in cookies, verified with `getUser` in `proxy.ts`.
   - S30: CI check that every edge function has auth, zod validation and a rate limit.
-- **Paused:** the user asked to stop coding partway through S31. That work is in a
-  local `git stash` only (`stash@{0}`), so it does not exist in a fresh session (see
-  Next Steps).
+  - S31: gitleaks in a pre-commit hook and CI (full history), `.env*` ignored, and
+    secrets, emails and syllabus text redacted from logs and Sentry.
 - **Not started:** S32–S34 and L1–L10.
 - **Beta testing is still blocked:**
   - The environment's network policy denies `api.vercel.com` and `api.supabase.com`.
@@ -42,7 +41,7 @@
 - `studypulse/docs/launch-audit.md` and `studypulse/docs/launch-checklist.md`.
 - `studypulse/packages/core/src/observability/index.ts` and `logger.ts`: redaction (S31).
 - `studypulse/scripts/`: `license-check.mjs`, `secret-scan.mjs`, `cross-user.sh`,
-  `serve-functions.mjs`. The S31 script `gitleaks.sh` is in the stash.
+  `serve-functions.mjs`, `gitleaks.sh`.
 - `studypulse/supabase/functions/_shared/endpoints.ts` and `endpoints.test.ts`: the
   per-function auth and input manifest (S30).
 - `studypulse/supabase/functions/_shared/http.ts`: `parseJsonBody` (with `allowEmpty`)
@@ -87,7 +86,7 @@ This session:
 
   Everything else in S31 passed: lint, typecheck, tests, the full-history gitleaks scan
   (126 commits, clean after one allowlist entry) and a test that the hook blocks a
-  staged fake key. The work was stashed when the user asked to stop coding.
+  staged fake key. Fixed by assembling the fake values at runtime in the test.
 
 - **The first full-history gitleaks run found one hit:** the published RFC 8291 test
   vectors in `studypulse/packages/core/src/notify/webpush.test.ts`. These are not real
@@ -95,30 +94,11 @@ This session:
 
 ## 6. Next Steps
 
-- [ ] **Recover or redo S31.**
-  - In the same container, run `git stash pop`.
-  - In a new session the stash is gone. Redo the work from the file list below, all in
-    one commit:
-    - `/.gitleaks.toml`: default rules, plus the RFC 8291 allowlist with
-      `condition = "AND"`, the file path, and the exact values.
-    - `/.gitignore` and `studypulse/.gitignore`: ignore `.env*` except `!.env.example`,
-      and ignore `.tools/`.
-    - `studypulse/scripts/gitleaks.sh`: pinned gitleaks 8.28.0 with a SHA-256 per
-      platform, modes `history` and `staged`.
-    - `studypulse/.githooks/pre-commit`.
-    - `package.json` scripts: `prepare` sets `core.hooksPath` to `studypulse/.githooks`,
-      and `secrets:history`.
-    - A `gitleaks` CI job with `fetch-depth: 0`.
-    - Text redaction (`redactText`: JWTs, Bearer values, Stripe, Anthropic and Resend
-      keys, `?token=` and `code`/`state` in URLs, `user:pass@`, email addresses, opaque
-      tokens of 40+ characters) in the logger and in Sentry `scrubEvent` (URL, query,
-      message, exception values, breadcrumbs, tags).
-    - Tests for all of the above.
-    - An S31 section in `docs/security-audit.md`.
-- [ ] **Then fix the hook failure.** Build the fake test secrets at runtime (for example
-      `"sk_" + "live_" + "…"`), or add an exact-value allowlist entry for
-      `observability.test.ts`. After that, commit, push and confirm the new `gitleaks` CI
-      job passes.
+- [ ] **Close the S30 gap:** extend the CI check to database functions. Flag every
+      `SECURITY DEFINER` function that doesn't check `auth.uid()` (about 120 definitions
+      in the migrations), and cover the web route handler.
+- [ ] **Close the S29 gap:** an automated test that signed-out requests to app pages are
+      redirected, and a check that Next.js is on a patched version.
 - [ ] **S32:** an admin role stored in `app_metadata`, checked server-side, with tests
       that non-admins get a 403.
 - [ ] **S33:**

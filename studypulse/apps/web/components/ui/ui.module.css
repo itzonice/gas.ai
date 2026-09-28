@@ -408,8 +408,13 @@
 .dialogInner {
   display: grid;
   grid-template-rows: auto 1fr auto;
-  height: 100%;
   max-height: inherit;
+}
+/* Only the side sheet has a set height to fill. On the centered dialog, a percentage
+   height of a dialog sized by its content resolves to 0 in WebKit (Safari), which
+   collapsed it; Chromium and Firefox treated it as auto. */
+.dialogSide .dialogInner {
+  height: 100%;
 }
 .dialogHeader {
   display: flex;

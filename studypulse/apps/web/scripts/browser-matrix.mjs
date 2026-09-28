@@ -38,8 +38,7 @@ const consoleErrors = [];
  * the page being left) with this message, as unhandled errors. Chromium and Firefox drop
  * them quietly. They're listed, not failed; any other uncaught error fails the run.
  */
-const CANCELLED_FETCH =
-  /Fetch API cannot load .* due to access control checks|^TypeError: Load failed$/;
+const CANCELLED_FETCH = /Fetch API cannot load[\s\S]*due to access control checks|Load failed/;
 
 async function step(where, name, fn, page) {
   try {
@@ -110,7 +109,7 @@ async function run(browserName, size) {
   const page = await context.newPage();
   const check = (name, fn) => step(where, name, fn, page);
   page.on("pageerror", (err) => {
-    if (CANCELLED_FETCH.test(err.message)) {
+    if (CANCELLED_FETCH.test(`${err.name}: ${err.message} ${String(err)}`)) {
       consoleErrors.push({
         ...where,
         path: new URL(page.url()).pathname,

@@ -14,9 +14,10 @@
 
 ## 2. Current State
 
-- **PR #1**: see CI on the latest head. Six jobs: lint/typecheck/test, migrations and
-  SQL tests, cross-user access, client bundle secret scan, full-history secret scan, and
-  the new "Browsers, Lighthouse, and accessibility" job.
+- **PR #1** is green on all six CI jobs (lint/typecheck/test, migrations and SQL tests,
+  cross-user access, client bundle secret scan, full-history secret scan, and "Browsers,
+  Lighthouse, and accessibility", which covers Chromium, Firefox, and WebKit) as of
+  `2a4b196`.
 - **Done:** S1–S34 and L1–L10 (L2 offline is mobile-only; the web shows a banner).
 - **Latest local counts:** core 657 tests, web 117, tokens 58, Deno 19. The a11y audit
   is clean. Lighthouse is 96–100 performance and 100 accessibility on every key route
@@ -80,18 +81,20 @@ This session, one commit per item:
 
 ## 5. Failed Attempts
 
-- **First CI run of the browsers job:** WebKit failed; Chromium and Firefox passed.
-  - About 100 of the failures were fetches cancelled by navigation (now warnings).
+- **Browsers job, WebKit only** (Chromium and Firefox passed from the start):
+  - Fetches cancelled by navigation were reported as uncaught errors (now warnings).
   - The shortcuts step clicked inside the sidebar (fixed).
-  - "Add score dialog" timed out in WebKit. The cause is unknown because WebKit can't run
-    here. The step now logs the dialog state, so read the next CI log if it fails again.
+  - A real bug: every centered dialog was 0 px tall in Safari (`height: 100%` inside an
+    auto-height `<dialog>`), found from the logged dialog state (fixed, `7712dbc`).
+  - The session once ended mid-run when a navigation cut off a token refresh. Steps now
+    wait for the network to go quiet. The same race could log out a Safari user who
+    navigates at exactly the wrong moment; if that's reported, look at the Supabase auth
+    refresh-token reuse window.
 - **`pkill -f "next start"` kills the shell running it**, because the pattern matches the
   command itself. Stop the server by PID instead.
 
 ## 6. Next Steps
 
-- [ ] If the WebKit Add score step still fails, read the logged dialog state in the CI
-      log and fix it.
 - [ ] **CSP nonces:** drop `'unsafe-inline'` from `script-src`. It makes every page
       dynamic, so measure the cost with `pnpm lighthouse` first.
 - [ ] **Mobile:** a background notification when the timer ends (needs

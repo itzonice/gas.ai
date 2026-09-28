@@ -107,7 +107,19 @@ async function run(browserName, size) {
     ...(size.touch && browserName !== "firefox" ? { isMobile: true, hasTouch: true } : {}),
   });
   const page = await context.newPage();
-  const check = (name, fn) => step(where, name, fn, page);
+  // After each step, let the page's requests finish (as a person pausing on it would)
+  // before the next navigation. Cutting off an in-flight session refresh can end the
+  // session in WebKit, which then sends every later page to sign-in.
+  const check = (name, fn) =>
+    step(
+      where,
+      name,
+      async () => {
+        await fn();
+        await page.waitForLoadState("networkidle", { timeout: 10_000 }).catch(() => undefined);
+      },
+      page,
+    );
   page.on("pageerror", (err) => {
     if (CANCELLED_FETCH.test(`${err.name}: ${err.message} ${String(err)}`)) {
       consoleErrors.push({

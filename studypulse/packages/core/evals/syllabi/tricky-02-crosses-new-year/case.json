@@ -1,0 +1,74 @@
+{
+  "description": "Winter session from December into January with no years printed; January dates belong to the next year.",
+  "tags": ["tricky", "year-inference", "new-year"],
+  "input": {
+    "timezone": "America/Chicago",
+    "today": "2026-12-10",
+    "term_start": null,
+    "term_end": null
+  },
+  "expected": {
+    "course": {
+      "name": "Personal Finance",
+      "code": "ECON 150"
+    },
+    "categories": [
+      {
+        "name": "Weekly quizzes",
+        "weight": 30
+      },
+      {
+        "name": "Budget project",
+        "weight": 30
+      },
+      {
+        "name": "Final exam",
+        "weight": 40
+      }
+    ],
+    "assignments": [
+      {
+        "title": "Quiz 1",
+        "kind": "quiz",
+        "due_date": "2026-12-18",
+        "due_time": "23:59",
+        "category": "Weekly quizzes"
+      },
+      {
+        "title": "Quiz 2",
+        "kind": "quiz",
+        "due_date": "2026-12-23",
+        "due_time": "23:59",
+        "category": "Weekly quizzes"
+      },
+      {
+        "title": "Quiz 3",
+        "kind": "quiz",
+        "due_date": "2027-01-08",
+        "due_time": "23:59",
+        "category": "Weekly quizzes"
+      },
+      {
+        "title": "Budget project",
+        "kind": "project",
+        "due_date": "2027-01-13",
+        "due_time": "23:59",
+        "category": "Budget project"
+      },
+      {
+        "title": "Quiz 4",
+        "kind": "quiz",
+        "due_date": "2027-01-15",
+        "due_time": "23:59",
+        "category": "Weekly quizzes"
+      },
+      {
+        "title": "Final exam",
+        "kind": "exam",
+        "due_date": "2027-01-22",
+        "due_time": "23:59",
+        "category": "Final exam"
+      }
+    ]
+  }
+}

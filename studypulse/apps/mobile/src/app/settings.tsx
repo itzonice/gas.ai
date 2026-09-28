@@ -1,0 +1,179 @@
+// Settings on mobile: account, subscription, legal links, sign out, and account deletion
+// (App Store guideline 5.1.1(v): deletion must be in the app). Delete account is one
+// tap from here, then one confirmation. The AI switch (launch audit L2-AI) withdraws or
+// gives consent to send syllabi and notes to Anthropic.
+import { ApiError } from "@studypulse/core/api";
+import { DEFAULT_WEB_ORIGIN, STORE_SUBSCRIPTION_URLS } from "@studypulse/core/legal";
+import { AI_DISCLOSURE } from "@studypulse/core/privacy";
+import { router } from "expo-router";
+import { useEffect, useState } from "react";
+import { Alert, Linking, Platform, Switch, Text, View } from "react-native";
+
+import { BusinessLine, LegalLinks } from "../components/LegalLinks";
+import { Screen } from "../components/Screen";
+import { Button } from "../components/ui/Button";
+import { env } from "../env";
+import { clearAppStorage } from "../lib/app-storage";
+import { flush } from "../lib/offline";
+import { getApi, getSupabase } from "../lib/supabase";
+import { resetPurchaser } from "../purchases";
+import { useSession } from "../session";
+import { useAppTheme } from "../theme";
+
+/** Signs out everywhere: revokes every refresh token for this account, then clears this device. */
+export async function signOutEverywhere() {
+  // Changes made offline go up first if the connection allows (L2).
+  await flush().catch(() => undefined);
+  await resetPurchaser().catch(() => undefined);
+  const auth = getSupabase().auth;
+  const { error } = await auth.signOut({ scope: "global" });
+  // Offline or already revoked: still forget the session on this device.
+  if (error) await auth.signOut({ scope: "local" });
+  await clearAppStorage();
+}
+
+export default function SettingsScreen() {
+  const theme = useAppTheme();
+  const session = useSession();
+  const [busy, setBusy] = useState(false);
+  const email = session.status === "signed-in" ? session.session.user.email : undefined;
+  const [aiAllowed, setAiAllowed] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    let live = true;
+    getApi()
+      .settings.get()
+      .then((s) => {
+        if (live) setAiAllowed(s.profile.ai_processing_allowed);
+      })
+      .catch(() => undefined);
+    return () => {
+      live = false;
+    };
+  }, []);
+
+  async function changeAi(next: boolean) {
+    const previous = aiAllowed;
+    setAiAllowed(next);
+    try {
+      await getApi().privacy.setAiConsent(next, "settings");
+    } catch {
+      setAiAllowed(previous);
+      Alert.alert("Not saved", "Couldn't change the AI setting. Try again.");
+    }
+  }
+
+  const heading = (text: string) => (
+    <Text
+      accessibilityRole="header"
+      style={[theme.type.sectionHeading, { color: theme.colors.onSurface }]}
+    >
+      {text}
+    </Text>
+  );
+
+  async function manageSubscription() {
+    // A store purchase can only be changed in that store; web purchases in the Stripe portal.
+    const status = await getApi()
+      .billing.status()
+      .catch(() => null);
+    const where = status?.manage_in;
+    if (where === "stripe_portal") {
+      await Linking.openURL(
+        `${(env.EXPO_PUBLIC_WEB_URL ?? DEFAULT_WEB_ORIGIN).replace(/\/+$/, "")}/settings#plan`,
+      );
+      return;
+    }
+    const url =
+      where === "play_store" || (!where && Platform.OS === "android")
+        ? STORE_SUBSCRIPTION_URLS.play_store
+        : STORE_SUBSCRIPTION_URLS.app_store;
+    await Linking.openURL(url);
+  }
+
+  async function deleteAccount() {
+    setBusy(true);
+    try {
+      await getApi().account.delete("DELETE");
+      await getSupabase()
+        .auth.signOut({ scope: "local" })
+        .catch(() => undefined);
+      await clearAppStorage();
+      router.replace("/sign-in");
+    } catch (error) {
+      setBusy(false);
+      Alert.alert(
+        "Account not deleted",
+        error instanceof ApiError && error.status === 503
+          ? "Your subscription can't be cancelled right now, so nothing was deleted. Try again later."
+          : "Something went wrong and nothing was deleted. Try again.",
+      );
+    }
+  }
+
+  function confirmDelete() {
+    Alert.alert(
+      "Delete your account?",
+      "This permanently deletes your courses, grades, study history, and files. It can't be undone. A subscription bought in the App Store or Google Play must be cancelled there.",
+      [
+        { text: "Cancel", style: "cancel" },
+        { text: "Delete account", style: "destructive", onPress: () => void deleteAccount() },
+      ],
+    );
+  }
+
+  return (
+    <Screen topInset={false}>
+      <View style={{ gap: theme.spacing.related }}>
+        {heading("Account")}
+        <Text style={[theme.type.body, { color: theme.colors.onSurfaceVariant }]}>
+          Signed in as {email ?? "your account"}
+        </Text>
+        <Button label="Sign out" variant="tonal" onPress={() => void signOutEverywhere()} />
+      </View>
+      <View style={{ gap: theme.spacing.related }}>
+        {heading("Subscription")}
+        <Button
+          label="Manage or cancel subscription"
+          variant="tonal"
+          onPress={() => void manageSubscription()}
+        />
+      </View>
+      <View style={{ gap: theme.spacing.related }}>
+        {heading("AI features")}
+        <View style={{ flexDirection: "row", alignItems: "center", gap: theme.spacing.related }}>
+          <Text style={[theme.type.body, { color: theme.colors.onSurface, flex: 1 }]}>
+            {AI_DISCLOSURE.settingLabel}
+          </Text>
+          <Switch
+            accessibilityLabel={AI_DISCLOSURE.settingLabel}
+            accessibilityHint={AI_DISCLOSURE.settingHint}
+            value={aiAllowed === true}
+            disabled={aiAllowed === null}
+            onValueChange={(v) => void changeAi(v)}
+          />
+        </View>
+        <Text style={[theme.type.body, { color: theme.colors.onSurfaceVariant }]}>
+          {AI_DISCLOSURE.settingHint} {AI_DISCLOSURE.notSent}
+        </Text>
+      </View>
+      <View style={{ gap: theme.spacing.related }}>
+        {heading("Legal")}
+        <LegalLinks />
+        <BusinessLine />
+      </View>
+      <View style={{ gap: theme.spacing.related }}>
+        {heading("Delete account")}
+        <Text style={[theme.type.body, { color: theme.colors.onSurfaceVariant }]}>
+          Permanently deletes your account and everything in it.
+        </Text>
+        <Button
+          label={busy ? "Deleting…" : "Delete account"}
+          variant="danger"
+          disabled={busy}
+          onPress={confirmDelete}
+        />
+      </View>
+    </Screen>
+  );
+}

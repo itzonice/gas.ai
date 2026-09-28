@@ -1,0 +1,77 @@
+{
+  "description": "A biweekly recurring deliverable starting in week 2, with one occurrence cancelled by spring break.",
+  "tags": ["tricky", "recurring", "biweekly", "holidays"],
+  "input": {
+    "timezone": "America/New_York",
+    "today": "2027-01-14",
+    "term_start": null,
+    "term_end": null
+  },
+  "expected": {
+    "course": {
+      "name": "Physics II Laboratory",
+      "code": "PHYS 102"
+    },
+    "categories": [
+      {
+        "name": "Lab reports",
+        "weight": 70
+      },
+      {
+        "name": "Lab practical exam",
+        "weight": 30
+      }
+    ],
+    "assignments": [
+      {
+        "title": "Lab Report 1",
+        "kind": "lab",
+        "due_date": "2027-01-27",
+        "due_time": "14:00",
+        "category": "Lab reports"
+      },
+      {
+        "title": "Lab Report 2",
+        "kind": "lab",
+        "due_date": "2027-02-10",
+        "due_time": "14:00",
+        "category": "Lab reports"
+      },
+      {
+        "title": "Lab Report 3",
+        "kind": "lab",
+        "due_date": "2027-02-24",
+        "due_time": "14:00",
+        "category": "Lab reports"
+      },
+      {
+        "title": "Lab Report 4",
+        "kind": "lab",
+        "due_date": "2027-03-24",
+        "due_time": "14:00",
+        "category": "Lab reports"
+      },
+      {
+        "title": "Lab Report 5",
+        "kind": "lab",
+        "due_date": "2027-04-07",
+        "due_time": "14:00",
+        "category": "Lab reports"
+      },
+      {
+        "title": "Lab Report 6",
+        "kind": "lab",
+        "due_date": "2027-04-21",
+        "due_time": "14:00",
+        "category": "Lab reports"
+      },
+      {
+        "title": "Lab practical exam",
+        "kind": "exam",
+        "due_date": "2027-05-05",
+        "due_time": "14:00",
+        "category": "Lab practical exam"
+      }
+    ]
+  }
+}

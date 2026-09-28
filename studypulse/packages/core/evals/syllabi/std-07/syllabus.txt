@@ -1,0 +1,23 @@
+CS 225: Data Structures
+Summer 2027
+Instructor: Dr. Hannah Kowalski
+Class meets Monday/Wednesday.
+First day of classes: June 1, 2027. Last day (including finals): July 30, 2027.
+
+GRADING
+Midterm Exam count for 25% of your grade.
+Final Exam count for 30% of your grade.
+Problem Sets count for 35% of your grade.
+Participation count for 10% of your grade.
+
+Late work loses 10% per day. Contact the instructor in advance for accommodations.
+
+ASSIGNMENTS AND EXAMS
+Problem Set 1 is due 6/9; it counts toward Problem Sets.
+Problem Set 2 is due Thu 6/17 at 11:59 PM; it counts toward Problem Sets.
+Problem Set 3 is due Friday, Jun 25 at 11:59 PM; it counts toward Problem Sets.
+Problem Set 4 is due July 3, 2027 at 11:59 PM; it counts toward Problem Sets.
+The Midterm Exam will be held on July 5 at 2 PM.
+Problem Set 5 is due 7/11 at 11:59 PM; it counts toward Problem Sets.
+Problem Set 6 is due Mon 7/19 at 11:59 PM; it counts toward Problem Sets.
+The Final Exam will be held on Friday, Jul 30 at 2 PM.

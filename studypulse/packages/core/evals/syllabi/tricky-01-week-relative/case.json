@@ -1,0 +1,81 @@
+{
+  "description": "Only week numbers and weekdays are given; dates must be computed from the term start.",
+  "tags": ["tricky", "week-relative"],
+  "input": {
+    "timezone": "America/New_York",
+    "today": "2027-01-05",
+    "term_start": null,
+    "term_end": null
+  },
+  "expected": {
+    "course": {
+      "name": "Research Methods in Psychology",
+      "code": "PSYC 210"
+    },
+    "categories": [
+      {
+        "name": "Lab reports",
+        "weight": 40
+      },
+      {
+        "name": "Exams",
+        "weight": 40
+      },
+      {
+        "name": "Research proposal",
+        "weight": 20
+      }
+    ],
+    "assignments": [
+      {
+        "title": "Lab Report 1",
+        "kind": "lab",
+        "due_date": "2027-01-20",
+        "due_time": "10:00",
+        "category": "Lab reports"
+      },
+      {
+        "title": "Lab Report 2",
+        "kind": "lab",
+        "due_date": "2027-02-01",
+        "due_time": "10:00",
+        "category": "Lab reports"
+      },
+      {
+        "title": "Exam 1",
+        "kind": "exam",
+        "due_date": "2027-02-17",
+        "due_time": "10:00",
+        "category": "Exams"
+      },
+      {
+        "title": "Lab Report 3",
+        "kind": "lab",
+        "due_date": "2027-03-01",
+        "due_time": "10:00",
+        "category": "Lab reports"
+      },
+      {
+        "title": "Research proposal draft",
+        "kind": "project",
+        "due_date": "2027-03-19",
+        "due_time": "17:00",
+        "category": null
+      },
+      {
+        "title": "Exam 2",
+        "kind": "exam",
+        "due_date": "2027-03-31",
+        "due_time": "10:00",
+        "category": "Exams"
+      },
+      {
+        "title": "Final research proposal",
+        "kind": "project",
+        "due_date": "2027-04-12",
+        "due_time": "10:00",
+        "category": "Research proposal"
+      }
+    ]
+  }
+}

@@ -1,0 +1,61 @@
+{
+  "description": "Several deliverables without dates (TBA/TBD); they must stay undated, not be invented.",
+  "tags": ["tricky", "tbd"],
+  "input": {
+    "timezone": "America/New_York",
+    "today": "2026-08-25",
+    "term_start": null,
+    "term_end": null
+  },
+  "expected": {
+    "course": {
+      "name": "Urban Sociology",
+      "code": "SOC 330"
+    },
+    "categories": [
+      {
+        "name": "Field journal",
+        "weight": 20
+      },
+      {
+        "name": "Midterm paper",
+        "weight": 25
+      },
+      {
+        "name": "Group presentation",
+        "weight": 20
+      },
+      {
+        "name": "Final exam",
+        "weight": 35
+      }
+    ],
+    "assignments": [
+      {
+        "title": "Field journal",
+        "kind": "assignment",
+        "due_date": null,
+        "category": "Field journal"
+      },
+      {
+        "title": "Midterm paper",
+        "kind": "project",
+        "due_date": "2026-10-16",
+        "due_time": "23:59",
+        "category": "Midterm paper"
+      },
+      {
+        "title": "Group presentation",
+        "kind": "project",
+        "due_date": null,
+        "category": "Group presentation"
+      },
+      {
+        "title": "Final exam",
+        "kind": "exam",
+        "due_date": null,
+        "category": "Final exam"
+      }
+    ]
+  }
+}

@@ -1,0 +1,41 @@
+# Dependency updates (launch audit L8). Weekly, grouped so a week's minor and patch
+# updates arrive as one pull request per ecosystem; CI (tests, license check, advisory
+# audit) runs on each. Security updates come as soon as an advisory is published.
+# Deno imports (studypulse/supabase/functions/deno.json) are checked by
+# .github/workflows/deno-deps.yml instead.
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /studypulse
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    groups:
+      minor-and-patch:
+        update-types: [minor, patch]
+    ignore:
+      # The Expo SDK pins these together; upgrade them with `npx expo install --fix`
+      # when moving to a new SDK, not one at a time.
+      - dependency-name: "expo"
+        update-types: [version-update:semver-major]
+      - dependency-name: "expo-*"
+        update-types: [version-update:semver-major]
+      - dependency-name: "@expo/*"
+        update-types: [version-update:semver-major]
+      - dependency-name: "react-native"
+      - dependency-name: "react-native-*"
+        update-types: [version-update:semver-major]
+      - dependency-name: "@react-native-async-storage/async-storage"
+      - dependency-name: "react"
+      - dependency-name: "react-dom"
+      - dependency-name: "@types/react"
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    groups:
+      actions:
+        patterns: ["*"]

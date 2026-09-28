@@ -1,0 +1,13 @@
+packages:
+  - apps/*
+  - packages/*
+
+ignoredBuiltDependencies:
+  - deno
+  - sharp
+  - unrs-resolver
+
+# Expo pins an exact React version; keep one copy across the whole workspace.
+overrides:
+  react: 19.2.3
+  react-dom: 19.2.3

@@ -1,0 +1,85 @@
+{
+  "description": "Grading given in points out of 1,000; weights must be converted to percentages.",
+  "tags": ["tricky", "points"],
+  "input": {
+    "timezone": "America/Chicago",
+    "today": "2026-08-20",
+    "term_start": null,
+    "term_end": null
+  },
+  "expected": {
+    "course": {
+      "name": "Introduction to Programming",
+      "code": "CS 110"
+    },
+    "categories": [
+      {
+        "name": "Programming assignments",
+        "weight": 20
+      },
+      {
+        "name": "Midterm exam",
+        "weight": 25
+      },
+      {
+        "name": "Final exam",
+        "weight": 25
+      },
+      {
+        "name": "Final project",
+        "weight": 30
+      }
+    ],
+    "assignments": [
+      {
+        "title": "Programming Assignment 1",
+        "kind": "assignment",
+        "due_date": "2026-09-11",
+        "due_time": "23:59",
+        "category": "Programming assignments"
+      },
+      {
+        "title": "Programming Assignment 2",
+        "kind": "assignment",
+        "due_date": "2026-10-02",
+        "due_time": "23:59",
+        "category": "Programming assignments"
+      },
+      {
+        "title": "Midterm exam",
+        "kind": "exam",
+        "due_date": "2026-10-15",
+        "due_time": "11:00",
+        "category": "Midterm exam"
+      },
+      {
+        "title": "Programming Assignment 3",
+        "kind": "assignment",
+        "due_date": "2026-10-30",
+        "due_time": "23:59",
+        "category": "Programming assignments"
+      },
+      {
+        "title": "Programming Assignment 4",
+        "kind": "assignment",
+        "due_date": "2026-11-20",
+        "due_time": "23:59",
+        "category": "Programming assignments"
+      },
+      {
+        "title": "Final project",
+        "kind": "project",
+        "due_date": "2026-12-09",
+        "due_time": "23:59",
+        "category": "Final project"
+      },
+      {
+        "title": "Final exam",
+        "kind": "exam",
+        "due_date": "2026-12-11",
+        "due_time": "13:30",
+        "category": "Final exam"
+      }
+    ]
+  }
+}

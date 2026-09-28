@@ -1,0 +1,120 @@
+{
+  "description": "PSYC 101 Introduction to Psychology, Fall 2027, weekly layout, America/Los_Angeles",
+  "tags": ["standard", "weekly"],
+  "input": {
+    "timezone": "America/Los_Angeles",
+    "today": "2027-08-19",
+    "term_start": null,
+    "term_end": null
+  },
+  "expected": {
+    "course": {
+      "name": "Introduction to Psychology",
+      "code": "PSYC 101"
+    },
+    "categories": [
+      {
+        "name": "Labs",
+        "weight": 30
+      },
+      {
+        "name": "Exams",
+        "weight": 45
+      },
+      {
+        "name": "Quizzes",
+        "weight": 15
+      },
+      {
+        "name": "Participation",
+        "weight": 10
+      }
+    ],
+    "assignments": [
+      {
+        "title": "Lab 1",
+        "kind": "lab",
+        "due_date": "2027-09-08",
+        "due_time": null,
+        "category": "Labs"
+      },
+      {
+        "title": "Quiz 1",
+        "kind": "quiz",
+        "due_date": "2027-09-15",
+        "due_time": "23:59",
+        "category": "Quizzes"
+      },
+      {
+        "title": "Lab 2",
+        "kind": "lab",
+        "due_date": "2027-09-23",
+        "due_time": "23:59",
+        "category": "Labs"
+      },
+      {
+        "title": "Exam 1",
+        "kind": "exam",
+        "due_date": "2027-10-04",
+        "due_time": "10:30",
+        "category": "Exams"
+      },
+      {
+        "title": "Lab 3",
+        "kind": "lab",
+        "due_date": "2027-10-09",
+        "due_time": null,
+        "category": "Labs"
+      },
+      {
+        "title": "Quiz 2",
+        "kind": "quiz",
+        "due_date": "2027-10-11",
+        "due_time": null,
+        "category": "Quizzes"
+      },
+      {
+        "title": "Lab 4",
+        "kind": "lab",
+        "due_date": "2027-10-25",
+        "due_time": "23:59",
+        "category": "Labs"
+      },
+      {
+        "title": "Quiz 3",
+        "kind": "quiz",
+        "due_date": "2027-11-01",
+        "due_time": null,
+        "category": "Quizzes"
+      },
+      {
+        "title": "Lab 5",
+        "kind": "lab",
+        "due_date": "2027-11-09",
+        "due_time": null,
+        "category": "Labs"
+      },
+      {
+        "title": "Exam 2",
+        "kind": "exam",
+        "due_date": "2027-11-15",
+        "due_time": "14:00",
+        "category": "Exams"
+      },
+      {
+        "title": "Quiz 4",
+        "kind": "quiz",
+        "due_date": "2027-11-22",
+        "due_time": "23:59",
+        "category": "Quizzes"
+      },
+      {
+        "title": "Lab 6",
+        "kind": "lab",
+        "due_date": "2027-11-25",
+        "due_time": null,
+        "category": "Labs"
+      }
+    ]
+  }
+}

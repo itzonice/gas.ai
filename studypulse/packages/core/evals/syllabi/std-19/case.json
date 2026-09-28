@@ -1,0 +1,120 @@
+{
+  "description": "CS 173 Discrete Mathematics, Summer 2027, prose layout, Europe/London",
+  "tags": ["standard", "prose"],
+  "input": {
+    "timezone": "Europe/London",
+    "today": "2027-05-28",
+    "term_start": null,
+    "term_end": null
+  },
+  "expected": {
+    "course": {
+      "name": "Discrete Mathematics",
+      "code": "CS 173"
+    },
+    "categories": [
+      {
+        "name": "Labs",
+        "weight": 30
+      },
+      {
+        "name": "Exams",
+        "weight": 45
+      },
+      {
+        "name": "Quizzes",
+        "weight": 15
+      },
+      {
+        "name": "Participation",
+        "weight": 10
+      }
+    ],
+    "assignments": [
+      {
+        "title": "Quiz 1",
+        "kind": "quiz",
+        "due_date": "2027-06-11",
+        "due_time": "23:59",
+        "category": "Quizzes"
+      },
+      {
+        "title": "Lab 1",
+        "kind": "lab",
+        "due_date": "2027-06-13",
+        "due_time": "23:59",
+        "category": "Labs"
+      },
+      {
+        "title": "Exam 1",
+        "kind": "exam",
+        "due_date": "2027-06-16",
+        "due_time": "10:30",
+        "category": "Exams"
+      },
+      {
+        "title": "Quiz 2",
+        "kind": "quiz",
+        "due_date": "2027-06-21",
+        "due_time": null,
+        "category": "Quizzes"
+      },
+      {
+        "title": "Lab 2",
+        "kind": "lab",
+        "due_date": "2027-06-24",
+        "due_time": null,
+        "category": "Labs"
+      },
+      {
+        "title": "Quiz 3",
+        "kind": "quiz",
+        "due_date": "2027-06-30",
+        "due_time": null,
+        "category": "Quizzes"
+      },
+      {
+        "title": "Exam 2",
+        "kind": "exam",
+        "due_date": "2027-07-02",
+        "due_time": "13:00",
+        "category": "Exams"
+      },
+      {
+        "title": "Lab 3",
+        "kind": "lab",
+        "due_date": "2027-07-06",
+        "due_time": "23:59",
+        "category": "Labs"
+      },
+      {
+        "title": "Quiz 4",
+        "kind": "quiz",
+        "due_date": "2027-07-09",
+        "due_time": null,
+        "category": "Quizzes"
+      },
+      {
+        "title": "Exam 3",
+        "kind": "exam",
+        "due_date": "2027-07-16",
+        "due_time": "10:30",
+        "category": "Exams"
+      },
+      {
+        "title": "Lab 4",
+        "kind": "lab",
+        "due_date": "2027-07-17",
+        "due_time": "23:59",
+        "category": "Labs"
+      },
+      {
+        "title": "Quiz 5",
+        "kind": "quiz",
+        "due_date": "2027-07-19",
+        "due_time": null,
+        "category": "Quizzes"
+      }
+    ]
+  }
+}

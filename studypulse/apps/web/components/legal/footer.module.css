@@ -1,0 +1,32 @@
+.footer {
+  display: grid;
+  gap: var(--sp-space-related);
+  justify-items: center;
+  padding: var(--sp-space-card);
+  color: var(--sp-color-on-surface-variant);
+  font-size: var(--sp-type-label-size);
+  text-align: center;
+}
+
+.links {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--sp-space-related);
+}
+
+.footer a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--sp-layout-min-target);
+  min-width: var(--sp-layout-min-target);
+  padding: 0 var(--sp-space-half);
+  color: inherit;
+}
+
+.business {
+  max-width: 72ch;
+  font-style: normal;
+  overflow-wrap: anywhere;
+}

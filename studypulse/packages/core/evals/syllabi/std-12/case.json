@@ -1,0 +1,78 @@
+{
+  "description": "POLS 150 American Government, Fall 2027, weekly layout, Europe/London",
+  "tags": ["standard", "weekly"],
+  "input": {
+    "timezone": "Europe/London",
+    "today": "2027-08-19",
+    "term_start": null,
+    "term_end": null
+  },
+  "expected": {
+    "course": {
+      "name": "American Government",
+      "code": "POLS 150"
+    },
+    "categories": [
+      {
+        "name": "Midterm Exam",
+        "weight": 25
+      },
+      {
+        "name": "Final Exam",
+        "weight": 30
+      },
+      {
+        "name": "Problem Sets",
+        "weight": 35
+      },
+      {
+        "name": "Participation",
+        "weight": 10
+      }
+    ],
+    "assignments": [
+      {
+        "title": "Problem Set 1",
+        "kind": "assignment",
+        "due_date": "2027-09-15",
+        "due_time": "23:59",
+        "category": "Problem Sets"
+      },
+      {
+        "title": "Problem Set 2",
+        "kind": "assignment",
+        "due_date": "2027-10-07",
+        "due_time": "23:59",
+        "category": "Problem Sets"
+      },
+      {
+        "title": "Midterm Exam",
+        "kind": "exam",
+        "due_date": "2027-10-18",
+        "due_time": "14:00",
+        "category": "Midterm Exam"
+      },
+      {
+        "title": "Problem Set 3",
+        "kind": "assignment",
+        "due_date": "2027-10-30",
+        "due_time": "23:59",
+        "category": "Problem Sets"
+      },
+      {
+        "title": "Problem Set 4",
+        "kind": "assignment",
+        "due_date": "2027-11-22",
+        "due_time": "23:59",
+        "category": "Problem Sets"
+      },
+      {
+        "title": "Final Exam",
+        "kind": "exam",
+        "due_date": "2027-12-10",
+        "due_time": "14:00",
+        "category": "Final Exam"
+      }
+    ]
+  }
+}

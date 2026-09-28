@@ -1,0 +1,247 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "course": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Course title, e.g. 'Cell Biology'"
+        },
+        "code": {
+          "description": "Course code, e.g. 'BIO 201'",
+          "type": ["string", "null"]
+        },
+        "instructor": {
+          "type": ["string", "null"]
+        },
+        "term_start": {
+          "anyOf": [
+            {
+              "type": "string",
+              "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "First day of the term (YYYY-MM-DD)"
+        },
+        "term_end": {
+          "anyOf": [
+            {
+              "type": "string",
+              "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "description": "Last day of the term, including finals (YYYY-MM-DD)"
+        }
+      },
+      "required": ["name", "code", "instructor", "term_start", "term_end"],
+      "additionalProperties": false
+    },
+    "categories": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Grade category as named in the syllabus, e.g. 'Labs'"
+          },
+          "weight": {
+            "anyOf": [
+              {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 100
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Percent of the final grade, 0-100"
+          },
+          "drop_lowest": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "How many lowest scores are dropped, if stated"
+          }
+        },
+        "required": ["name", "weight", "drop_lowest"],
+        "additionalProperties": false
+      }
+    },
+    "assignments": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "assignment",
+              "quiz",
+              "exam",
+              "project",
+              "reading",
+              "lab",
+              "discussion",
+              "other"
+            ]
+          },
+          "category_name": {
+            "description": "Exactly as written in the categories list, or null",
+            "type": ["string", "null"]
+          },
+          "due_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Local due date (YYYY-MM-DD); null if TBD or unknown"
+          },
+          "due_time": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Local 24-hour due time (HH:MM); null if not stated"
+          },
+          "points_possible": {
+            "anyOf": [
+              {
+                "type": "number",
+                "exclusiveMinimum": 0
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "inferred_date": {
+            "type": "boolean",
+            "description": "The date was computed (from a week number, 'next class', a weekday), not printed"
+          },
+          "inferred_year": {
+            "type": "boolean",
+            "description": "The syllabus gave month and day but no year"
+          },
+          "expanded_recurring": {
+            "type": "boolean",
+            "description": "This item was generated from a recurring rule such as 'every Tuesday'"
+          },
+          "tbd": {
+            "type": "boolean",
+            "description": "The syllabus says the date is TBD/TBA or gives none"
+          },
+          "source_quote": {
+            "type": "string",
+            "description": "The syllabus text this item came from, max ~200 characters"
+          }
+        },
+        "required": [
+          "title",
+          "kind",
+          "category_name",
+          "due_date",
+          "due_time",
+          "points_possible",
+          "inferred_date",
+          "inferred_year",
+          "expanded_recurring",
+          "tbd",
+          "source_quote"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "grading_scale": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "letter": {
+            "type": "string"
+          },
+          "min_percent": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 100
+          }
+        },
+        "required": ["letter", "min_percent"],
+        "additionalProperties": false
+      },
+      "description": "Letter grade cutoffs if listed, else empty"
+    },
+    "warnings": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Ambiguities the student should double-check"
+    },
+    "meetings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "weekday": {
+            "type": "string",
+            "enum": ["mon", "tue", "wed", "thu", "fri", "sat", "sun"]
+          },
+          "start_time": {
+            "type": "string",
+            "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$",
+            "description": "Local 24-hour start time (HH:MM)"
+          },
+          "end_time": {
+            "type": "string",
+            "pattern": "^([01]\\d|2[0-3]):[0-5]\\d$",
+            "description": "Local 24-hour end time (HH:MM)"
+          },
+          "kind": {
+            "type": "string",
+            "enum": ["lecture", "lab", "discussion", "other"],
+            "description": "lecture, lab, discussion section, or other"
+          },
+          "location": {
+            "description": "Room or 'Online', if stated",
+            "type": ["string", "null"]
+          }
+        },
+        "required": ["weekday", "start_time", "end_time", "kind", "location"],
+        "additionalProperties": false
+      },
+      "description": "Regular weekly class meetings with stated days and times; empty if not given"
+    }
+  },
+  "required": ["course", "categories", "assignments", "grading_scale", "warnings", "meetings"],
+  "additionalProperties": false
+}

@@ -1,0 +1,102 @@
+{
+  "description": "STAT 200 Statistics for the Social Sciences, Summer 2027, prose layout, America/Los_Angeles",
+  "tags": ["standard", "prose"],
+  "input": {
+    "timezone": "America/Los_Angeles",
+    "today": "2027-05-28",
+    "term_start": null,
+    "term_end": null
+  },
+  "expected": {
+    "course": {
+      "name": "Statistics for the Social Sciences",
+      "code": "STAT 200"
+    },
+    "categories": [
+      {
+        "name": "Exams",
+        "weight": 50
+      },
+      {
+        "name": "Homework",
+        "weight": 30
+      },
+      {
+        "name": "Quizzes",
+        "weight": 20
+      }
+    ],
+    "assignments": [
+      {
+        "title": "Quiz 1",
+        "kind": "quiz",
+        "due_date": "2027-06-14",
+        "due_time": "23:59",
+        "category": "Quizzes"
+      },
+      {
+        "title": "Exam 1",
+        "kind": "exam",
+        "due_date": "2027-06-16",
+        "due_time": "10:30",
+        "category": "Exams"
+      },
+      {
+        "title": "Homework 1",
+        "kind": "assignment",
+        "due_date": "2027-06-16",
+        "due_time": null,
+        "category": "Homework"
+      },
+      {
+        "title": "Quiz 2",
+        "kind": "quiz",
+        "due_date": "2027-06-25",
+        "due_time": "23:59",
+        "category": "Quizzes"
+      },
+      {
+        "title": "Homework 2",
+        "kind": "assignment",
+        "due_date": "2027-07-01",
+        "due_time": "23:59",
+        "category": "Homework"
+      },
+      {
+        "title": "Exam 2",
+        "kind": "exam",
+        "due_date": "2027-07-02",
+        "due_time": "09:00",
+        "category": "Exams"
+      },
+      {
+        "title": "Quiz 3",
+        "kind": "quiz",
+        "due_date": "2027-07-07",
+        "due_time": null,
+        "category": "Quizzes"
+      },
+      {
+        "title": "Exam 3",
+        "kind": "exam",
+        "due_date": "2027-07-16",
+        "due_time": "10:30",
+        "category": "Exams"
+      },
+      {
+        "title": "Homework 3",
+        "kind": "assignment",
+        "due_date": "2027-07-16",
+        "due_time": null,
+        "category": "Homework"
+      },
+      {
+        "title": "Quiz 4",
+        "kind": "quiz",
+        "due_date": "2027-07-19",
+        "due_time": null,
+        "category": "Quizzes"
+      }
+    ]
+  }
+}

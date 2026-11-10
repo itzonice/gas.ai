@@ -78,6 +78,35 @@ describe("outbox", () => {
     ]);
   });
 
+  it("keeps a card's latest review, and reviews of other cards", () => {
+    const state = { reps: 1, intervalDays: 1, ease: 2.5, lapses: 0 };
+    const at = "2027-03-01T15:00:00Z";
+    let list: OutboxEntry[] = [];
+    list = enqueue(list, { kind: "card.review", id: A, rating: "good", state, reviewedAt: at });
+    list = enqueue(list, { kind: "card.review", id: S, rating: "hard", state, reviewedAt: at });
+    list = enqueue(list, { kind: "card.review", id: A, rating: "easy", state, reviewedAt: at });
+    expect(list.map((e) => (e.op.kind === "card.review" ? [e.op.id, e.op.rating] : null))).toEqual([
+      [S, "hard"],
+      [A, "easy"],
+    ]);
+  });
+
+  it("reads a saved card review back, and refuses one with a bad state", () => {
+    const op = {
+      kind: "card.review",
+      id: A,
+      rating: "good",
+      state: { reps: 0, intervalDays: 0, ease: 2.5, lapses: 0 },
+      reviewedAt: "2027-03-01T15:00:00Z",
+    };
+    const saved = JSON.stringify([
+      { op, queuedAt: 1 },
+      { op: { ...op, state: { ...op.state, ease: 99 } }, queuedAt: 2 },
+      { op: { ...op, rating: "perfect" }, queuedAt: 3 },
+    ]);
+    expect(parseOutbox(saved)).toHaveLength(1);
+  });
+
   it("drops a write the server refuses instead of blocking the rest", async () => {
     const list = enqueue(enqueue([], { kind: "assignment.status", id: A, status: "done" }), {
       kind: "block.status",

@@ -1,4 +1,4 @@
-// The five destinations, styled from the design tokens: bottom tabs on phones and a
+// The five tabs, styled from the design tokens: bottom tabs on phones and a
 // navigation rail on tablets (600 pt and wider, portrait or landscape), plus the floating
 // "Start focus" button. Tab changes don't animate when the system asks for less motion.
 import { Redirect } from "expo-router";
@@ -18,8 +18,8 @@ const TABS: { name: string; title: string; icon: IconName }[] = [
   { name: "today", title: "Today", icon: "today" },
   { name: "calendar", title: "Calendar", icon: "calendar-month" },
   { name: "courses", title: "Courses", icon: "school" },
+  { name: "study", title: "Study", icon: "style" },
   { name: "focus", title: "Focus", icon: "timer" },
-  { name: "stats", title: "Stats", icon: "bar-chart" },
 ];
 
 export default function TabsLayout() {
@@ -120,6 +120,9 @@ export default function TabsLayout() {
             }}
           />
         ))}
+        {/* Stats is a screen of the tab group but not a tab: five tabs is the most a phone's
+            bottom bar holds. It's reached from Today and Focus ("See your stats"). */}
+        <Tabs.Screen name="stats" options={{ href: null, title: "Stats" }} />
       </Tabs>
       <FocusFab bottomOffset={barHeight} />
     </View>

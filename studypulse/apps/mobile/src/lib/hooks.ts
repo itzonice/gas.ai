@@ -82,6 +82,9 @@ export function useWindowClass(): WindowClass {
   return "compact";
 }
 
+/** The current time in milliseconds, for event handlers and timers (not for render). */
+export const nowMs = (): number => Date.now();
+
 /** Reads a message out on VoiceOver and TalkBack (start, pause, finish, saved, failed). */
 export function announce(message: string) {
   if (message) AccessibilityInfo.announceForAccessibility(message);

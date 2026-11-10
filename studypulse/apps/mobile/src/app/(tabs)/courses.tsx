@@ -7,6 +7,7 @@ import { router } from "expo-router";
 import { useState } from "react";
 import { Pressable, Text, View } from "react-native";
 
+import { AddCourseSheet } from "../../components/AddCourseSheet";
 import { TabScreen } from "../../components/TabScreen";
 import { CourseChip, EmptyState, Icon, OverflowMenu, useUndoDelete } from "../../components/ui";
 import { useLoad, useWindowClass } from "../../lib/hooks";
@@ -26,6 +27,7 @@ export default function CoursesScreen() {
   const size = useWindowClass();
   const { data, error, refreshing, refresh, reload } = useLoad(loadCourses);
   const [failed, setFailed] = useState<string | null>(null);
+  const [adding, setAdding] = useState(false);
   const undo = useUndoDelete({
     onError: () => {
       setFailed("Couldn't delete that course. It's back in your list.");
@@ -141,6 +143,14 @@ export default function CoursesScreen() {
         title="Courses"
         description="Your grades and what's next in each course."
         primaryAction={{ label: "Upload syllabus", onPress: upload }}
+        secondaryActions={[
+          {
+            label: "Add a course without a syllabus",
+            onSelect: () => {
+              setAdding(true);
+            },
+          },
+        ]}
         loading={!data}
         error={error ?? failed}
         refreshing={refreshing}
@@ -160,6 +170,17 @@ export default function CoursesScreen() {
         )}
       </TabScreen>
       {undo.bar}
+      <AddCourseSheet
+        visible={adding}
+        usedColors={(data?.overview.courses ?? []).map((c) => c.color)}
+        onClose={() => {
+          setAdding(false);
+        }}
+        onCreated={(course) => {
+          setAdding(false);
+          router.push(`/courses/${course.id}`);
+        }}
+      />
     </View>
   );
 }

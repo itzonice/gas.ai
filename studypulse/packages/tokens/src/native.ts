@@ -50,4 +50,4 @@ export const lightTheme: NativeTheme = build("light");
 export const darkTheme: NativeTheme = build("dark");
 export const themes: Record<ThemeName, NativeTheme> = { light: lightTheme, dark: darkTheme };
 
-export { courseColorFor, courseSwatch, nextCourseColor } from "./index.ts";
+export { courseColorFor, coursePalette, courseSwatch, nextCourseColor } from "./index.ts";

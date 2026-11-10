@@ -336,6 +336,14 @@ export default function FocusScreen() {
       title="Focus"
       description="Work on one thing at a time. Paused time doesn't count."
       {...(primaryAction && !busy ? { primaryAction } : {})}
+      secondaryActions={[
+        {
+          label: "See your stats",
+          onSelect: () => {
+            router.push("/stats");
+          },
+        },
+      ]}
       loading={!overview}
       error={loadError}
       onRefresh={() => void load()}

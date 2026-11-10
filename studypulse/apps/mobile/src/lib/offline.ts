@@ -131,6 +131,13 @@ async function send(op: OutboxOp): Promise<void> {
     case "block.status":
       await api.plan.setBlockStatus({ id: op.id, status: op.status });
       return;
+    case "card.review":
+      // Scheduled as of the moment it was rated, not the moment it reached the server.
+      await api.cards.review(
+        { id: op.id, rating: op.rating, state: op.state },
+        new Date(op.reviewedAt),
+      );
+      return;
   }
 }
 

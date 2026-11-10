@@ -40,6 +40,20 @@ const opSchema = z.discriminatedUnion("kind", [
     id: uuid,
     status: z.enum(["planned", "done", "missed"]),
   }),
+  // A flashcard review: the card's state when it was rated and when, so the next review
+  // is worked out as of then, not as of when the phone gets a connection back.
+  z.object({
+    kind: z.literal("card.review"),
+    id: uuid,
+    rating: z.enum(["again", "hard", "good", "easy"]),
+    state: z.object({
+      reps: z.number().int().min(0),
+      intervalDays: z.number().int().min(0),
+      ease: z.number().min(1.3).max(3),
+      lapses: z.number().int().min(0),
+    }),
+    reviewedAt: iso,
+  }),
 ]);
 export type OutboxOp = z.infer<typeof opSchema>;
 
@@ -64,13 +78,15 @@ export function parseOutbox(raw: string | null | undefined): OutboxEntry[] {
 
 /**
  * Adds a write. A later status or score edit of the same assignment (or block) replaces an
- * earlier one still waiting, so only the student's last choice is sent.
+ * earlier one still waiting, so only the student's last choice is sent. The same goes for
+ * a card's review: the later one already started from the state the earlier one left.
  */
 export function enqueue(list: readonly OutboxEntry[], op: OutboxOp, now = Date.now()) {
   const replaces = (e: OutboxEntry) =>
     (op.kind === "assignment.status" ||
       op.kind === "assignment.score" ||
-      op.kind === "block.status") &&
+      op.kind === "block.status" ||
+      op.kind === "card.review") &&
     e.op.kind === op.kind &&
     e.op.id === op.id;
   const next = [...list.filter((e) => !replaces(e)), { op, queuedAt: now }];

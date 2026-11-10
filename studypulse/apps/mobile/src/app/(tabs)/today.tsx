@@ -157,6 +157,12 @@ export default function TodayScreen() {
             router.push("/courses/upload");
           },
         },
+        {
+          label: "See your stats",
+          onSelect: () => {
+            router.push("/stats");
+          },
+        },
       ]}
       loading={!data}
       error={error}

@@ -97,7 +97,7 @@ jobs:
         run: sudo sysctl -w net.ipv4.ip_local_reserved_ports=54320-54329
       # Only the database is needed to apply migrations and run SQL tests.
       - name: Start Postgres
-        run: pnpm exec supabase db start
+        run: bash scripts/ci-supabase-start.sh db start
       - name: Apply every migration from scratch and seed
         run: pnpm exec supabase db reset
       - name: Lint schema
@@ -136,7 +136,7 @@ jobs:
         run: sudo sysctl -w net.ipv4.ip_local_reserved_ports=54320-54329
       # The real stack: Postgres, PostgREST, Auth, Storage, and the edge runtime.
       - name: Start Supabase
-        run: pnpm exec supabase start -x studio,imgproxy,logflare,vector,supavisor,realtime,postgres-meta
+        run: bash scripts/ci-supabase-start.sh start -x studio,imgproxy,logflare,vector,supavisor,realtime,postgres-meta
       - name: Wait for the edge functions
         run: |
           for i in $(seq 1 90); do
@@ -181,7 +181,7 @@ jobs:
         run: sudo sysctl -w net.ipv4.ip_local_reserved_ports=54320-54329
       # The local stack with the seeded demo account (supabase/seed.sql).
       - name: Start Supabase
-        run: pnpm exec supabase start -x studio,imgproxy,logflare,vector,supavisor,realtime,postgres-meta
+        run: bash scripts/ci-supabase-start.sh start -x studio,imgproxy,logflare,vector,supavisor,realtime,postgres-meta
       - name: Build and start the web app against it
         run: |
           eval "$(pnpm exec supabase status -o env \

@@ -32,7 +32,9 @@ insert into public.assignments (id, course_id, category_id, title, due_at) value
 insert into public.study_sessions (user_id, course_id, assignment_id, started_at, ended_at)
 values (:'uid', 'c0000000-0000-0000-0000-000000000001', 'a0000000-0000-0000-0000-000000000001', now() - interval '2 hours', now() - interval '1 hour');
 insert into public.study_blocks (user_id, course_id, starts_at, ends_at) values (:'uid', 'c0000000-0000-0000-0000-000000000001', now() + interval '1 day', now() + interval '1 day 1 hour');
-insert into public.flashcards (course_id, front, back) values ('c0000000-0000-0000-0000-000000000001', 'f', 'b');
+insert into public.card_sets (id, course_id, title) values ('5e000000-0000-0000-0000-000000000001', 'c0000000-0000-0000-0000-000000000001', 'Set');
+insert into public.flashcards (course_id, set_id, front, back) values ('c0000000-0000-0000-0000-000000000001', '5e000000-0000-0000-0000-000000000001', 'f', 'b');
+insert into public.notes (course_id, title, body) values ('c0000000-0000-0000-0000-000000000001', 'n', 'private');
 insert into public.syllabus_uploads (user_id, source, extracted_text) values (:'uid', 'text', 'x');
 insert into public.notification_tokens (user_id, provider, token, platform) values (:'uid', 'expo', 'ExponentPushToken[gone]', 'ios');
 insert into public.notification_log (user_id, kind, channel, status, dedupe_key) values (:'uid', 'due_24h', 'expo', 'sent', 'k');
@@ -49,6 +51,8 @@ select is_empty(format($$
   union all select 'sessions' from public.study_sessions where user_id = %1$L
   union all select 'blocks' from public.study_blocks where user_id = %1$L
   union all select 'cards' from public.flashcards where course_id = 'c0000000-0000-0000-0000-000000000001'
+  union all select 'card sets' from public.card_sets where course_id = 'c0000000-0000-0000-0000-000000000001'
+  union all select 'notes' from public.notes where course_id = 'c0000000-0000-0000-0000-000000000001'
   union all select 'uploads' from public.syllabus_uploads where user_id = %1$L
   union all select 'tokens' from public.notification_tokens where user_id = %1$L
   union all select 'prefs' from public.notification_prefs where user_id = %1$L

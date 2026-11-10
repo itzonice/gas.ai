@@ -27,6 +27,7 @@
     "./review": "./src/review/index.ts",
     "./scheduler": "./src/scheduler/index.ts",
     "./screens": "./src/screens/index.ts",
+    "./study": "./src/study/index.ts",
     "./syllabus": "./src/syllabus/index.ts",
     "./time": "./src/time/index.ts"
   },

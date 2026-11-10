@@ -426,6 +426,48 @@ export type Database = {
           },
         ];
       };
+      card_sets: {
+        Row: {
+          course_id: string;
+          created_at: string;
+          description: string | null;
+          id: string;
+          title: string;
+          updated_at: string;
+        };
+        Insert: {
+          course_id: string;
+          created_at?: string;
+          description?: string | null;
+          id?: string;
+          title: string;
+          updated_at?: string;
+        };
+        Update: {
+          course_id?: string;
+          created_at?: string;
+          description?: string | null;
+          id?: string;
+          title?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "card_sets_course_id_fkey";
+            columns: ["course_id"];
+            isOneToOne: false;
+            referencedRelation: "courses";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "card_sets_course_id_fkey";
+            columns: ["course_id"];
+            isOneToOne: false;
+            referencedRelation: "weekly_focus_by_course";
+            referencedColumns: ["course_id"];
+          },
+        ];
+      };
       consent_log: {
         Row: {
           granted: boolean;
@@ -628,8 +670,17 @@ export type Database = {
           back: string;
           course_id: string;
           created_at: string;
+          due_at: string | null;
+          ease: number;
           front: string;
           id: string;
+          interval_days: number;
+          lapses: number;
+          last_reviewed_at: string | null;
+          position: number;
+          reps: number;
+          set_id: string;
+          starred: boolean;
           tags: string[];
           updated_at: string;
         };
@@ -638,8 +689,17 @@ export type Database = {
           back: string;
           course_id: string;
           created_at?: string;
+          due_at?: string | null;
+          ease?: number;
           front: string;
           id?: string;
+          interval_days?: number;
+          lapses?: number;
+          last_reviewed_at?: string | null;
+          position?: number;
+          reps?: number;
+          set_id: string;
+          starred?: boolean;
           tags?: string[];
           updated_at?: string;
         };
@@ -648,8 +708,17 @@ export type Database = {
           back?: string;
           course_id?: string;
           created_at?: string;
+          due_at?: string | null;
+          ease?: number;
           front?: string;
           id?: string;
+          interval_days?: number;
+          lapses?: number;
+          last_reviewed_at?: string | null;
+          position?: number;
+          reps?: number;
+          set_id?: string;
+          starred?: boolean;
           tags?: string[];
           updated_at?: string;
         };
@@ -681,6 +750,13 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "weekly_focus_by_course";
             referencedColumns: ["course_id"];
+          },
+          {
+            foreignKeyName: "flashcards_set_fkey";
+            columns: ["set_id", "course_id"];
+            isOneToOne: false;
+            referencedRelation: "card_sets";
+            referencedColumns: ["id", "course_id"];
           },
         ];
       };
@@ -1014,6 +1090,51 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "profiles";
             referencedColumns: ["id"];
+          },
+        ];
+      };
+      notes: {
+        Row: {
+          body: string;
+          course_id: string;
+          created_at: string;
+          id: string;
+          pinned: boolean;
+          title: string;
+          updated_at: string;
+        };
+        Insert: {
+          body?: string;
+          course_id: string;
+          created_at?: string;
+          id?: string;
+          pinned?: boolean;
+          title?: string;
+          updated_at?: string;
+        };
+        Update: {
+          body?: string;
+          course_id?: string;
+          created_at?: string;
+          id?: string;
+          pinned?: boolean;
+          title?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "notes_course_id_fkey";
+            columns: ["course_id"];
+            isOneToOne: false;
+            referencedRelation: "courses";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "notes_course_id_fkey";
+            columns: ["course_id"];
+            isOneToOne: false;
+            referencedRelation: "weekly_focus_by_course";
+            referencedColumns: ["course_id"];
           },
         ];
       };
@@ -2048,6 +2169,7 @@ export type Database = {
       };
       get_settings: { Args: never; Returns: Json };
       get_stats_overview: { Args: { p_weeks?: number }; Returns: Json };
+      get_study_overview: { Args: never; Returns: Json };
       get_today_feed: {
         Args: { p_date?: string };
         Returns: {

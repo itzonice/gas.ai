@@ -5,6 +5,9 @@ import { z } from "zod";
 import { MAX_CARD_COUNT, MAX_NOTES_CHARS, MIN_NOTES_CHARS } from "../cards/notes.ts";
 import { SYLLABUS_MAX_BYTES } from "../parser/file-type.ts";
 import { ASSIGNMENT_KINDS } from "../parser/prompts/v1/schema.ts";
+import { MAX_BACK_CHARS, MAX_FRONT_CHARS, MAX_IMPORT_CARDS } from "../study/import.ts";
+import { MAX_NOTE_BODY_CHARS, MAX_NOTE_TITLE_CHARS } from "../study/notes.ts";
+import { MAX_EASE, MAX_INTERVAL_DAYS, MIN_EASE, REVIEW_RATINGS } from "../study/schedule.ts";
 
 export const isoDateSchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Use YYYY-MM-DD");
 export const uuidSchema = z.uuid();
@@ -432,14 +435,22 @@ export type BlockStatusInput = z.infer<typeof blockStatusInputSchema>;
 
 export const exportCardsInputSchema = z.strictObject({
   courseId: uuidSchema,
+  /** Only this set; leave out for every card in the course. */
+  setId: uuidSchema.optional(),
   format: z.enum(["anki", "quizlet"]).default("anki"),
 });
 export type ExportCardsInput = z.input<typeof exportCardsInputSchema>;
+
+const setTitleSchema = z.string().trim().min(1, "Name the set").max(120);
 
 export const generateCardsRequestSchema = z.object({
   courseId: uuidSchema,
   /** A "Make 5–20 cards" task (or any assignment) the cards belong to. */
   assignmentId: uuidSchema.optional(),
+  /** The set to add the cards to. Without it they go to the set named setTitle. */
+  setId: uuidSchema.optional(),
+  /** Used when setId is absent: the set with this title in the course, created if needed. */
+  setTitle: setTitleSchema.optional(),
   notes: z
     .string()
     .trim()
@@ -451,9 +462,208 @@ export type GenerateCardsRequest = z.input<typeof generateCardsRequestSchema>;
 
 export interface GeneratedCardsResponse {
   cards: { id: string; front: string; back: string; tags: string[] }[];
+  /** The set the cards were added to. */
+  set_id: string;
   skipped_reason: string | null;
   task_completed: boolean;
 }
+
+// Study: courses by hand, card sets, cards, spaced review, and notes -------------------
+
+export const createCourseInputSchema = z.strictObject({
+  name: z.string().trim().min(1, "Name the course").max(200),
+  /** A short code such as "BIO 201"; shown on chips and cards. */
+  code: z.string().trim().max(50).optional(),
+  instructor: z.string().trim().max(200).optional(),
+  /** One of the vetted palette colors (see @studypulse/tokens). */
+  color: z
+    .string()
+    .regex(/^#[0-9A-Fa-f]{6}$/, "Choose a color from the list")
+    .optional(),
+});
+export type CreateCourseInput = z.input<typeof createCourseInputSchema>;
+
+const studyCourseSchema = z.object({
+  id: uuidSchema,
+  name: z.string(),
+  code: z.string().nullable(),
+  color: z.string().nullable(),
+});
+
+/** Response of get_study_overview(): the Study screen in one call. */
+export const studyOverviewSchema = z.object({
+  timezone: z.string(),
+  reviewed_today: z.number().int(),
+  courses: z.array(studyCourseSchema),
+  sets: z.array(
+    z.object({
+      id: uuidSchema,
+      course_id: uuidSchema,
+      title: z.string(),
+      description: z.string().nullable(),
+      updated_at: z.string(),
+      cards: z.number().int(),
+      /** Studied before and ready to review again. */
+      due: z.number().int(),
+      /** Never studied. */
+      fresh: z.number().int(),
+      starred: z.number().int(),
+    }),
+  ),
+  notes: z.array(
+    z.object({
+      id: uuidSchema,
+      course_id: uuidSchema,
+      title: z.string(),
+      excerpt: z.string(),
+      pinned: z.boolean(),
+      updated_at: z.string(),
+    }),
+  ),
+});
+export type StudyOverview = z.infer<typeof studyOverviewSchema>;
+export type StudySetSummary = StudyOverview["sets"][number];
+export type StudyNoteSummary = StudyOverview["notes"][number];
+export type StudyCourse = StudyOverview["courses"][number];
+
+/** A card as the study screens use it, with its review state. */
+export const studyCardSchema = z.object({
+  id: uuidSchema,
+  set_id: uuidSchema,
+  course_id: uuidSchema,
+  front: z.string(),
+  back: z.string(),
+  position: z.number().int(),
+  starred: z.boolean(),
+  due_at: z.string().nullable(),
+  interval_days: z.number().int(),
+  ease: z.coerce.number(),
+  reps: z.number().int(),
+  lapses: z.number().int(),
+  last_reviewed_at: z.string().nullable(),
+});
+export type StudyCardRow = z.infer<typeof studyCardSchema>;
+/** The columns behind studyCardSchema, for select(). */
+export const STUDY_CARD_COLUMNS =
+  "id, set_id, course_id, front, back, position, starred, due_at, interval_days, ease, reps, lapses, last_reviewed_at";
+
+/** What api.sets.get returns; also checks a saved copy before showing it offline. */
+export const setDetailSchema = z.object({
+  set: z.object({
+    id: uuidSchema,
+    course_id: uuidSchema,
+    title: z.string(),
+    description: z.string().nullable(),
+    updated_at: z.string(),
+  }),
+  course: studyCourseSchema,
+  cards: z.array(studyCardSchema),
+});
+export type SetDetail = z.infer<typeof setDetailSchema>;
+
+export const createSetInputSchema = z.strictObject({
+  courseId: uuidSchema,
+  title: setTitleSchema,
+  description: z.string().trim().max(500).optional(),
+});
+export type CreateSetInput = z.input<typeof createSetInputSchema>;
+
+export const updateSetInputSchema = z
+  .strictObject({
+    id: uuidSchema,
+    title: setTitleSchema.optional(),
+    description: z.string().trim().max(500).nullable().optional(),
+  })
+  .refine((s) => s.title !== undefined || s.description !== undefined, {
+    message: "Nothing to update",
+  });
+export type UpdateSetInput = z.input<typeof updateSetInputSchema>;
+
+const cardText = {
+  front: z.string().trim().min(1, "Add a term").max(MAX_FRONT_CHARS),
+  back: z.string().trim().min(1, "Add a definition").max(MAX_BACK_CHARS),
+};
+
+export const addCardsInputSchema = z.strictObject({
+  setId: uuidSchema,
+  courseId: uuidSchema,
+  cards: z.array(z.strictObject(cardText)).min(1, "Add at least one card").max(MAX_IMPORT_CARDS),
+  /** Position of the first new card (the number of cards already in the set). */
+  startPosition: z.number().int().min(0).max(100_000).default(0),
+});
+export type AddCardsInput = z.input<typeof addCardsInputSchema>;
+
+export const updateCardInputSchema = z
+  .strictObject({
+    id: uuidSchema,
+    front: cardText.front.optional(),
+    back: cardText.back.optional(),
+    starred: z.boolean().optional(),
+  })
+  .refine((c) => c.front !== undefined || c.back !== undefined || c.starred !== undefined, {
+    message: "Nothing to update",
+  });
+export type UpdateCardInput = z.input<typeof updateCardInputSchema>;
+
+/** Recording how a review went. `state` is the card's review state before this review. */
+export const reviewCardInputSchema = z.strictObject({
+  id: uuidSchema,
+  rating: z.enum(REVIEW_RATINGS),
+  state: z.strictObject({
+    reps: z.number().int().min(0),
+    intervalDays: z
+      .number()
+      .int()
+      .min(0)
+      .max(MAX_INTERVAL_DAYS * 100),
+    ease: z.number().min(MIN_EASE).max(MAX_EASE),
+    lapses: z.number().int().min(0),
+  }),
+});
+export type ReviewCardInput = z.input<typeof reviewCardInputSchema>;
+
+export const dueCardsInputSchema = z
+  .strictObject({
+    /** Only this set; leave out for every set. */
+    setId: uuidSchema.optional(),
+    limit: z.number().int().min(1).max(100).default(50),
+  })
+  .default({ limit: 50 });
+export type DueCardsInput = z.input<typeof dueCardsInputSchema>;
+
+const noteTitleSchema = z.string().trim().max(MAX_NOTE_TITLE_CHARS);
+const noteBodySchema = z.string().max(MAX_NOTE_BODY_CHARS, "This note is too long; split it");
+
+export const createNoteInputSchema = z.strictObject({
+  courseId: uuidSchema,
+  title: noteTitleSchema.optional(),
+  body: noteBodySchema.optional(),
+});
+export type CreateNoteInput = z.input<typeof createNoteInputSchema>;
+
+export const updateNoteInputSchema = z
+  .strictObject({
+    id: uuidSchema,
+    title: noteTitleSchema.optional(),
+    body: noteBodySchema.optional(),
+    pinned: z.boolean().optional(),
+    /** Moves the note to another of the student's courses. */
+    courseId: uuidSchema.optional(),
+  })
+  .refine((n) => Object.keys(n).length > 1, { message: "Nothing to update" });
+export type UpdateNoteInput = z.input<typeof updateNoteInputSchema>;
+
+/** What api.notes.get returns. */
+export const noteSchema = z.object({
+  id: uuidSchema,
+  course_id: uuidSchema,
+  title: z.string(),
+  body: z.string(),
+  pinned: z.boolean(),
+  created_at: z.string(),
+  updated_at: z.string(),
+});
+export type Note = z.infer<typeof noteSchema>;
 
 export const startSessionInputSchema = z.strictObject({
   /** Client-generated id; reuse it when retrying so the start is idempotent. */

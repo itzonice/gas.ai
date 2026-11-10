@@ -60,7 +60,17 @@ export const DATA_INVENTORY: Record<string, TableInventory> = {
     personal: true,
     retention: "Until processed",
   },
-  "public.flashcards": { purpose: "Study cards.", personal: true, retention: ACCOUNT },
+  "public.flashcards": {
+    purpose: "Study cards and each card's review history (when it's next due).",
+    personal: true,
+    retention: ACCOUNT,
+  },
+  "public.card_sets": {
+    purpose: "Named sets that group a course's study cards.",
+    personal: true,
+    retention: ACCOUNT,
+  },
+  "public.notes": { purpose: "The student's class notes.", personal: true, retention: ACCOUNT },
   "public.card_generations": {
     purpose: "Notes-to-cards requests and AI usage (for limits and cost).",
     personal: true,

@@ -3,7 +3,7 @@
 begin;
 -- Start from an empty database (seed data included); rolled back with the test.
 delete from auth.users;
-select plan(38);
+select plan(47);
 
 select tests.create_user('alice@example.com') as alice \gset
 select tests.create_user('bob@example.com') as bob \gset
@@ -20,8 +20,13 @@ insert into public.study_sessions (id, user_id, course_id, started_at, ended_at)
 values ('50000000-0000-0000-0000-00000000000a', :'alice', 'c0000000-0000-0000-0000-00000000000a',
         '2027-02-01 15:00Z', '2027-02-01 16:00Z');
 
-insert into public.flashcards (id, course_id, front, back)
-values ('fc000000-0000-0000-0000-00000000000a', 'c0000000-0000-0000-0000-00000000000a', 'Mitochondria', 'Powerhouse');
+insert into public.card_sets (id, course_id, title)
+values ('5e000000-0000-0000-0000-00000000000a', 'c0000000-0000-0000-0000-00000000000a', 'Cells');
+insert into public.flashcards (id, course_id, set_id, front, back)
+values ('fc000000-0000-0000-0000-00000000000a', 'c0000000-0000-0000-0000-00000000000a',
+        '5e000000-0000-0000-0000-00000000000a', 'Mitochondria', 'Powerhouse');
+insert into public.notes (id, course_id, title, body)
+values ('40000000-0000-0000-0000-00000000000a', 'c0000000-0000-0000-0000-00000000000a', 'Lecture 1', 'Private notes');
 
 -- Bob's own course, used for "move into / out of" attempts.
 insert into public.courses (id, user_id, name)
@@ -107,9 +112,34 @@ select is_empty($$ update public.flashcards set back = 'pwned' where id = 'fc000
   'flashcards: B cannot update A');
 select is_empty($$ delete from public.flashcards where id = 'fc000000-0000-0000-0000-00000000000a' returning 1 $$,
   'flashcards: B cannot delete A');
-select throws_ok($$ insert into public.flashcards (course_id, front, back)
-                    values ('c0000000-0000-0000-0000-00000000000a', 'x', 'y') $$,
+select throws_ok($$ insert into public.flashcards (course_id, set_id, front, back)
+                    values ('c0000000-0000-0000-0000-00000000000a', '5e000000-0000-0000-0000-00000000000a', 'x', 'y') $$,
   '42501', null, 'flashcards: B cannot insert into A''s course');
+select throws_ok($$ insert into public.flashcards (course_id, set_id, front, back)
+                    values ('c0000000-0000-0000-0000-00000000000b', '5e000000-0000-0000-0000-00000000000a', 'x', 'y') $$,
+  '23503', null, 'flashcards: B cannot put a card of their own course into A''s set');
+
+-- card_sets ----------------------------------------------------------------------
+select is_empty($$ select 1 from public.card_sets where id = '5e000000-0000-0000-0000-00000000000a' $$,
+  'card_sets: B cannot read A');
+select is_empty($$ update public.card_sets set title = 'pwned' where id = '5e000000-0000-0000-0000-00000000000a' returning 1 $$,
+  'card_sets: B cannot update A');
+select is_empty($$ delete from public.card_sets where id = '5e000000-0000-0000-0000-00000000000a' returning 1 $$,
+  'card_sets: B cannot delete A');
+select throws_ok($$ insert into public.card_sets (course_id, title)
+                    values ('c0000000-0000-0000-0000-00000000000a', 'x') $$,
+  '42501', null, 'card_sets: B cannot insert into A''s course');
+
+-- notes --------------------------------------------------------------------------
+select is_empty($$ select 1 from public.notes where id = '40000000-0000-0000-0000-00000000000a' $$,
+  'notes: B cannot read A');
+select is_empty($$ update public.notes set body = 'pwned' where id = '40000000-0000-0000-0000-00000000000a' returning 1 $$,
+  'notes: B cannot update A');
+select is_empty($$ delete from public.notes where id = '40000000-0000-0000-0000-00000000000a' returning 1 $$,
+  'notes: B cannot delete A');
+select throws_ok($$ insert into public.notes (course_id, title, body)
+                    values ('c0000000-0000-0000-0000-00000000000a', 'x', 'y') $$,
+  '42501', null, 'notes: B cannot insert into A''s course');
 
 -- B still has full access to their own data.
 select lives_ok($$ insert into public.study_sessions (course_id, started_at)

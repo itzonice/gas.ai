@@ -72,7 +72,7 @@ select is(
     'default_task_minutes', -- pure helper
     'gcal_disconnect', 'get_calendar', 'get_card_quota', 'get_courses_overview',
     'get_focus_overview', 'get_parse_quota', 'get_settings', 'get_stats_overview',
-    'get_today_feed', 'get_today_overview', 'is_pro',
+    'get_study_overview', 'get_today_feed', 'get_today_overview', 'is_pro',
     'is_valid_letter_scale', 'is_valid_timezone', -- pure helpers (check constraints)
     'join_organization', 'leave_organization',
     'letter_for', -- pure helper

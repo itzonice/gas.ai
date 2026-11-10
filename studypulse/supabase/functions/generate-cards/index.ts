@@ -1,8 +1,10 @@
 // POST /generate-cards
-// { "course_id": uuid, "notes": "...", "assignment_id"?: uuid, "max_cards"?: 1-20 }
+// { "course_id": uuid, "notes": "...", "assignment_id"?: uuid, "set_id"?: uuid,
+//   "set_title"?: "...", "max_cards"?: 1-20 }
 // Turns the student's notes into atomic retrieval cards (one idea each, phrased as a
-// question), saves them to flashcards so the Anki and Quizlet exports include them, and
-// completes a "Make 5-20 cards" task when one is passed. Free: 5 a day; Pro: 50.
+// question) and adds them to a card set in the course: the set passed as set_id, else the
+// set named set_title (default "Cards from notes"), created if the course doesn't have
+// it yet. Completes a "Make 5-20 cards" task when one is passed. Free: 5 a day; Pro: 50.
 import {
   generateCards,
   MAX_CARD_COUNT,
@@ -18,9 +20,13 @@ import { createHandler } from "../_shared/handler.ts";
 import { HttpError, json, parseJsonBody, requireMethod } from "../_shared/http.ts";
 import { adminClient, requireUser, userClient } from "../_shared/supabase.ts";
 
+const DEFAULT_SET_TITLE = "Cards from notes";
+
 const bodySchema = z.strictObject({
   course_id: z.uuid(),
   assignment_id: z.uuid().optional(),
+  set_id: z.uuid().optional(),
+  set_title: z.string().trim().min(1).max(120).optional(),
   notes: z
     .string()
     .trim()
@@ -57,6 +63,20 @@ Deno.serve(
       if (error) throw error;
       if (!data) throw new HttpError(404, "assignment_not_found", "Assignment not found");
       task = data;
+    }
+
+    // The set must be in this course; RLS has already limited both to the caller's own.
+    let set: { id: string } | null = null;
+    if (body.set_id) {
+      const { data, error } = await db
+        .from("card_sets")
+        .select("id")
+        .eq("id", body.set_id)
+        .eq("course_id", course.id)
+        .maybeSingle();
+      if (error) throw error;
+      if (!data) throw new HttpError(404, "set_not_found", "Card set not found");
+      set = data;
     }
 
     const ai = anthropicOrNull();
@@ -119,20 +139,58 @@ Deno.serve(
 
     const tags = ["notes", ...(course.code ? [course.code] : [])];
     let saved: { id: string; front: string; back: string; tags: string[] }[] = [];
+    let setId = set?.id ?? null;
     if (result.cards.length > 0) {
+      if (!setId) {
+        const title = body.set_title ?? DEFAULT_SET_TITLE;
+        const { data: existing, error: findError } = await db
+          .from("card_sets")
+          .select("id")
+          .eq("course_id", course.id)
+          .eq("title", title)
+          .order("created_at")
+          .limit(1)
+          .maybeSingle();
+        if (findError) throw findError;
+        if (existing) {
+          setId = existing.id;
+        } else {
+          const { data: created, error: createError } = await db
+            .from("card_sets")
+            .insert({ course_id: course.id, title })
+            .select("id")
+            .single();
+          if (createError) throw createError;
+          setId = created.id;
+        }
+      }
+      // New cards go after the ones already in the set.
+      const { count, error: countError } = await db
+        .from("flashcards")
+        .select("id", { count: "exact", head: true })
+        .eq("set_id", setId);
+      if (countError) throw countError;
       const { data, error } = await db
         .from("flashcards")
         .insert(
-          result.cards.map((c) => ({
+          result.cards.map((c, i) => ({
             course_id: course.id,
+            set_id: setId as string,
             assignment_id: task?.id ?? null,
             front: c.front,
             back: c.back,
+            position: (count ?? 0) + i,
             tags: [...tags, ...c.tags].slice(0, 20),
           })),
         )
         .select("id, front, back, tags");
-      if (error) throw error;
+      if (error) {
+        // The set is full (1,000 cards): say so instead of a generic failure.
+        if (error.code === "23514") {
+          throw new HttpError(409, "set_full", "That set is full. Choose another set.");
+        }
+        throw error;
+      }
       saved = data;
     }
 
@@ -155,6 +213,7 @@ Deno.serve(
     log.info("cards generated", { cards: saved.length, course_id: course.id });
     return json({
       cards: saved,
+      set_id: setId,
       skipped_reason: result.skippedReason,
       task_completed: Boolean(task && task.source === "study_system" && saved.length > 0),
     });

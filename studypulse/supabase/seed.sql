@@ -175,5 +175,47 @@ begin
     as b(title, day, minutes)
   join public.assignments a on a.title = b.title
   join public.courses c on c.id = a.course_id and c.user_id = demo_id;
+
+  -- Study: card sets, with some cards due for review, and notes -----------------------
+  insert into public.card_sets (id, course_id, title, description) values
+    ('00000000-0000-4000-8000-0000000005b1', bio, 'Cell structure', 'Organelles and what they do.'),
+    ('00000000-0000-4000-8000-0000000005c2', calc, 'Series tests', 'Which convergence test to use, and when.'),
+    ('00000000-0000-4000-8000-0000000005d4', psyc, 'Memory', 'Chapter 7 key terms.');
+
+  -- (set, course, term, definition, days since last review (null = new), gap in days)
+  insert into public.flashcards (set_id, course_id, front, back, position, starred, due_at, interval_days, reps, last_reviewed_at)
+  select t.set_id, t.course_id, t.front, t.back, (row_number() over (partition by t.set_id) - 1)::integer,
+         t.starred,
+         case when t.reviewed_days_ago is null then null
+              else now() - make_interval(days => t.reviewed_days_ago) + make_interval(days => t.gap) end,
+         coalesce(t.gap, 0),
+         case when t.reviewed_days_ago is null then 0 else 2 end,
+         case when t.reviewed_days_ago is null then null else now() - make_interval(days => t.reviewed_days_ago) end
+  from (values
+    ('00000000-0000-4000-8000-0000000005b1'::uuid, bio, 'Mitochondrion', 'The organelle that makes most of the cell''s ATP.', false, 3, 3),
+    ('00000000-0000-4000-8000-0000000005b1'::uuid, bio, 'Ribosome', 'Builds proteins from amino acids.', false, 4, 3),
+    ('00000000-0000-4000-8000-0000000005b1'::uuid, bio, 'Golgi apparatus', 'Modifies, sorts, and packages proteins.', true, 2, 1),
+    ('00000000-0000-4000-8000-0000000005b1'::uuid, bio, 'Lysosome', 'Breaks down waste with digestive enzymes.', false, 1, 8),
+    ('00000000-0000-4000-8000-0000000005b1'::uuid, bio, 'Nucleus', 'Holds the cell''s DNA.', false, 2, 10),
+    ('00000000-0000-4000-8000-0000000005b1'::uuid, bio, 'Rough endoplasmic reticulum', 'Membrane studded with ribosomes; makes proteins for export.', false, null, null),
+    ('00000000-0000-4000-8000-0000000005b1'::uuid, bio, 'Smooth endoplasmic reticulum', 'Makes lipids and detoxifies.', false, null, null),
+    ('00000000-0000-4000-8000-0000000005b1'::uuid, bio, 'Cell membrane', 'A phospholipid bilayer that controls what enters and leaves.', false, null, null),
+    ('00000000-0000-4000-8000-0000000005c2'::uuid, calc, 'Ratio test', 'Take the limit of |a(n+1) / a(n)|. Under 1 converges; over 1 diverges.', false, 2, 1),
+    ('00000000-0000-4000-8000-0000000005c2'::uuid, calc, 'Integral test', 'Compare the series with the integral of a positive, decreasing function.', false, null, null),
+    ('00000000-0000-4000-8000-0000000005c2'::uuid, calc, 'Alternating series test', 'Terms shrink to 0 and alternate in sign: the series converges.', true, null, null),
+    ('00000000-0000-4000-8000-0000000005c2'::uuid, calc, 'p-series', 'The sum of 1/n^p converges when p > 1.', false, 5, 3),
+    ('00000000-0000-4000-8000-0000000005c2'::uuid, calc, 'Geometric series', 'Converges when |r| < 1, to a / (1 - r).', false, 1, 6),
+    ('00000000-0000-4000-8000-0000000005d4'::uuid, psyc, 'Encoding', 'Getting information into memory.', false, null, null),
+    ('00000000-0000-4000-8000-0000000005d4'::uuid, psyc, 'Retrieval', 'Getting information back out of memory.', false, null, null),
+    ('00000000-0000-4000-8000-0000000005d4'::uuid, psyc, 'Working memory', 'Holds and works on a few items for seconds.', false, null, null),
+    ('00000000-0000-4000-8000-0000000005d4'::uuid, psyc, 'Spacing effect', 'Spread-out practice is remembered longer than cramming.', false, null, null),
+    ('00000000-0000-4000-8000-0000000005d4'::uuid, psyc, 'Testing effect', 'Recalling an answer strengthens memory more than rereading it.', false, null, null),
+    ('00000000-0000-4000-8000-0000000005d4'::uuid, psyc, 'Proactive interference', 'Old learning gets in the way of new learning.', false, null, null)
+  ) as t(set_id, course_id, front, back, starred, reviewed_days_ago, gap);
+
+  insert into public.notes (course_id, title, body, pinned, updated_at) values
+    (bio, 'Lecture 9: Cell signaling', E'# Cell signaling\n\nCells talk with chemical signals. Three steps:\n\n1. **Reception**: a ligand binds a receptor.\n2. **Transduction**: the signal is passed along and amplified.\n3. **Response**: the cell changes what it does.\n\n## Key terms\n\nLigand :: A molecule that binds to a receptor\nSecond messenger :: A small molecule that relays the signal inside the cell, such as cAMP\nKinase :: An enzyme that adds a phosphate group to a protein\n\n- [ ] Reread section 11.3\n- [x] Draw the G protein pathway', true, now() - interval '2 hours'),
+    (calc, 'Series: which test?', E'Start with the *divergence test*. If the terms don''t go to 0, stop: it diverges.\n\n- Factorials or powers of n: ratio test\n- Looks like 1/n^p: p-series or comparison\n- Alternating signs: alternating series test\n\nQ: When does a geometric series converge?\nA: When |r| < 1', false, now() - interval '1 day'),
+    (hist, 'Essay 2 ideas', E'Possible thesis: the Marshall Plan was as much about markets as about containment.\n\n> "The seeds of totalitarian regimes are nurtured by misery and want." Truman, 1947\n\nSources to find: the Truman Doctrine speech and the Novikov telegram.', false, now() - interval '3 days');
 end;
 $$;

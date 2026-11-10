@@ -301,3 +301,109 @@ describe("assignments", () => {
     expect(calls).toEqual([]);
   });
 });
+
+describe("study", () => {
+  const overview = {
+    timezone: "America/Chicago",
+    reviewed_today: 2,
+    courses: [{ id: uploadId, name: "Biology", code: "BIO 201", color: null }],
+    sets: [
+      {
+        id: uploadId,
+        course_id: uploadId,
+        title: "Cells",
+        description: null,
+        updated_at: "2027-03-01T15:00:00+00:00",
+        cards: 8,
+        due: 3,
+        fresh: 2,
+        starred: 1,
+      },
+    ],
+    notes: [],
+  };
+
+  it("reads the Study overview and refuses a response of the wrong shape", async () => {
+    const ok = fakeDb({ rpc: { get_study_overview: { data: overview, error: null } } });
+    expect(await ok.api.study.overview()).toEqual(overview);
+    expect(ok.calls).toEqual([{ kind: "rpc", name: "get_study_overview", args: undefined }]);
+
+    const bad = fakeDb({
+      rpc: { get_study_overview: { data: { ...overview, sets: [{ id: 1 }] }, error: null } },
+    });
+    await expect(bad.api.study.overview()).rejects.toMatchObject({ status: 502 });
+  });
+
+  it("validates sets, cards, reviews and notes before any network call", async () => {
+    const { api, calls } = fakeDb({});
+    const invalid = { code: "invalid_input" };
+    await expect(api.sets.create({ courseId: uploadId, title: "   " })).rejects.toMatchObject(
+      invalid,
+    );
+    await expect(api.sets.update({ id: uploadId })).rejects.toMatchObject(invalid);
+    await expect(
+      api.cards.add({ setId: uploadId, courseId: uploadId, cards: [] }),
+    ).rejects.toMatchObject(invalid);
+    await expect(
+      api.cards.add({
+        setId: uploadId,
+        courseId: uploadId,
+        cards: [{ front: "term", back: "" }],
+      }),
+    ).rejects.toMatchObject({ issues: [{ path: "cards.0.back", message: "Add a definition" }] });
+    await expect(api.cards.update({ id: uploadId })).rejects.toMatchObject(invalid);
+    await expect(
+      api.cards.review({
+        id: uploadId,
+        rating: "perfect" as never,
+        state: { reps: 0, intervalDays: 0, ease: 2.5, lapses: 0 },
+      }),
+    ).rejects.toMatchObject(invalid);
+    await expect(
+      api.cards.review({
+        id: uploadId,
+        rating: "good",
+        state: { reps: 0, intervalDays: 0, ease: 9, lapses: 0 },
+      }),
+    ).rejects.toMatchObject(invalid);
+    await expect(api.notes.update({ id: uploadId })).rejects.toMatchObject(invalid);
+    await expect(
+      api.notes.create({ courseId: uploadId, body: "x".repeat(100_001) }),
+    ).rejects.toMatchObject(invalid);
+    await expect(api.courses.create({ name: " " })).rejects.toMatchObject(invalid);
+    await expect(api.courses.create({ name: "Bio", color: "green" })).rejects.toMatchObject(
+      invalid,
+    );
+    await expect(api.sets.get("not-a-uuid")).rejects.toMatchObject(invalid);
+    await expect(api.notes.remove("nope")).rejects.toMatchObject(invalid);
+    expect(calls).toEqual([]);
+  });
+
+  it("sends the set and title when generating cards from notes", async () => {
+    const { api, calls } = fakeDb({
+      invoke: {
+        "generate-cards": {
+          data: { cards: [], set_id: uploadId, skipped_reason: null, task_completed: false },
+          error: null,
+        },
+      },
+    });
+    await api.cards.generate({
+      courseId: uploadId,
+      setTitle: "Lecture 9",
+      notes: "Cells talk with chemical signals. ".repeat(3),
+    });
+    expect(calls[0]).toMatchObject({
+      name: "generate-cards",
+      args: { body: { course_id: uploadId, set_title: "Lecture 9" } },
+    });
+  });
+
+  it("asks for one set's export", async () => {
+    const { api, calls } = fakeDb({ invoke: { "export-cards": { data: "a\tb\n", error: null } } });
+    await api.cards.export({ courseId: uploadId, setId: uploadId, format: "quizlet" });
+    expect(calls[0]?.name).toBe(
+      `export-cards?course_id=${uploadId}&set_id=${uploadId}&format=quizlet`,
+    );
+  });
+});

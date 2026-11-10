@@ -14,8 +14,36 @@ import {
 import { pricesResponseSchema, type PricesResponse } from "../billing/terms.ts";
 import { commitPayloadSchema, type CommitPayload } from "../parser/commit.ts";
 import { addResourceInputSchema, type AddResourceInput } from "../resources/index.ts";
+import { nextReview } from "../study/schedule.ts";
 import { ApiError, fromPostgrestError } from "./errors.ts";
 import {
+  addCardsInputSchema,
+  createCourseInputSchema,
+  createNoteInputSchema,
+  createSetInputSchema,
+  dueCardsInputSchema,
+  noteSchema,
+  reviewCardInputSchema,
+  setDetailSchema,
+  STUDY_CARD_COLUMNS,
+  studyCardSchema,
+  studyOverviewSchema,
+  updateCardInputSchema,
+  updateNoteInputSchema,
+  updateSetInputSchema,
+  type AddCardsInput,
+  type CreateCourseInput,
+  type CreateNoteInput,
+  type CreateSetInput,
+  type DueCardsInput,
+  type Note,
+  type ReviewCardInput,
+  type SetDetail,
+  type StudyCardRow,
+  type StudyOverview,
+  type UpdateCardInput,
+  type UpdateNoteInput,
+  type UpdateSetInput,
   blockStatusInputSchema,
   calendarRangeInputSchema,
   courseTargetInputSchema,
@@ -141,6 +169,10 @@ async function functionError(error: unknown): Promise<ApiError> {
 
 type AssignmentInsert = Database["public"]["Tables"]["assignments"]["Insert"];
 type AssignmentRow = Database["public"]["Tables"]["assignments"]["Row"];
+
+/** An empty or missing optional text field is stored as null. */
+const blankToNull = (text: string | null | undefined): string | null =>
+  text === undefined || text === null || text === "" ? null : text;
 
 /** camelCase API fields -> snake_case columns (only the fields that are present). */
 function toAssignmentColumns(input: Partial<Record<string, unknown>>): Partial<AssignmentInsert> {
@@ -340,8 +372,28 @@ export function createApiClient(db: Db) {
         };
       },
       /**
+       * Adds a course by hand (no syllabus needed). The free plan's course limit is
+       * enforced by the database: ApiError "course_limit_reached" (402).
+       */
+      async create(input: CreateCourseInput) {
+        const v = validate(createCourseInputSchema, input);
+        return unwrap(
+          await db
+            .from("courses")
+            .insert({
+              name: v.name,
+              code: blankToNull(v.code),
+              instructor: blankToNull(v.instructor),
+              ...(v.color ? { color: v.color } : {}),
+            })
+            .select("id, name, code, color")
+            .single(),
+        );
+      },
+      /**
        * Deletes a course and everything in it (assignments, sessions, study blocks,
-       * cards). The apps call this only after the undo window closes (launch audit L3).
+       * cards, notes). The apps call this only after the undo window closes (launch
+       * audit L3).
        */
       async remove(courseId: string): Promise<void> {
         const id = validate(uuidSchema, courseId);
@@ -747,6 +799,8 @@ export function createApiClient(db: Db) {
             course_id: valid.courseId,
             notes: valid.notes,
             ...(valid.assignmentId ? { assignment_id: valid.assignmentId } : {}),
+            ...(valid.setId ? { set_id: valid.setId } : {}),
+            ...(valid.setTitle ? { set_title: valid.setTitle } : {}),
             ...(valid.maxCards ? { max_cards: valid.maxCards } : {}),
           },
         });
@@ -758,11 +812,12 @@ export function createApiClient(db: Db) {
         if (!row) throw new ApiError(404, "not_found", "No quota found");
         return row;
       },
-      /** Downloads a course's flashcards as an Anki CSV or Quizlet TSV. */
+      /** Downloads a course's flashcards (or one set's) as an Anki CSV or Quizlet TSV. */
       async export(input: ExportCardsInput): Promise<Blob> {
-        const { courseId, format } = validate(exportCardsInputSchema, input);
+        const { courseId, setId, format } = validate(exportCardsInputSchema, input);
+        const set = setId ? `&set_id=${encodeURIComponent(setId)}` : "";
         const res = await db.functions.invoke(
-          `export-cards?course_id=${encodeURIComponent(courseId)}&format=${format}`,
+          `export-cards?course_id=${encodeURIComponent(courseId)}${set}&format=${format}`,
           { method: "GET" },
         );
         const error: unknown = res.error;
@@ -772,6 +827,222 @@ export function createApiClient(db: Db) {
         return new Blob([typeof data === "string" ? data : JSON.stringify(data)], {
           type: "text/plain",
         });
+      },
+      /** Adds cards to the end of a set (typed in, pasted, or taken from a note). */
+      async add(input: AddCardsInput): Promise<StudyCardRow[]> {
+        const v = validate(addCardsInputSchema, input);
+        const rows = unwrap(
+          await db
+            .from("flashcards")
+            .insert(
+              v.cards.map((c, i) => ({
+                set_id: v.setId,
+                course_id: v.courseId,
+                front: c.front,
+                back: c.back,
+                position: v.startPosition + i,
+              })),
+            )
+            .select(STUDY_CARD_COLUMNS),
+        );
+        return parseResponse(z.array(studyCardSchema), rows);
+      },
+      /** Edits a card's text or its star. */
+      async update(input: UpdateCardInput): Promise<StudyCardRow> {
+        const { id, ...fields } = validate(updateCardInputSchema, input);
+        const columns = {
+          ...(fields.front !== undefined ? { front: fields.front } : {}),
+          ...(fields.back !== undefined ? { back: fields.back } : {}),
+          ...(fields.starred !== undefined ? { starred: fields.starred } : {}),
+        };
+        return parseResponse(
+          studyCardSchema,
+          unwrap(
+            await db
+              .from("flashcards")
+              .update(columns)
+              .eq("id", id)
+              .select(STUDY_CARD_COLUMNS)
+              .single(),
+          ),
+        );
+      },
+      async remove(cardId: string): Promise<void> {
+        const id = validate(uuidSchema, cardId);
+        const { error } = await db.from("flashcards").delete().eq("id", id);
+        if (error) throw fromPostgrestError(error);
+      },
+      /**
+       * Records how a review went and schedules the card's next one (spaced review; the
+       * schedule is computed by @studypulse/core/study).
+       */
+      async review(input: ReviewCardInput, now: Date = new Date()): Promise<StudyCardRow> {
+        const { id, rating, state } = validate(reviewCardInputSchema, input);
+        const next = nextReview(state, rating, now);
+        return parseResponse(
+          studyCardSchema,
+          unwrap(
+            await db
+              .from("flashcards")
+              .update({
+                due_at: next.dueAt,
+                interval_days: next.intervalDays,
+                ease: next.ease,
+                reps: next.reps,
+                lapses: next.lapses,
+                last_reviewed_at: next.lastReviewedAt,
+              })
+              .eq("id", id)
+              .select(STUDY_CARD_COLUMNS)
+              .single(),
+          ),
+        );
+      },
+      /** Cards ready to review now, most overdue first (at most 100). */
+      async due(input: DueCardsInput = {}, now: Date = new Date()): Promise<StudyCardRow[]> {
+        const { setId, limit } = validate(dueCardsInputSchema, input);
+        let query = db
+          .from("flashcards")
+          .select(STUDY_CARD_COLUMNS)
+          .lte("due_at", now.toISOString())
+          .order("due_at")
+          .order("id")
+          .limit(limit);
+        if (setId) query = query.eq("set_id", setId);
+        return parseResponse(z.array(studyCardSchema), unwrap(await query));
+      },
+    },
+
+    study: {
+      /** Courses, every set with its counts, recent notes, and today's review count. */
+      async overview(): Promise<StudyOverview> {
+        return parseResponse(studyOverviewSchema, unwrap(await db.rpc("get_study_overview")));
+      },
+    },
+
+    sets: {
+      /** A set with its course and all its cards in order (at most 1,000). */
+      async get(setId: string): Promise<SetDetail> {
+        const id = validate(uuidSchema, setId);
+        const [set, cards] = await Promise.all([
+          db
+            .from("card_sets")
+            .select("id, course_id, title, description, updated_at, courses(id, name, code, color)")
+            .eq("id", id)
+            .maybeSingle(),
+          readPages((from, to) =>
+            db
+              .from("flashcards")
+              .select(STUDY_CARD_COLUMNS)
+              .eq("set_id", id)
+              .order("position")
+              .order("created_at")
+              .order("id")
+              .range(from, to),
+          ),
+        ]);
+        if (set.error) throw fromPostgrestError(set.error);
+        if (!set.data) throw new ApiError(404, "not_found", "Card set not found");
+        const { courses: course, ...row } = set.data;
+        return parseResponse(setDetailSchema, { set: row, course, cards });
+      },
+      async create(input: CreateSetInput) {
+        const v = validate(createSetInputSchema, input);
+        return unwrap(
+          await db
+            .from("card_sets")
+            .insert({
+              course_id: v.courseId,
+              title: v.title,
+              description: blankToNull(v.description),
+            })
+            .select("id, course_id, title, description, updated_at")
+            .single(),
+        );
+      },
+      async update(input: UpdateSetInput) {
+        const v = validate(updateSetInputSchema, input);
+        const columns = {
+          ...(v.title !== undefined ? { title: v.title } : {}),
+          ...(v.description !== undefined ? { description: blankToNull(v.description) } : {}),
+        };
+        return unwrap(
+          await db
+            .from("card_sets")
+            .update(columns)
+            .eq("id", v.id)
+            .select("id, course_id, title, description, updated_at")
+            .single(),
+        );
+      },
+      /** Deletes a set and its cards. The apps call this after the undo window closes. */
+      async remove(setId: string): Promise<void> {
+        const id = validate(uuidSchema, setId);
+        const { error } = await db.from("card_sets").delete().eq("id", id);
+        if (error) throw fromPostgrestError(error);
+      },
+      /** Forgets the review history of every card in a set (they become "new" again). */
+      async resetProgress(setId: string): Promise<void> {
+        const id = validate(uuidSchema, setId);
+        const { error } = await db
+          .from("flashcards")
+          .update({
+            due_at: null,
+            interval_days: 0,
+            ease: 2.5,
+            reps: 0,
+            lapses: 0,
+            last_reviewed_at: null,
+          })
+          .eq("set_id", id);
+        if (error) throw fromPostgrestError(error);
+      },
+    },
+
+    notes: {
+      /** One note with its full text. */
+      async get(noteId: string): Promise<Note> {
+        const id = validate(uuidSchema, noteId);
+        const { data, error } = await db
+          .from("notes")
+          .select("id, course_id, title, body, pinned, created_at, updated_at")
+          .eq("id", id)
+          .maybeSingle();
+        if (error) throw fromPostgrestError(error);
+        if (!data) throw new ApiError(404, "not_found", "Note not found");
+        return parseResponse(noteSchema, data);
+      },
+      async create(input: CreateNoteInput): Promise<Note> {
+        const v = validate(createNoteInputSchema, input);
+        return parseResponse(
+          noteSchema,
+          unwrap(
+            await db
+              .from("notes")
+              .insert({ course_id: v.courseId, title: v.title ?? "", body: v.body ?? "" })
+              .select("id, course_id, title, body, pinned, created_at, updated_at")
+              .single(),
+          ),
+        );
+      },
+      /** Saves the fields that are present (the editor autosaves through this). */
+      async update(input: UpdateNoteInput): Promise<Pick<Note, "id" | "updated_at">> {
+        const { id, ...v } = validate(updateNoteInputSchema, input);
+        const columns = {
+          ...(v.title !== undefined ? { title: v.title } : {}),
+          ...(v.body !== undefined ? { body: v.body } : {}),
+          ...(v.pinned !== undefined ? { pinned: v.pinned } : {}),
+          ...(v.courseId !== undefined ? { course_id: v.courseId } : {}),
+        };
+        return unwrap(
+          await db.from("notes").update(columns).eq("id", id).select("id, updated_at").single(),
+        );
+      },
+      /** Deletes a note. The apps call this after the undo window closes. */
+      async remove(noteId: string): Promise<void> {
+        const id = validate(uuidSchema, noteId);
+        const { error } = await db.from("notes").delete().eq("id", id);
+        if (error) throw fromPostgrestError(error);
       },
     },
 

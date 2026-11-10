@@ -13,11 +13,12 @@ insert into public.assignments (course_id, title) values (:'bob_course', 'Bob mi
 select tests.authenticate_as(:'ada');
 insert into public.courses (name) values ('Ada course') returning id as ada_course \gset
 insert into public.assignments (course_id, title) values (:'ada_course', 'Ada quiz') returning id as ada_assignment \gset
+insert into public.card_sets (course_id, title) values (:'ada_course', 'Ada set') returning id as ada_set \gset
 
 select throws_ok(
-  format($$insert into public.flashcards (course_id, assignment_id, front, back) values (%L, %L, 'q', 'a')$$, :'ada_course', :'bob_assignment'),
+  format($$insert into public.flashcards (course_id, set_id, assignment_id, front, back) values (%L, %L, %L, 'q', 'a')$$, :'ada_course', :'ada_set', :'bob_assignment'),
   '23503', null, 'a card on your course cannot link another user''s assignment');
-insert into public.flashcards (course_id, assignment_id, front, back) values (:'ada_course', :'ada_assignment', 'q', 'a') returning id as card \gset
+insert into public.flashcards (course_id, set_id, assignment_id, front, back) values (:'ada_course', :'ada_set', :'ada_assignment', 'q', 'a') returning id as card \gset
 select throws_ok(
   format($$update public.flashcards set assignment_id = %L where id = %L$$, :'bob_assignment', :'card'),
   '23503', null, 'nor can an existing card be moved onto one');

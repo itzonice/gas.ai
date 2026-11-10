@@ -5,7 +5,8 @@ select plan(7);
 select tests.create_user('ada@example.com') as ada \gset
 select tests.authenticate_as(:'ada');
 insert into public.courses (name) values ('Bio') returning id as course \gset
-insert into public.flashcards (course_id, front, back) values (:'course', 'q', 'a') returning id as card \gset
+insert into public.card_sets (course_id, title) values (:'course', 'Set') returning id as card_set \gset
+insert into public.flashcards (course_id, set_id, front, back) values (:'course', :'card_set', 'q', 'a') returning id as card \gset
 select throws_ok(format($$ select public.takedown_content('flashcard', %L, 'T-1', now()) $$, :'card'),
   '42501', null, 'users cannot take down content');
 select tests.clear_authentication();

@@ -23,7 +23,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       <header className={styles.appBar}>
         <Link href="/today" className={styles.logo} aria-label="StudyPulse home">
           <span className={styles.logoMark} aria-hidden="true">
-            <svg width="20" height="20" viewBox="0 0 32 32" focusable="false">
+            <svg width="20" height="20" viewBox="0 0 32 32" focusable="false" aria-hidden="true">
               <path
                 d="M4 17h6l3-7 5 13 3.5-9 2 3H28"
                 fill="none"

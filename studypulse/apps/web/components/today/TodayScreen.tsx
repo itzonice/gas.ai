@@ -114,6 +114,7 @@ export function TodayScreen() {
       secondaryActions={[
         { label: "Rebuild study plan", onSelect: () => void rebuildPlan() },
         { label: "Upload syllabus", href: "/courses/upload" },
+        { label: "See your stats", href: "/stats" },
       ]}
     />
   );

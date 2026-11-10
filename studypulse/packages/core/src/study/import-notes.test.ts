@@ -12,6 +12,7 @@ import {
   parseCardImport,
   parseNoteBlocks,
   parseSpans,
+  plainExcerpt,
   saveStateLabel,
   setSummary,
   wordCountLabel,
@@ -97,6 +98,13 @@ describe("notes", () => {
     expect(noteTitle({ title: " Lecture 1 ", body: "x" })).toBe("Lecture 1");
     expect(noteTitle({ title: "", body: "\n## Cell cycle\nmore" })).toBe("Cell cycle");
     expect(noteTitle({ title: "", body: "   " })).toBe("Untitled note");
+  });
+
+  it("removes formatting marks from an excerpt", () => {
+    expect(
+      plainExcerpt("# Cell signaling Cells talk with **chemical** signals. - [ ] Reread *11.3*"),
+    ).toBe("Cell signaling Cells talk with chemical signals. Reread 11.3");
+    expect(plainExcerpt("> a quote and a_snake_case word")).toBe("a quote and a_snake_case word");
   });
 
   it("counts words and finds card lines", () => {

@@ -1,5 +1,5 @@
 // App-wide keyboard shortcuts for the web app (launch audit L5). Two-key "g" sequences go
-// to the five destinations; single keys start focus, upload a syllabus, or show the list.
+// to the main destinations and Stats; single keys start focus, upload a syllabus, or show the list.
 // They're character-key shortcuts, so they can be turned off (WCAG 2.1.4), and they never
 // fire while typing in a field or with Ctrl, Alt, or Cmd held.
 
@@ -15,6 +15,7 @@ export const SHORTCUTS: readonly Shortcut[] = [
   { keys: ["g", "t"], label: "Go to Today", action: { href: "/today" } },
   { keys: ["g", "c"], label: "Go to Calendar", action: { href: "/calendar" } },
   { keys: ["g", "o"], label: "Go to Courses", action: { href: "/courses" } },
+  { keys: ["g", "y"], label: "Go to Study", action: { href: "/study" } },
   { keys: ["g", "f"], label: "Go to Focus", action: { href: "/focus" } },
   { keys: ["g", "s"], label: "Go to Stats", action: { href: "/stats" } },
   { keys: ["f"], label: "Start a focus session", action: { href: "/focus?start=1" } },

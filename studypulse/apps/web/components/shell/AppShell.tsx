@@ -66,11 +66,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           >
             <Icon name="notifications" />
           </Link>
-          <Link
-            href="/settings"
-            className={`${styles.iconButton} ${styles.hideOnPhone}`}
-            aria-label="Account and settings"
-          >
+          <Link href="/settings" className={styles.iconButton} aria-label="Account and settings">
             <Icon name="account" />
           </Link>
         </div>

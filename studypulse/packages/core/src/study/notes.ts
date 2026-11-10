@@ -19,6 +19,21 @@ export function noteTitle(note: { title: string; body?: string }): string {
   return firstLine ? firstLine.slice(0, 80) : UNTITLED_NOTE;
 }
 
+/**
+ * A note's excerpt for lists and search results, without the formatting marks (the
+ * database keeps the first 200 characters as written: "# Cell signaling Cells talk…").
+ */
+export function plainExcerpt(excerpt: string): string {
+  return excerpt
+    .replace(/(^|\s)[-*]\s+\[[ xX]\]\s+/g, "$1")
+    .replace(/(^|\s)#{1,3}\s+/g, "$1")
+    .replace(/(^|\s)>\s+/g, "$1")
+    .replace(/(^|\s)[-*]\s+/g, "$1")
+    .replace(/\*\*|\*|`/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
 export interface NoteStats {
   words: number;
   characters: number;

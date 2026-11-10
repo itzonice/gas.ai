@@ -377,18 +377,18 @@ export function createApiClient(db: Db) {
        */
       async create(input: CreateCourseInput) {
         const v = validate(createCourseInputSchema, input);
-        return unwrap(
-          await db
-            .from("courses")
-            .insert({
-              name: v.name,
-              code: blankToNull(v.code),
-              instructor: blankToNull(v.instructor),
-              ...(v.color ? { color: v.color } : {}),
-            })
-            .select("id, name, code, color")
-            .single(),
-        );
+        // Awaited into a variable first: inline, TypeScript infers the row type as null.
+        const res = await db
+          .from("courses")
+          .insert({
+            name: v.name,
+            code: blankToNull(v.code),
+            instructor: blankToNull(v.instructor),
+            ...(v.color ? { color: v.color } : {}),
+          })
+          .select("id, name, code, color")
+          .single();
+        return unwrap(res);
       },
       /**
        * Deletes a course and everything in it (assignments, sessions, study blocks,
@@ -948,17 +948,16 @@ export function createApiClient(db: Db) {
       },
       async create(input: CreateSetInput) {
         const v = validate(createSetInputSchema, input);
-        return unwrap(
-          await db
-            .from("card_sets")
-            .insert({
-              course_id: v.courseId,
-              title: v.title,
-              description: blankToNull(v.description),
-            })
-            .select("id, course_id, title, description, updated_at")
-            .single(),
-        );
+        const res = await db
+          .from("card_sets")
+          .insert({
+            course_id: v.courseId,
+            title: v.title,
+            description: blankToNull(v.description),
+          })
+          .select("id, course_id, title, description, updated_at")
+          .single();
+        return unwrap(res);
       },
       async update(input: UpdateSetInput) {
         const v = validate(updateSetInputSchema, input);
@@ -966,14 +965,13 @@ export function createApiClient(db: Db) {
           ...(v.title !== undefined ? { title: v.title } : {}),
           ...(v.description !== undefined ? { description: blankToNull(v.description) } : {}),
         };
-        return unwrap(
-          await db
-            .from("card_sets")
-            .update(columns)
-            .eq("id", v.id)
-            .select("id, course_id, title, description, updated_at")
-            .single(),
-        );
+        const res = await db
+          .from("card_sets")
+          .update(columns)
+          .eq("id", v.id)
+          .select("id, course_id, title, description, updated_at")
+          .single();
+        return unwrap(res);
       },
       /** Deletes a set and its cards. The apps call this after the undo window closes. */
       async remove(setId: string): Promise<void> {
@@ -1034,9 +1032,13 @@ export function createApiClient(db: Db) {
           ...(v.pinned !== undefined ? { pinned: v.pinned } : {}),
           ...(v.courseId !== undefined ? { course_id: v.courseId } : {}),
         };
-        return unwrap(
-          await db.from("notes").update(columns).eq("id", id).select("id, updated_at").single(),
-        );
+        const res = await db
+          .from("notes")
+          .update(columns)
+          .eq("id", id)
+          .select("id, updated_at")
+          .single();
+        return unwrap(res);
       },
       /** Deletes a note. The apps call this after the undo window closes. */
       async remove(noteId: string): Promise<void> {

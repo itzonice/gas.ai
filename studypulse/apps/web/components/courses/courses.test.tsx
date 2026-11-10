@@ -14,8 +14,17 @@ vi.mock("next/link", () => ({
   ),
 }));
 
+const push = vi.fn();
+vi.mock("next/navigation", () => ({ useRouter: () => ({ push }) }));
+
 const api = {
-  courses: { overview: vi.fn(), get: vi.fn(), setTarget: vi.fn(), remove: vi.fn() },
+  courses: {
+    overview: vi.fn(),
+    get: vi.fn(),
+    setTarget: vi.fn(),
+    remove: vi.fn(),
+    create: vi.fn(),
+  },
   assignments: { update: vi.fn(), remove: vi.fn() },
 };
 vi.mock("@/components/auth/SessionProvider", () => ({ useApi: () => api }));
@@ -156,6 +165,38 @@ describe("CoursesScreen", () => {
     api.courses.overview.mockResolvedValue({ timezone: "UTC", courses: [] });
     render(<CoursesScreen />);
     expect(await screen.findByRole("heading", { name: "No courses yet" })).toBeInTheDocument();
+  });
+
+  it("adds a course by hand, without a syllabus, and opens it", async () => {
+    const user = userEvent.setup();
+    api.courses.overview.mockResolvedValue({ timezone: "UTC", courses: [] });
+    api.courses.create.mockResolvedValue({ id: courseId, name: "Chemistry", code: "CHEM 101" });
+    render(<CoursesScreen />);
+    await user.click(await screen.findByRole("button", { name: "Add a course by hand" }));
+    const dialog = await screen.findByRole("dialog", { name: "Add a course" });
+    await user.type(within(dialog).getByLabelText("Course name"), "Chemistry");
+    await user.type(within(dialog).getByLabelText("Course code (optional)"), "CHEM 101");
+    await user.click(within(dialog).getByRole("button", { name: "Add course" }));
+    expect(api.courses.create).toHaveBeenCalledWith(
+      expect.objectContaining({ name: "Chemistry", code: "CHEM 101" }),
+    );
+    expect(push).toHaveBeenCalledWith(`/courses/${courseId}`);
+  });
+
+  it("asks for a name and explains the free plan's limit", async () => {
+    const user = userEvent.setup();
+    api.courses.overview.mockResolvedValue({ timezone: "UTC", courses: [] });
+    const { ApiError } = await import("@studypulse/core/api");
+    api.courses.create.mockRejectedValue(new ApiError(402, "course_limit_reached", "limit"));
+    render(<CoursesScreen />);
+    await user.click(await screen.findByRole("button", { name: "Add a course by hand" }));
+    const dialog = await screen.findByRole("dialog", { name: "Add a course" });
+    await user.click(within(dialog).getByRole("button", { name: "Add course" }));
+    expect(await within(dialog).findByText("Name the course.")).toBeInTheDocument();
+    await user.type(within(dialog).getByLabelText("Course name"), "Physics");
+    await user.click(within(dialog).getByRole("button", { name: "Add course" }));
+    expect(await within(dialog).findByRole("alert")).toHaveTextContent(/3 active courses/);
+    expect(push).not.toHaveBeenCalled();
   });
 });
 

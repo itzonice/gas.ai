@@ -55,6 +55,8 @@ export interface LearnState {
 
 export interface LearnFeedback extends Graded {
   cardId: string;
+  /** What the student gave (an option id, typed text, or their own verdict). */
+  response: QuestionResponse;
   /**
    * What to record for spaced review when the student moves on, if anything (see
    * ratingFor). Read it at "Continue", after any "I was right" override.
@@ -151,6 +153,7 @@ export function answerLearn(state: LearnState, response: QuestionResponse): Lear
     feedback: {
       ...graded,
       cardId: question.cardId,
+      response,
       rating: ratingFor(before, graded.correct, stage),
       stage,
       before,

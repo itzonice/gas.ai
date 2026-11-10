@@ -10,8 +10,10 @@ import { Button, TextField } from "@/components/ui";
 import { getSupabase } from "@/lib/supabase";
 
 import styles from "./auth.module.css";
+import { useHydrated } from "./useHydrated";
 
 export function ResetPasswordForm() {
+  const hydrated = useHydrated();
   const [email, setEmail] = useState("");
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState(false);
@@ -29,7 +31,7 @@ export function ResetPasswordForm() {
   return (
     <div className={styles.card}>
       <h1 className={styles.title}>Reset your password</h1>
-      <form className={styles.form} onSubmit={(e) => void onSubmit(e)} noValidate>
+      <form className={styles.form} method="post" onSubmit={(e) => void onSubmit(e)} noValidate>
         <p role="status" aria-live="polite" className={styles.switch}>
           {message}
         </p>
@@ -41,7 +43,7 @@ export function ResetPasswordForm() {
           value={email}
           onChange={(e) => setEmail(e.currentTarget.value)}
         />
-        <Button type="submit" variant="filled" disabled={busy}>
+        <Button type="submit" variant="filled" disabled={busy || !hydrated}>
           {busy ? "Sending…" : "Send reset link"}
         </Button>
       </form>

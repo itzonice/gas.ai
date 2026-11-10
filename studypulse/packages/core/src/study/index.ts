@@ -2,6 +2,7 @@
 // paste-to-import, and notes. Pure logic and wording shared by web and mobile; the
 // screens only render it and call the API client.
 export * from "./answers.ts";
+export * from "./editing.ts";
 export * from "./format.ts";
 export * from "./import.ts";
 export * from "./learn.ts";

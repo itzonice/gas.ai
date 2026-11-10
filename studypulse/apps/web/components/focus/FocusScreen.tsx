@@ -350,6 +350,7 @@ export function FocusScreen({
                   : { label: "Start focus", icon: "play" as const, onClick: () => void start() },
           }
         : {})}
+      secondaryActions={[{ label: "See your stats", href: "/stats" }]}
     />
   );
 

@@ -25,6 +25,7 @@ import styles from "./auth.module.css";
 import { BirthMonthField, type BirthMonthValue } from "./BirthMonthField";
 import { SupportEmail } from "@/components/legal/SupportEmail";
 import { useSession } from "./SessionProvider";
+import { useHydrated } from "./useHydrated";
 
 type Mode = "sign-in" | "sign-up";
 
@@ -32,6 +33,7 @@ export function SignInForm() {
   const router = useRouter();
   const next = safeNext(useSearchParams().get("next"));
   const session = useSession();
+  const hydrated = useHydrated();
   const [mode, setMode] = useState<Mode>("sign-in");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -119,7 +121,13 @@ export function SignInForm() {
   return (
     <div className={styles.card}>
       <h1 className={styles.title}>{title}</h1>
-      <form className={styles.form} onSubmit={onSubmit} aria-describedby="auth-message" noValidate>
+      <form
+        className={styles.form}
+        method="post"
+        onSubmit={onSubmit}
+        aria-describedby="auth-message"
+        noValidate
+      >
         <div id="auth-message" aria-live="polite">
           {error ? (
             <p role="alert" className={styles.alert}>
@@ -161,7 +169,7 @@ export function SignInForm() {
             <Link href="/privacy">Privacy Policy</Link>.
           </p>
         ) : null}
-        <Button type="submit" variant="filled" disabled={busy}>
+        <Button type="submit" variant="filled" disabled={busy || !hydrated}>
           {mode === "sign-in"
             ? busy
               ? "Signing in…"

@@ -16,9 +16,11 @@ import { Button, Icon, TextField } from "@/components/ui";
 import { getSupabase } from "@/lib/supabase";
 
 import styles from "./auth.module.css";
+import { useHydrated } from "./useHydrated";
 import { useSession } from "./SessionProvider";
 
 export function UpdatePasswordForm() {
+  const hydrated = useHydrated();
   const router = useRouter();
   const session = useSession();
   const [password, setPassword] = useState("");
@@ -67,7 +69,7 @@ export function UpdatePasswordForm() {
   return (
     <div className={styles.card}>
       <h1 className={styles.title}>Choose a new password</h1>
-      <form className={styles.form} onSubmit={(e) => void onSubmit(e)} noValidate>
+      <form className={styles.form} method="post" onSubmit={(e) => void onSubmit(e)} noValidate>
         {error ? (
           <p role="alert" className={styles.alert}>
             <Icon name="warning" size={20} />
@@ -84,7 +86,7 @@ export function UpdatePasswordForm() {
           value={password}
           onChange={(e) => setPassword(e.currentTarget.value)}
         />
-        <Button type="submit" variant="filled" disabled={busy}>
+        <Button type="submit" variant="filled" disabled={busy || !hydrated}>
           {busy ? "Saving…" : "Save password"}
         </Button>
       </form>

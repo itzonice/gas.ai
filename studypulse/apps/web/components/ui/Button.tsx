@@ -1,5 +1,5 @@
 import Link from "next/link";
-import type { ButtonHTMLAttributes, ReactNode } from "react";
+import type { ButtonHTMLAttributes, ReactNode, Ref } from "react";
 
 import { Icon, type IconName } from "./icons";
 import styles from "./ui.module.css";
@@ -20,7 +20,11 @@ export function Button({
   href,
   className,
   ...props
-}: Common & { href?: string } & ButtonHTMLAttributes<HTMLButtonElement>) {
+}: Common & {
+  href?: string;
+  /** For moving focus to the button (React 19 passes ref as a prop). */
+  ref?: Ref<HTMLButtonElement>;
+} & ButtonHTMLAttributes<HTMLButtonElement>) {
   const cls = [styles.button, styles[variant], className].filter(Boolean).join(" ");
   const content = (
     <>

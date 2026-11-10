@@ -4,6 +4,7 @@
 // for the target, in words), and the next thing due.
 import type { CoursesOverview } from "@studypulse/core/api";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 
 import { useApi } from "@/components/auth/SessionProvider";
@@ -18,6 +19,7 @@ import {
   useUndoDelete,
 } from "@/components/ui";
 
+import { AddCourseDialog } from "./AddCourseDialog";
 import styles from "./courses.module.css";
 import { formatPercent, targetStatus } from "@studypulse/core/screens";
 
@@ -28,6 +30,8 @@ type Load =
 
 export function CoursesScreen() {
   const api = useApi();
+  const router = useRouter();
+  const [adding, setAdding] = useState(false);
   const [load, setLoad] = useState<Load>({ status: "loading" });
   const [now] = useState(() => new Date());
 
@@ -62,6 +66,14 @@ export function CoursesScreen() {
           title="Courses"
           description="Your courses, grades, and what's due next."
           primaryAction={{ label: "Upload syllabus", icon: "upload", href: "/courses/upload" }}
+          secondaryActions={[
+            {
+              label: "Add a course without a syllabus",
+              onSelect: () => {
+                setAdding(true);
+              },
+            },
+          ]}
         />
         {load.status === "loading" ? (
           <p role="status" className={styles.note}>
@@ -81,7 +93,18 @@ export function CoursesScreen() {
             title="No courses yet"
             action={{ label: "Upload a syllabus", href: "/courses/upload", icon: "upload" }}
           >
-            Upload a syllabus and StudyPulse builds the course, its grading, and your schedule.
+            Upload a syllabus and StudyPulse builds the course, its grading, and your schedule. Or
+            add a course by hand to start with flashcards and notes.
+            <br />
+            <Button
+              variant="text"
+              icon="add"
+              onClick={() => {
+                setAdding(true);
+              }}
+            >
+              Add a course by hand
+            </Button>
           </EmptyState>
         ) : (
           <ul className={styles.cards} aria-label="Courses">
@@ -144,6 +167,17 @@ export function CoursesScreen() {
         <p role="status" className="sp-visually-hidden">
           {message}
         </p>
+        <AddCourseDialog
+          open={adding}
+          usedColors={load.status === "ready" ? load.overview.courses.map((c) => c.color) : []}
+          onClose={() => {
+            setAdding(false);
+          }}
+          onCreated={(course) => {
+            setAdding(false);
+            router.push(`/courses/${course.id}`);
+          }}
+        />
         {undo.toast}
       </div>
     </div>

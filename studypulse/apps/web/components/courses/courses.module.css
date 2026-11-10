@@ -232,3 +232,17 @@
   top: var(--sp-space-half);
   right: var(--sp-space-half);
 }
+
+/* "Add a course" dialog. */
+.dialogForm {
+  display: grid;
+  gap: var(--sp-space-card);
+}
+.formError {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-space-half);
+  margin: 0;
+  color: var(--sp-color-error);
+  font-weight: var(--sp-type-label-large-weight);
+}

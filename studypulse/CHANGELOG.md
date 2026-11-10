@@ -34,11 +34,22 @@ follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the apps u
   focus time against grades.
 - **Study plan and reminders.** Study blocks scheduled around your study hours, spaced
   reviews before exams, and push, web push, and email reminders with quiet hours.
-- **Study cards** from your notes, exported to Anki or Quizlet.
+- **Study, like Quizlet.** Card sets per course, with Flashcards (flip and rate, spaced
+  review), Learn, Test (no timer), and Match (count-up clock you can hide). A Notes editor
+  that autosaves, with formatting, preview, and "Make flashcards". Web and phone, with
+  card reviews syncing after offline use. Import from Quizlet or a spreadsheet; export to
+  Anki or Quizlet.
+- **Run it locally.** `pnpm app` starts the backend and the phone app; `pnpm web` the site.
 - **Calendar feed** (ICS), Google Calendar sync, and Canvas import.
 - **Pro plan** through Stripe on the web and RevenueCat in the apps.
 - **Tablets.** The apps rotate and use a navigation rail on tablets.
 - **Store review account** script (`pnpm reviewer:seed`).
+
+### Fixed
+
+- Signing in before the page finished loading could put the email and password in the
+  address bar; the form now posts and waits until it is ready.
+- Data export reads in pages, so it is no longer cut off at 100 rows.
 
 ### Security and privacy
 

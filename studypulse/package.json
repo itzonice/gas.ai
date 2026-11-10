@@ -9,7 +9,9 @@
   "scripts": {
     "build": "turbo run build",
     "dev": "turbo run dev",
-    "local": "bash scripts/local.sh",
+    "app": "bash scripts/local.sh app",
+    "web": "bash scripts/local.sh web",
+    "local": "bash scripts/local.sh web",
     "lint": "turbo run lint && pnpm functions:lint",
     "typecheck": "turbo run typecheck && pnpm functions:check",
     "test": "turbo run test && pnpm functions:test",

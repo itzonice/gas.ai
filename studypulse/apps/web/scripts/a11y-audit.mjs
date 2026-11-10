@@ -40,6 +40,13 @@ const SCREENS = [
   { path: "/courses", ready: "h1:text('Courses')", settle: "a[href^='/courses/']" },
   { path: "COURSE", ready: "h1" },
   { path: "/courses/upload", ready: "h1" },
+  { path: "/study", ready: "h1:text('Study')", settle: "a[href^='/study/sets/']" },
+  { path: "SET", ready: "h1" },
+  { path: "SET/flashcards", ready: "button:has-text('Start')" },
+  { path: "SET/learn", ready: "button:has-text('Start learning')" },
+  { path: "SET/test", ready: "button:has-text('Start the test')" },
+  { path: "SET/match", ready: "ul[aria-label='Tiles']" },
+  { path: "NOTE", ready: "#note-body" },
   { path: "/focus", ready: "[role=timer]" },
   { path: "/stats", ready: "h1:text('Stats')" },
   { path: "/settings", ready: "h2:text('Reminders')" },
@@ -51,6 +58,35 @@ const INTERACTIONS = [
   { path: "/calendar", name: "add assignment dialog", open: "button:has-text('Add assignment')" },
   { path: "COURSE", name: "add score dialog", open: "button:has-text('Add score')" },
   { path: "/today", name: "overflow menu", open: "button[aria-label='More actions']" },
+  {
+    path: "/study",
+    name: "new card set dialog",
+    open: "main button:has-text('New card set')",
+  },
+  {
+    path: "SET",
+    name: "add card dialog",
+    open: ["button[aria-label='More actions']", "[role=menuitem]:has-text('Add cards')"],
+  },
+  {
+    path: "SET",
+    name: "import cards dialog",
+    open: ["button[aria-label='More actions']", "[role=menuitem]:has-text('Import cards')"],
+  },
+  {
+    path: "SET/flashcards",
+    name: "flashcard, front",
+    open: ["button:has-text('Start')"],
+  },
+  {
+    path: "SET/flashcards",
+    name: "flashcard, back with ratings",
+    open: ["button:has-text('Start')", "button[aria-label^='Term:']"],
+  },
+  { path: "SET/learn", name: "learn question", open: ["button:has-text('Start learning')"] },
+  { path: "SET/test", name: "test questions", open: ["button:has-text('Start the test')"] },
+  { path: "NOTE", name: "note preview", open: ["[role=tab]:has-text('Preview')"] },
+  { path: "NOTE", name: "make flashcards dialog", open: ["button:has-text('Make flashcards')"] },
   { path: "/settings", name: "delete account dialog", open: "button:has-text('Delete account')" },
 ];
 
@@ -190,7 +226,11 @@ async function load(page, path, ready) {
   await page.waitForTimeout(300);
 }
 
-const browser = await chromium.launch();
+// A browser other than the one Playwright installed (for example a machine that has its own
+// Chromium): A11Y_CHROMIUM_PATH=/path/to/chromium
+const browser = await chromium.launch(
+  process.env.A11Y_CHROMIUM_PATH ? { executablePath: process.env.A11Y_CHROMIUM_PATH } : {},
+);
 try {
   // The consent banner (S23) shows locally (no geo header). Audit it once at phone and
   // desktop widths, then pre-set a choice so it doesn't cover the screens below.
@@ -267,7 +307,19 @@ try {
       .locator("a[href^='/courses/']:not([href='/courses/upload'])")
       .first()
       .getAttribute("href");
-    const resolve = (p) => (p === "COURSE" ? (courseHref ?? "/courses") : p);
+    // A real card set and note for the Study screens.
+    await load(page, "/study", "h1:text('Study')");
+    await page.locator("a[href^='/study/sets/']").first().waitFor({ timeout: 30_000 });
+    const setHref = await page.locator("a[href^='/study/sets/']").first().getAttribute("href");
+    const noteHref = await page.locator("a[href^='/study/notes/']").first().getAttribute("href");
+    const resolve = (p) =>
+      p === "COURSE"
+        ? (courseHref ?? "/courses")
+        : p === "NOTE"
+          ? (noteHref ?? "/study")
+          : p.startsWith("SET")
+            ? `${setHref ?? "/study"}${p.slice(3)}`
+            : p;
 
     for (const width of WIDTHS) {
       await page.setViewportSize({ width, height: 1000 });
@@ -296,8 +348,11 @@ try {
         const context = { path: `${path} (${it.name})`, width, scheme };
         try {
           await load(page, path, "h1");
-          await page.locator(it.open).first().click();
-          await page.waitForTimeout(300);
+          for (const selector of Array.isArray(it.open) ? it.open : [it.open]) {
+            await page.locator(selector).first().click();
+            await page.waitForTimeout(200);
+          }
+          await page.waitForTimeout(150);
         } catch (e) {
           fail({ ...context, check: "open", help: String(e).slice(0, 200) });
           continue;

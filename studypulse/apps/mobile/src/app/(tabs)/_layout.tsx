@@ -22,6 +22,14 @@ const TABS: { name: string; title: string; icon: IconName }[] = [
   { name: "focus", title: "Focus", icon: "timer" },
 ];
 
+const TRACK = {
+  ink: "#0c1730",
+  night: "#050a19",
+  text: "#c3cad7",
+  active: "#f6f3ec",
+  onActive: "#141b2e",
+};
+
 export default function TabsLayout() {
   const theme = useAppTheme();
   const insets = useSafeAreaInsets();
@@ -73,8 +81,10 @@ export default function TabsLayout() {
           tabBarPosition: rail ? "left" : "bottom",
           tabBarVariant: rail ? "material" : "uikit",
           tabBarLabelPosition: "below-icon",
-          tabBarActiveTintColor: theme.colors.onSecondaryContainer,
-          tabBarInactiveTintColor: theme.colors.onSurfaceVariant,
+          // Phones: an ink-navy track in both themes with a paper pill for the current tab
+          // (as on the website); the rail uses the theme roles.
+          tabBarActiveTintColor: rail ? theme.colors.onSecondaryContainer : TRACK.active,
+          tabBarInactiveTintColor: rail ? theme.colors.onSurfaceVariant : TRACK.text,
           tabBarStyle: rail
             ? {
                 width: theme.layout.railWidth,
@@ -85,13 +95,13 @@ export default function TabsLayout() {
             : {
                 minHeight: barHeight,
                 paddingTop: theme.spacing.related,
-                backgroundColor: theme.colors.surfaceContainer,
+                backgroundColor: theme.dark ? TRACK.night : TRACK.ink,
                 borderTopWidth: 0,
               },
           tabBarItemStyle: { minHeight: theme.layout.minTarget },
           tabBarLabelStyle: {
             fontSize: theme.type.label.fontSize,
-            fontWeight: theme.type.label.fontWeight,
+            fontWeight: "700",
           },
         }}
       >
@@ -111,10 +121,18 @@ export default function TabsLayout() {
                     borderRadius: theme.radii.full,
                     alignItems: "center",
                     justifyContent: "center",
-                    backgroundColor: focused ? theme.colors.secondaryContainer : "transparent",
+                    backgroundColor: focused
+                      ? rail
+                        ? theme.colors.secondaryContainer
+                        : TRACK.active
+                      : "transparent",
                   }}
                 >
-                  <Icon name={tab.icon} size={24} color={color} />
+                  <Icon
+                    name={tab.icon}
+                    size={24}
+                    color={focused && !rail ? TRACK.onActive : color}
+                  />
                 </View>
               ),
             }}

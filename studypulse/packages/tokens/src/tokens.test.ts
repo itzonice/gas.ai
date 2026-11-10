@@ -20,7 +20,7 @@ describe("scales", () => {
     expect([spacing.related, spacing.card, spacing.section, spacing.major]).toEqual([
       8, 16, 24, 32,
     ]);
-    expect([radii.control, radii.card, radii.sheet]).toEqual([8, 12, 16]);
+    expect([radii.control, radii.card, radii.sheet]).toEqual([12, 20, 24]);
     expect(layout.breakpoints).toEqual({ medium: 600, expanded: 1024, wide: 1440 });
     expect(layout.minTarget).toBe(48);
   });
@@ -74,9 +74,9 @@ describe("native themes", () => {
     expect(darkTheme.dark).toBe(true);
     expect(lightTheme.type.pageTitle).toEqual({
       fontSize: 32,
-      lineHeight: 40,
-      fontWeight: "500",
-      letterSpacing: 0,
+      lineHeight: 38,
+      fontWeight: "800",
+      letterSpacing: -1,
     });
     expect(lightTheme.type.body.fontWeight).toBe("400");
     expect(Object.keys(lightTheme.course)).toHaveLength(coursePalette.length);

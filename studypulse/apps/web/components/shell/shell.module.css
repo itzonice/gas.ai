@@ -64,7 +64,9 @@
   gap: var(--sp-space-related);
   min-height: var(--sp-layout-app-bar-height);
   padding: var(--sp-space-related) var(--sp-space-card);
-  background: var(--sp-color-surface-container);
+  background: color-mix(in srgb, var(--sp-color-surface) 88%, transparent);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--sp-color-outline-variant);
 }
 
 .logo {
@@ -76,9 +78,23 @@
   border-radius: var(--sp-radius-control);
   color: var(--sp-color-on-surface);
   text-decoration: none;
-  font-size: var(--sp-type-section-heading-size);
-  line-height: var(--sp-type-section-heading-line-height);
-  font-weight: var(--sp-type-section-heading-weight);
+}
+/* The tilted tile and lowercase wordmark. */
+.logoMark {
+  display: inline-grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 10px;
+  background: var(--sp-color-primary);
+  color: var(--sp-color-on-primary);
+  rotate: -8deg;
+}
+.wordmark {
+  font-size: 20px;
+  line-height: 1;
+  font-weight: 800;
+  letter-spacing: -0.6px;
 }
 
 .search {
@@ -122,8 +138,12 @@
   place-items: center;
   width: var(--sp-layout-min-target);
   height: var(--sp-layout-min-target);
+  padding: 0;
+  border: 0;
   border-radius: var(--sp-radius-full);
+  background: transparent;
   color: var(--sp-color-on-surface-variant);
+  cursor: pointer;
 }
 .iconButton:hover {
   background: color-mix(in srgb, var(--sp-color-on-surface) 8%, transparent);
@@ -135,13 +155,30 @@
 
 /* ------------------------------------------------------------------ navigation */
 
-/* Phones: fixed bottom bar with the five destinations. */
+/* Phones: a floating pill track with the five destinations; the current one is a paper
+   pill (a shape and bold text, not just a color). The track is ink navy in both themes. */
 .nav {
+  --sp-track: #0c1730;
+  --sp-track-text: #c3cad7;
+  --sp-track-active: #f6f3ec;
+  --sp-track-on-active: #141b2e;
   position: fixed;
-  inset: auto 0 0;
+  inset: auto var(--sp-space-related) calc(var(--sp-space-related) + env(safe-area-inset-bottom));
   z-index: 10;
-  background: var(--sp-color-surface-container);
-  padding-bottom: env(safe-area-inset-bottom);
+  padding: 6px;
+  border-radius: 32px;
+  background: var(--sp-track);
+  box-shadow: 0 8px 24px color-mix(in srgb, var(--sp-color-shadow) 28%, transparent);
+}
+:root[data-theme="dark"] .nav {
+  --sp-track: #050a19;
+  border: 1px solid #25324e;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .nav {
+    --sp-track: #050a19;
+    border: 1px solid #25324e;
+  }
 }
 
 .navList {
@@ -163,9 +200,11 @@
   flex-direction: column;
   align-items: center;
   gap: var(--sp-space-half);
-  min-height: var(--sp-layout-bottom-bar-height);
-  padding: 12px var(--sp-space-half) var(--sp-space-card);
-  color: var(--sp-color-on-surface-variant);
+  justify-content: center;
+  min-height: 60px;
+  padding: 6px var(--sp-space-half);
+  border-radius: 26px;
+  color: var(--sp-track-text);
   text-decoration: none;
   font-size: var(--sp-type-label-size);
   line-height: var(--sp-type-label-line-height);
@@ -173,24 +212,18 @@
   text-align: center;
 }
 
-/* M3 active indicator: a pill behind the icon (a shape, not just a color). */
+.navLink:hover:not([aria-current="page"]) {
+  background: color-mix(in srgb, #ffffff 8%, transparent);
+}
+.navLink[aria-current="page"] {
+  background: var(--sp-track-active);
+  color: var(--sp-track-on-active);
+  font-weight: 800;
+}
 .navIndicator {
   display: grid;
   place-items: center;
-  width: 64px;
-  height: 32px;
-  border-radius: var(--sp-radius-full);
-}
-.navLink:hover .navIndicator {
-  background: color-mix(in srgb, var(--sp-color-on-surface) 8%, transparent);
-}
-.navLink[aria-current="page"] {
-  color: var(--sp-color-on-surface);
-  font-weight: 700;
-}
-.navLink[aria-current="page"] .navIndicator {
-  background: var(--sp-color-secondary-container);
-  color: var(--sp-color-on-secondary-container);
+  height: 24px;
 }
 .navLabel {
   overflow-wrap: anywhere;
@@ -202,7 +235,7 @@
   flex-direction: column;
   min-width: 0;
   /* Room for the bottom bar and the floating button. */
-  padding-bottom: calc(var(--sp-layout-bottom-bar-height) + 72px + env(safe-area-inset-bottom));
+  padding-bottom: calc(72px + 72px + env(safe-area-inset-bottom));
 }
 
 .main {
@@ -224,19 +257,18 @@
 .fab {
   position: fixed;
   right: var(--sp-space-card);
-  bottom: calc(
-    var(--sp-layout-bottom-bar-height) + var(--sp-space-card) + env(safe-area-inset-bottom)
-  );
+  bottom: calc(72px + var(--sp-space-card) + env(safe-area-inset-bottom));
   z-index: 11;
   display: inline-flex;
   align-items: center;
   gap: var(--sp-space-related);
   min-height: 56px;
   padding: var(--sp-space-card) 20px;
-  border-radius: var(--sp-radius-card);
+  border-radius: var(--sp-radius-full);
   background: var(--sp-color-primary);
   color: var(--sp-color-on-primary);
-  box-shadow: 0 3px 6px color-mix(in srgb, var(--sp-color-shadow) 25%, transparent);
+  font-weight: 800;
+  box-shadow: 0 6px 16px color-mix(in srgb, var(--sp-color-shadow) 25%, transparent);
   text-decoration: none;
   font-size: var(--sp-type-label-large-size);
   line-height: var(--sp-type-label-large-line-height);
@@ -269,6 +301,13 @@
   }
 
   .nav {
+    --sp-track-text: var(--sp-color-on-surface-variant);
+    --sp-track-active: var(--sp-color-secondary-container);
+    --sp-track-on-active: var(--sp-color-on-secondary-container);
+    inset: auto;
+    border: 0 !important;
+    border-radius: 0;
+    box-shadow: none;
     grid-area: nav;
     position: sticky;
     top: var(--sp-layout-app-bar-height);
@@ -290,10 +329,12 @@
   }
   .navLink {
     min-height: 56px;
-    padding: var(--sp-space-half) var(--sp-space-half) var(--sp-space-related);
+    margin-inline: var(--sp-space-half);
+    padding: var(--sp-space-related) var(--sp-space-half);
+    border-radius: var(--sp-radius-card);
   }
-  .navIndicator {
-    width: 56px;
+  .navLink:hover:not([aria-current="page"]) {
+    background: color-mix(in srgb, var(--sp-color-on-surface) 8%, transparent);
   }
 
   .body {
@@ -329,12 +370,9 @@
     height: auto;
     background: none !important;
   }
-  .navLink:hover {
-    background: color-mix(in srgb, var(--sp-color-on-surface) 8%, transparent);
-  }
-  .navLink[aria-current="page"] {
-    background: var(--sp-color-secondary-container);
-    color: var(--sp-color-on-secondary-container);
+  .navLink {
+    margin-inline: 0;
+    border-radius: var(--sp-radius-full);
   }
   .main {
     padding: var(--sp-space-major) var(--sp-space-major) var(--sp-space-section);
@@ -403,4 +441,11 @@
   border-radius: var(--sp-radius-control);
   background: var(--sp-color-error-container);
   color: var(--sp-color-on-error-container);
+}
+
+/* Very narrow phones: the tile alone, so the app bar's actions fit without sideways scroll. */
+@media (max-width: 359px) {
+  .wordmark {
+    display: none;
+  }
 }

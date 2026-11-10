@@ -127,6 +127,8 @@
   }
 }
 .metricCard {
+  border: 1px solid var(--sp-color-outline-variant);
+  box-shadow: 0 8px 24px color-mix(in srgb, var(--sp-color-shadow) 6%, transparent);
   display: grid;
   gap: var(--sp-space-half);
   padding: var(--sp-space-card);

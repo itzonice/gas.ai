@@ -7,7 +7,7 @@ import { DEFAULT_WEB_ORIGIN, STORE_SUBSCRIPTION_URLS } from "@studypulse/core/le
 import { AI_DISCLOSURE } from "@studypulse/core/privacy";
 import { router } from "expo-router";
 import { useEffect, useState } from "react";
-import { Alert, Linking, Platform, Switch, Text, View } from "react-native";
+import { Alert, Linking, Platform, Pressable, Switch, Text, View } from "react-native";
 
 import { BusinessLine, LegalLinks } from "../components/LegalLinks";
 import { Screen } from "../components/Screen";
@@ -18,7 +18,7 @@ import { flush } from "../lib/offline";
 import { getApi, getSupabase } from "../lib/supabase";
 import { resetPurchaser } from "../purchases";
 import { useSession } from "../session";
-import { useAppTheme } from "../theme";
+import { useAppTheme, useThemeChoice, type ThemeChoice } from "../theme";
 
 /** Signs out everywhere: revokes every refresh token for this account, then clears this device. */
 export async function signOutEverywhere() {
@@ -131,6 +131,7 @@ export default function SettingsScreen() {
         </Text>
         <Button label="Sign out" variant="tonal" onPress={() => void signOutEverywhere()} />
       </View>
+      <Appearance />
       <View style={{ gap: theme.spacing.related }}>
         {heading("Subscription")}
         <Button
@@ -175,5 +176,85 @@ export default function SettingsScreen() {
         />
       </View>
     </Screen>
+  );
+}
+
+const THEME_OPTIONS: { value: ThemeChoice; label: string }[] = [
+  { value: "system", label: "Match my device" },
+  { value: "light", label: "Light" },
+  { value: "dark", label: "Dark" },
+];
+
+/** Light, dark, or the system setting; applies at once. */
+function Appearance() {
+  const theme = useAppTheme();
+  const { choice, setChoice } = useThemeChoice();
+  return (
+    <View style={{ gap: theme.spacing.related }} accessibilityRole="radiogroup">
+      <Text
+        accessibilityRole="header"
+        style={[theme.type.sectionHeading, { color: theme.colors.onSurface }]}
+      >
+        Appearance
+      </Text>
+      {THEME_OPTIONS.map((o) => {
+        const selected = choice === o.value;
+        return (
+          <Pressable
+            key={o.value}
+            accessibilityRole="radio"
+            accessibilityState={{ checked: selected }}
+            onPress={() => {
+              setChoice(o.value);
+            }}
+            style={{
+              minHeight: 56,
+              flexDirection: "row",
+              alignItems: "center",
+              gap: 12,
+              paddingHorizontal: theme.spacing.card,
+              borderRadius: theme.radii.control,
+              borderWidth: 1,
+              borderColor: selected ? theme.colors.primary : theme.colors.outlineVariant,
+              backgroundColor: selected ? theme.colors.primaryContainer : "transparent",
+            }}
+          >
+            <View
+              style={{
+                width: 20,
+                height: 20,
+                borderRadius: 10,
+                borderWidth: 2,
+                borderColor: selected ? theme.colors.primary : theme.colors.outline,
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              {selected ? (
+                <View
+                  style={{
+                    width: 10,
+                    height: 10,
+                    borderRadius: 5,
+                    backgroundColor: theme.colors.primary,
+                  }}
+                />
+              ) : null}
+            </View>
+            <Text
+              style={[
+                theme.type.bodyLarge,
+                {
+                  color: selected ? theme.colors.onPrimaryContainer : theme.colors.onSurface,
+                  fontWeight: "700",
+                },
+              ]}
+            >
+              {o.label}
+            </Text>
+          </Pressable>
+        );
+      })}
+    </View>
   );
 }

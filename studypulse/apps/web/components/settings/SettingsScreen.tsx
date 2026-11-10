@@ -35,6 +35,7 @@ import { getSupabase } from "@/lib/supabase";
 import { enableWebPush, webPushSupported } from "@/lib/web-push";
 
 import { deviceSummary, planSummary, profileChanges, prefChanges } from "./model";
+import { AppearanceSection } from "./AppearanceSection";
 import styles from "./settings.module.css";
 
 type Load =
@@ -199,6 +200,8 @@ export function SettingsScreen() {
   return (
     <div className={styles.content}>
       {header}
+
+      <AppearanceSection />
 
       <form className={styles.form} onSubmit={(e) => void save(e)} noValidate>
         <section className={styles.section} aria-labelledby="account-heading">

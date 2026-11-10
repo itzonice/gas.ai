@@ -3,6 +3,7 @@ import type { Metadata, Viewport } from "next";
 
 import { SessionProvider } from "@/components/auth/SessionProvider";
 import { ConsentManager } from "@/components/privacy/ConsentManager";
+import { themeBootScript } from "@/lib/theme-boot";
 
 import "@studypulse/tokens/tokens.css";
 import "./globals.css";
@@ -24,7 +25,11 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en">
+    // data-theme is set before hydration by the boot script, so React may see it differ.
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: themeBootScript }} />
+      </head>
       <body>
         <SessionProvider>
           {children}

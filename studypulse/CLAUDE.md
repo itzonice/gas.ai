@@ -126,14 +126,22 @@ identifying tint, never for status.
 Spacing: an 8 px rhythm. Use 8 px between related items, 16 px for card padding, 24 px
 between sections, and 32 px for major separation.
 
-Corners: 8 px for controls, 12 px for cards, and 16 px for sheets and drawers.
+Corners: 12 px for controls, 20 px for cards, 24 px for sheets and drawers, and full pills for
+buttons and the phone navigation.
 
-Type: Roboto or a system sans stack. Page titles 32 px, section headings 22 px, card titles
-16 px, body 14–16 px, and labels 12–14 px. Use medium weight for headings and regular for
-body text.
+Type: a system sans stack. Page titles 32 px heavy (800, tight tracking), section headings
+22 px heavy, card titles 16 px bold, body 14–16 px regular, and labels 12–14 px medium.
 
-Themes: build light and dark from the same semantic tokens. Test every course color against
-both themes.
+Look: a calm academic workspace. Light is warm paper white (#f6f3ec) with deep ink navy for
+the main action; dark is a deep navy night (#0c1730) with periwinkle, lavender, and mint.
+The logo is a tilted tile with the pulse line beside a lowercase "studypulse" wordmark. On
+phones the bottom navigation is an ink-navy pill track with a paper pill for the current
+destination. The brand colors are set in `packages/tokens/scripts/generate.ts`.
+
+Themes: build light and dark from the same semantic tokens. People choose Light, Dark, or
+"Match my device" (the default) in Settings > Appearance, and the web app bar has a dark-mode
+toggle; the web stores the choice in this browser, the phone app on the device. Test every
+course color against both themes.
 
 ### Key screens
 

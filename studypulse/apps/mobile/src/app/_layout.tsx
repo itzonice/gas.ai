@@ -36,12 +36,17 @@ function Navigator() {
   );
 }
 
+function ThemedStatusBar() {
+  const theme = useAppTheme();
+  return <StatusBar style={theme.dark ? "light" : "dark"} />;
+}
+
 export default function RootLayout() {
   return (
     <SafeAreaProvider>
       <AppThemeProvider>
         <SessionProvider>
-          <StatusBar style="auto" />
+          <ThemedStatusBar />
           <Navigator />
         </SessionProvider>
       </AppThemeProvider>

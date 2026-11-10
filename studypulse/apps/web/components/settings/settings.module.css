@@ -11,6 +11,8 @@
 }
 
 .section {
+  border: 1px solid var(--sp-color-outline-variant);
+  box-shadow: 0 8px 24px color-mix(in srgb, var(--sp-color-shadow) 6%, transparent);
   display: grid;
   gap: var(--sp-space-card);
   padding: var(--sp-space-card);
@@ -102,4 +104,48 @@
   font-size: var(--sp-type-label-large-size);
   line-height: var(--sp-type-label-large-line-height);
   font-weight: var(--sp-type-label-large-weight);
+}
+
+/* Appearance: theme choice. Each option is a 48 px+ target. */
+.themeOptions {
+  display: grid;
+  gap: var(--sp-space-related);
+  margin: 0;
+  padding: 0;
+  border: 0;
+  min-width: 0;
+}
+.themeOptions > legend {
+  padding: 0;
+  margin-bottom: var(--sp-space-related);
+}
+.themeOption {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 56px;
+  padding: var(--sp-space-related) var(--sp-space-card);
+  border: 1px solid var(--sp-color-outline-variant);
+  border-radius: var(--sp-radius-control);
+  cursor: pointer;
+}
+.themeOption > span {
+  display: grid;
+}
+.themeOption:has(input:checked) {
+  border-color: var(--sp-color-primary);
+  background: var(--sp-color-primary-container);
+  color: var(--sp-color-on-primary-container);
+}
+.themeOption:has(input:checked) .muted {
+  color: inherit;
+}
+.themeOption input {
+  width: 20px;
+  height: 20px;
+  margin: 0;
+  accent-color: var(--sp-color-primary);
+}
+.themeLabel {
+  font-weight: 700;
 }

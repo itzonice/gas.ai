@@ -15,19 +15,19 @@ export const spacing = {
 } as const;
 
 export const radii = {
-  control: 8,
-  card: 12,
-  sheet: 16,
+  control: 12,
+  card: 20,
+  sheet: 24,
   full: 9999,
 } as const;
 
 export const fontFamily = {
-  sans: 'Roboto, system-ui, -apple-system, "Segoe UI", "Helvetica Neue", Arial, sans-serif',
+  sans: 'system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
   mono: 'ui-monospace, "SF Mono", "Roboto Mono", Menlo, monospace',
 } as const;
 
-/** Medium for headings, regular for body. */
-export const fontWeight = { regular: 400, medium: 500 } as const;
+/** Heavy for titles, bold for headings, medium for labels, regular for body. */
+export const fontWeight = { regular: 400, medium: 500, bold: 700, heavy: 800 } as const;
 
 export interface TypeStyle {
   size: number;
@@ -37,9 +37,9 @@ export interface TypeStyle {
 }
 
 export const typeScale = {
-  pageTitle: { size: 32, lineHeight: 40, weight: fontWeight.medium, letterSpacing: 0 },
-  sectionHeading: { size: 22, lineHeight: 28, weight: fontWeight.medium, letterSpacing: 0 },
-  cardTitle: { size: 16, lineHeight: 24, weight: fontWeight.medium, letterSpacing: 0.15 },
+  pageTitle: { size: 32, lineHeight: 38, weight: fontWeight.heavy, letterSpacing: -1 },
+  sectionHeading: { size: 22, lineHeight: 28, weight: fontWeight.heavy, letterSpacing: -0.5 },
+  cardTitle: { size: 16, lineHeight: 24, weight: fontWeight.bold, letterSpacing: 0 },
   bodyLarge: { size: 16, lineHeight: 24, weight: fontWeight.regular, letterSpacing: 0.5 },
   body: { size: 14, lineHeight: 20, weight: fontWeight.regular, letterSpacing: 0.25 },
   labelLarge: { size: 14, lineHeight: 20, weight: fontWeight.medium, letterSpacing: 0.1 },

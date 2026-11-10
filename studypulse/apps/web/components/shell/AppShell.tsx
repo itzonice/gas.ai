@@ -10,6 +10,7 @@ import { NavLinks } from "./NavLinks";
 import { OfflineBanner } from "./OfflineBanner";
 import { RouteFocus } from "./RouteFocus";
 import { Shortcuts } from "./Shortcuts";
+import { ThemeToggle } from "./ThemeToggle";
 import styles from "./shell.module.css";
 
 export function AppShell({ children }: { children: ReactNode }) {
@@ -21,18 +22,19 @@ export function AppShell({ children }: { children: ReactNode }) {
 
       <header className={styles.appBar}>
         <Link href="/today" className={styles.logo} aria-label="StudyPulse home">
-          <svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true" focusable="false">
-            <rect width="32" height="32" rx="8" fill="var(--sp-color-primary)" />
-            <path
-              d="M6 17h5l2.5-6 4 11 3-8 1.5 3H26"
-              fill="none"
-              stroke="var(--sp-color-on-primary)"
-              strokeWidth="2.25"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-          <span>StudyPulse</span>
+          <span className={styles.logoMark} aria-hidden="true">
+            <svg width="20" height="20" viewBox="0 0 32 32" focusable="false">
+              <path
+                d="M4 17h6l3-7 5 13 3.5-9 2 3H28"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="3"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </span>
+          <span className={styles.wordmark}>studypulse</span>
         </Link>
 
         <form role="search" action="/search" className={styles.search}>
@@ -51,6 +53,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         </form>
 
         <div className={styles.appBarActions}>
+          <ThemeToggle />
           {/* Phones: search moves behind this one action. */}
           <Link
             href="/search"

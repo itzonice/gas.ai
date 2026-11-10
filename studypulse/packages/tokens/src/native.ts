@@ -6,7 +6,7 @@ import type { ColorRoles, CourseSwatch, ThemeName } from "./types.ts";
 export interface NativeTextStyle {
   fontSize: number;
   lineHeight: number;
-  fontWeight: "400" | "500";
+  fontWeight: "400" | "500" | "700" | "800";
   letterSpacing: number;
 }
 
@@ -27,7 +27,7 @@ const type = Object.fromEntries(
     {
       fontSize: t.size,
       lineHeight: t.lineHeight,
-      fontWeight: t.weight === 500 ? "500" : "400",
+      fontWeight: String(t.weight) as NativeTextStyle["fontWeight"],
       letterSpacing: t.letterSpacing,
     },
   ]),

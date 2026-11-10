@@ -186,7 +186,9 @@ interface BData {
   uploadId: string;
   filePath: string;
   blockId: string;
+  setId: string;
   cardId: string;
+  noteId: string;
   pushToken: string;
   pushTokenId: string;
   resourceId: string;
@@ -349,6 +351,20 @@ async function seedB(b: User, c: User): Promise<BData> {
     }),
     "block",
   );
+  const set = one<{ id: string }>(
+    await rest(b.token, "POST", "/card_sets", { course_id: course.id, title: `Set ${MARK}` }, ret),
+    "card set",
+  );
+  const note = one<{ id: string }>(
+    await rest(
+      b.token,
+      "POST",
+      "/notes",
+      { course_id: course.id, title: `Note ${MARK}`, body: `body ${MARK}` },
+      ret,
+    ),
+    "note",
+  );
   const card = one<{ id: string }>(
     await rest(
       b.token,
@@ -356,6 +372,7 @@ async function seedB(b: User, c: User): Promise<BData> {
       "/flashcards",
       {
         course_id: course.id,
+        set_id: set.id,
         assignment_id: assignmentIds[0],
         front: `Q ${MARK}?`,
         back: `A ${MARK}`,
@@ -437,7 +454,9 @@ async function seedB(b: User, c: User): Promise<BData> {
     uploadId: upload.id,
     filePath,
     blockId: block.id,
+    setId: set.id,
     cardId: card.id,
+    noteId: note.id,
     pushToken,
     pushTokenId,
     resourceId: resource.id,
@@ -664,6 +683,8 @@ Deno.test({
       "syllabus_uploads",
       "study_blocks",
       "flashcards",
+      "card_sets",
+      "notes",
       "notification_tokens",
       "assignment_resources",
       "course_meetings",
@@ -1158,13 +1179,35 @@ Deno.test({
         ret,
       ),
     );
+    const aSet = one<{ id: string }>(
+      await rest(a.token, "POST", "/card_sets", { course_id: aCourse.id, title: "A set" }, ret),
+      "A set",
+    );
+    link(
+      "card_sets insert into B's course",
+      await rest(a.token, "POST", "/card_sets", { course_id: bd.courseId, title: "planted" }, ret),
+    );
+    link(
+      "notes insert into B's course",
+      await rest(a.token, "POST", "/notes", { course_id: bd.courseId, body: "planted" }, ret),
+    );
     link(
       "flashcards insert into B's course",
       await rest(
         a.token,
         "POST",
         "/flashcards",
-        { course_id: bd.courseId, front: "q", back: "a" },
+        { course_id: bd.courseId, set_id: bd.setId, front: "q", back: "a" },
+        ret,
+      ),
+    );
+    link(
+      "flashcards on A's course in B's set",
+      await rest(
+        a.token,
+        "POST",
+        "/flashcards",
+        { course_id: aCourse.id, set_id: bd.setId, front: "q", back: "a" },
         ret,
       ),
     );
@@ -1174,7 +1217,13 @@ Deno.test({
         a.token,
         "POST",
         "/flashcards",
-        { course_id: aCourse.id, assignment_id: bd.assignmentIds[0], front: "q", back: "a" },
+        {
+          course_id: aCourse.id,
+          set_id: aSet.id,
+          assignment_id: bd.assignmentIds[0],
+          front: "q",
+          back: "a",
+        },
         ret,
       ),
     );
@@ -1183,10 +1232,14 @@ Deno.test({
         a.token,
         "POST",
         "/flashcards",
-        { course_id: aCourse.id, front: "q", back: "a" },
+        { course_id: aCourse.id, set_id: aSet.id, front: "q", back: "a" },
         ret,
       ),
       "A card",
+    );
+    link(
+      "flashcards move A's card into B's set",
+      await rest(a.token, "PATCH", `/flashcards?id=eq.${aCard.id}`, { set_id: bd.setId }, ret),
     );
     link(
       "flashcards move A's card onto B's assignment",

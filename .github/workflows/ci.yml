@@ -90,6 +90,11 @@ jobs:
           cache: pnpm
           cache-dependency-path: studypulse/pnpm-lock.yaml
       - run: pnpm install --frozen-lockfile
+      # Supabase's ports (54320-54329) sit inside Linux's ephemeral port range, so an
+      # outgoing connection (such as an image pull) can take 54322 just before Postgres
+      # binds it. Reserve them first.
+      - name: Reserve Supabase's ports
+        run: sudo sysctl -w net.ipv4.ip_local_reserved_ports=54320-54329
       # Only the database is needed to apply migrations and run SQL tests.
       - name: Start Postgres
         run: pnpm exec supabase db start
@@ -124,6 +129,11 @@ jobs:
           cache: pnpm
           cache-dependency-path: studypulse/pnpm-lock.yaml
       - run: pnpm install --frozen-lockfile
+      # Supabase's ports (54320-54329) sit inside Linux's ephemeral port range, so an
+      # outgoing connection (such as an image pull) can take 54322 just before Postgres
+      # binds it. Reserve them first.
+      - name: Reserve Supabase's ports
+        run: sudo sysctl -w net.ipv4.ip_local_reserved_ports=54320-54329
       # The real stack: Postgres, PostgREST, Auth, Storage, and the edge runtime.
       - name: Start Supabase
         run: pnpm exec supabase start -x studio,imgproxy,logflare,vector,supavisor,realtime,postgres-meta
@@ -164,6 +174,11 @@ jobs:
           cache: pnpm
           cache-dependency-path: studypulse/pnpm-lock.yaml
       - run: pnpm install --frozen-lockfile
+      # Supabase's ports (54320-54329) sit inside Linux's ephemeral port range, so an
+      # outgoing connection (such as an image pull) can take 54322 just before Postgres
+      # binds it. Reserve them first.
+      - name: Reserve Supabase's ports
+        run: sudo sysctl -w net.ipv4.ip_local_reserved_ports=54320-54329
       # The local stack with the seeded demo account (supabase/seed.sql).
       - name: Start Supabase
         run: pnpm exec supabase start -x studio,imgproxy,logflare,vector,supavisor,realtime,postgres-meta

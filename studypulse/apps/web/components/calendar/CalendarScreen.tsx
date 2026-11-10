@@ -6,7 +6,15 @@
 import type { CalendarItem, CalendarRange } from "@studypulse/core/api";
 import type { IsoDate } from "@studypulse/core/time";
 import Link from "next/link";
-import { useCallback, useEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+  type KeyboardEvent,
+} from "react";
 
 import { useApi } from "@/components/auth/SessionProvider";
 import { Button, CourseChip, courseVars, Icon, PageHeader } from "@/components/ui";
@@ -75,8 +83,9 @@ export function CalendarScreen() {
     };
   }, [api, from, to, reloadKey]);
 
-  // Keyboard moves keep focus on the newly selected day (after any reload).
-  useEffect(() => {
+  // Keyboard moves keep focus on the newly selected day (after any reload). A layout
+  // effect, so focus lands as soon as the new cell is in the DOM rather than after paint.
+  useLayoutEffect(() => {
     if (!focusAfterRender.current || !selected) return;
     const cell = gridRef.current?.querySelector<HTMLElement>(`[data-date="${selected}"]`);
     if (cell) {

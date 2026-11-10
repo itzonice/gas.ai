@@ -833,5 +833,6 @@ a.mode:hover {
 .checkRow {
   display: flex;
   align-items: center;
+  min-height: 48px;
   gap: var(--sp-space-related);
 }

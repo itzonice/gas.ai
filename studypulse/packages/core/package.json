@@ -49,7 +49,7 @@
     "@studypulse/db": "workspace:*",
     "@supabase/supabase-js": "^2.117.1",
     "unpdf": "1.8.1",
-    "zod": "^4.6.5"
+    "zod": "^4.6.7"
   },
   "devDependencies": {
     "@vitest/coverage-v8": "^5.0.1",

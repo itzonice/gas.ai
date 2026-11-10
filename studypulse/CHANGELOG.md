@@ -49,6 +49,9 @@ follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the apps u
 - 13+ age gate, terms acceptance, account deletion in the app and on the web, data
   export, and a public account-deletion request page.
 - License and dependency-advisory checks in CI; Dependabot for npm and GitHub Actions.
+- Next.js 16.4.6 (fixes the image optimizer and `use cache` remote code execution
+  advisories), zod 4.6.7, and patched sharp, node-forge, shell-quote, and source-map-js.
+  `decode-uri-component` under expo-router is a vendored CommonJS copy of the fixed 0.5.1.
 
 ### Accessibility
 

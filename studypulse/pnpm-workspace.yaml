@@ -11,3 +11,6 @@ ignoredBuiltDependencies:
 overrides:
   react: 19.2.3
   react-dom: 19.2.3
+  # expo-router's query-string@7 needs decode-uri-component as CommonJS, and only the
+  # ESM-only 0.5.1 fixes its quadratic-replacement DoS. See vendor/README.md.
+  decode-uri-component: file:vendor/decode-uri-component

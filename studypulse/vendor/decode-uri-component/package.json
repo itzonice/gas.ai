@@ -1,0 +1,7 @@
+{
+  "name": "decode-uri-component",
+  "version": "0.5.1",
+  "description": "decode-uri-component 0.5.1 as CommonJS (vendored, see ../README.md)",
+  "license": "MIT",
+  "main": "index.js"
+}

@@ -1,0 +1,88 @@
+{
+  "description": "Every item appears twice (calendar + summary list) with different naming ('HW' vs 'Homework'), plus a stale date from the previous year.",
+  "tags": ["tricky", "duplicates", "abbreviations", "out-of-term"],
+  "input": {
+    "timezone": "America/Chicago",
+    "today": "2026-08-20",
+    "term_start": null,
+    "term_end": null
+  },
+  "expected": {
+    "course": {
+      "name": "The Cold War",
+      "code": "HIST 240"
+    },
+    "categories": [
+      {
+        "name": "Homework",
+        "weight": 25
+      },
+      {
+        "name": "Response papers",
+        "weight": 25
+      },
+      {
+        "name": "Midterm",
+        "weight": 20
+      },
+      {
+        "name": "Final",
+        "weight": 30
+      }
+    ],
+    "assignments": [
+      {
+        "title": "Homework 1",
+        "kind": "assignment",
+        "due_date": "2026-09-09",
+        "category": "Homework"
+      },
+      {
+        "title": "Homework 2",
+        "kind": "assignment",
+        "due_date": "2026-09-23",
+        "category": "Homework"
+      },
+      {
+        "title": "Response Paper 1",
+        "kind": "project",
+        "due_date": "2026-09-23",
+        "due_time": "23:59",
+        "category": "Response papers"
+      },
+      {
+        "title": "Midterm",
+        "kind": "exam",
+        "due_date": "2026-10-14",
+        "due_time": "09:30",
+        "category": "Midterm"
+      },
+      {
+        "title": "Homework 3",
+        "kind": "assignment",
+        "due_date": "2026-10-28",
+        "category": "Homework"
+      },
+      {
+        "title": "Response Paper 2",
+        "kind": "project",
+        "due_date": "2026-11-11",
+        "due_time": "23:59",
+        "category": "Response papers"
+      },
+      {
+        "title": "Homework 4",
+        "kind": "assignment",
+        "due_date": "2026-12-02",
+        "category": "Homework"
+      },
+      {
+        "title": "Final Exam",
+        "kind": "exam",
+        "due_date": "2026-12-14",
+        "due_time": "08:00",
+        "category": "Final"
+      }
+    ]
+  }
+}

@@ -1,0 +1,92 @@
+{
+  "description": "SOC 100 Introduction to Sociology, Fall 2027, weekly layout, America/New_York",
+  "tags": ["standard", "weekly"],
+  "input": {
+    "timezone": "America/New_York",
+    "today": "2027-08-19",
+    "term_start": null,
+    "term_end": null
+  },
+  "expected": {
+    "course": {
+      "name": "Introduction to Sociology",
+      "code": "SOC 100"
+    },
+    "categories": [
+      {
+        "name": "Essays",
+        "weight": 40
+      },
+      {
+        "name": "Midterm",
+        "weight": 20
+      },
+      {
+        "name": "Final Exam",
+        "weight": 25
+      },
+      {
+        "name": "Reading Responses",
+        "weight": 15
+      }
+    ],
+    "assignments": [
+      {
+        "title": "Essay 1",
+        "kind": "project",
+        "due_date": "2027-09-21",
+        "due_time": "23:59",
+        "category": "Essays"
+      },
+      {
+        "title": "Reading Response 1",
+        "kind": "discussion",
+        "due_date": "2027-09-21",
+        "due_time": null,
+        "category": "Reading Responses"
+      },
+      {
+        "title": "Midterm Exam",
+        "kind": "exam",
+        "due_date": "2027-10-18",
+        "due_time": "09:00",
+        "category": "Midterm"
+      },
+      {
+        "title": "Essay 2",
+        "kind": "project",
+        "due_date": "2027-10-20",
+        "due_time": "23:59",
+        "category": "Essays"
+      },
+      {
+        "title": "Reading Response 2",
+        "kind": "discussion",
+        "due_date": "2027-10-20",
+        "due_time": "23:59",
+        "category": "Reading Responses"
+      },
+      {
+        "title": "Essay 3",
+        "kind": "project",
+        "due_date": "2027-11-18",
+        "due_time": "23:59",
+        "category": "Essays"
+      },
+      {
+        "title": "Reading Response 3",
+        "kind": "discussion",
+        "due_date": "2027-11-18",
+        "due_time": "23:59",
+        "category": "Reading Responses"
+      },
+      {
+        "title": "Final Exam",
+        "kind": "exam",
+        "due_date": "2027-12-10",
+        "due_time": "13:00",
+        "category": "Final Exam"
+      }
+    ]
+  }
+}

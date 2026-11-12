@@ -1,0 +1,13 @@
+pnpm-lock.yaml
+node_modules
+.next
+.expo
+.turbo
+dist
+build
+coverage
+apps/web/next-env.d.ts
+
+# Third-party code kept as published (see vendor/README.md).
+vendor/
+supabase/setup

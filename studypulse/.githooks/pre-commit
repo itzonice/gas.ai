@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+# Blocks a commit that adds a secret (launch safety S31). Installed by `pnpm install`
+# (the prepare script sets core.hooksPath). If gitleaks reports a false positive, add an
+# exact allowlist entry to .gitleaks.toml at the repository root.
+set -euo pipefail
+exec bash "$(git rev-parse --show-toplevel)/studypulse/scripts/gitleaks.sh" staged

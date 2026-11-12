@@ -1,0 +1,89 @@
+/* Base styles. Every color, size, and space comes from @studypulse/tokens (tokens.css). */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--sp-color-surface);
+  color: var(--sp-color-on-surface);
+  font-family: var(--sp-font-sans);
+  font-size: var(--sp-type-body-large-size);
+  line-height: var(--sp-type-body-large-line-height);
+  font-weight: var(--sp-type-body-large-weight);
+}
+
+h1,
+h2,
+h3 {
+  margin: 0;
+  font-weight: var(--sp-type-page-title-weight);
+}
+
+a {
+  color: var(--sp-color-primary);
+}
+
+/* Visible focus rings on every control (keyboard focus only). */
+:focus-visible {
+  outline: var(--sp-focus-ring-width) solid var(--sp-color-primary);
+  outline-offset: var(--sp-focus-ring-offset);
+  border-radius: var(--sp-radius-control);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/*
+ * Page layout: main content plus the wide-screen right panel. Pages put their panel in
+ * an <aside> inside .sp-page; it appears beside the content at 1440 px and up, and below
+ * it otherwise (it never disappears, so no information is lost on small screens).
+ */
+.sp-page {
+  display: grid;
+  gap: var(--sp-space-section);
+}
+@media (min-width: 1440px) {
+  .sp-page:has(> aside) {
+    grid-template-columns: minmax(0, 1fr) var(--sp-layout-right-panel-width);
+    align-items: start;
+  }
+  .sp-page > aside {
+    position: sticky;
+    top: calc(var(--sp-layout-app-bar-height) + var(--sp-space-section));
+  }
+}
+
+/* Screen-reader-only text (live regions, extra context). */
+.sp-visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.sp-loading {
+  margin: 0;
+  color: var(--sp-color-on-surface-variant);
+}

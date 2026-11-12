@@ -1,0 +1,85 @@
+{
+  "description": "MATH 221 Calculus II, Spring 2027, list layout, America/Chicago",
+  "tags": ["standard", "list"],
+  "input": {
+    "timezone": "America/Chicago",
+    "today": "2027-01-08",
+    "term_start": null,
+    "term_end": null
+  },
+  "expected": {
+    "course": {
+      "name": "Calculus II",
+      "code": "MATH 221"
+    },
+    "categories": [
+      {
+        "name": "Midterm Exam",
+        "weight": 25
+      },
+      {
+        "name": "Final Exam",
+        "weight": 30
+      },
+      {
+        "name": "Problem Sets",
+        "weight": 35
+      },
+      {
+        "name": "Participation",
+        "weight": 10
+      }
+    ],
+    "assignments": [
+      {
+        "title": "Problem Set 1",
+        "kind": "assignment",
+        "due_date": "2027-02-01",
+        "due_time": null,
+        "category": "Problem Sets"
+      },
+      {
+        "title": "Problem Set 2",
+        "kind": "assignment",
+        "due_date": "2027-02-20",
+        "due_time": "23:59",
+        "category": "Problem Sets"
+      },
+      {
+        "title": "Problem Set 3",
+        "kind": "assignment",
+        "due_date": "2027-03-12",
+        "due_time": null,
+        "category": "Problem Sets"
+      },
+      {
+        "title": "Midterm Exam",
+        "kind": "exam",
+        "due_date": "2027-03-15",
+        "due_time": "09:00",
+        "category": "Midterm Exam"
+      },
+      {
+        "title": "Problem Set 4",
+        "kind": "assignment",
+        "due_date": "2027-04-01",
+        "due_time": null,
+        "category": "Problem Sets"
+      },
+      {
+        "title": "Problem Set 5",
+        "kind": "assignment",
+        "due_date": "2027-04-20",
+        "due_time": "23:59",
+        "category": "Problem Sets"
+      },
+      {
+        "title": "Final Exam",
+        "kind": "exam",
+        "due_date": "2027-05-07",
+        "due_time": "10:30",
+        "category": "Final Exam"
+      }
+    ]
+  }
+}

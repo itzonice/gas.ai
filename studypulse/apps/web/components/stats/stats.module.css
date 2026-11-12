@@ -1,0 +1,213 @@
+.content {
+  display: grid;
+  gap: var(--sp-space-section);
+  min-width: 0;
+}
+
+.periods {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-space-related);
+  margin-top: var(--sp-space-card);
+}
+
+/* Filter chips (secondary-container when selected, with a check so it's not color alone). */
+.period {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 48px;
+  padding: 0 var(--sp-space-card);
+  border: 1px solid var(--sp-color-outline);
+  border-radius: var(--sp-radius-control);
+  background: transparent;
+  color: var(--sp-color-on-surface);
+  font: inherit;
+  font-size: var(--sp-type-label-large-size);
+  font-weight: var(--sp-type-label-large-weight);
+  cursor: pointer;
+}
+
+.period[aria-pressed="true"] {
+  border-color: transparent;
+  background: var(--sp-color-secondary-container);
+  color: var(--sp-color-on-secondary-container);
+}
+
+.chartCard {
+  display: grid;
+  gap: var(--sp-space-card);
+  padding: var(--sp-space-card);
+  border-radius: var(--sp-radius-card);
+  background: var(--sp-color-surface-container);
+  min-width: 0;
+}
+
+.sectionHeading {
+  font-size: var(--sp-type-section-heading-size);
+  line-height: var(--sp-type-section-heading-line-height);
+  font-weight: var(--sp-type-section-heading-weight);
+}
+
+.summary {
+  display: grid;
+  gap: 4px;
+}
+
+.summary p {
+  margin: 0;
+}
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-space-card);
+  color: var(--sp-color-on-surface-variant);
+  font-size: var(--sp-type-label-large-size);
+}
+
+.legendItem {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-space-related);
+}
+
+.swatch {
+  display: inline-block;
+  width: 24px;
+  height: 12px;
+  border-radius: 2px;
+}
+
+.targetSwatch {
+  display: inline-block;
+  width: 3px;
+  height: 16px;
+  background: var(--sp-color-on-surface);
+}
+
+.chart {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  column-gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* Course header, then "label | bar | value" for focus and grade. Rows share the list's
+   columns (subgrid), so every bar starts and ends at the same place. */
+.row {
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: subgrid;
+  align-items: center;
+  row-gap: var(--sp-space-related);
+  padding: var(--sp-space-card) 0;
+  border-top: 1px solid var(--sp-color-outline-variant);
+}
+
+.row:first-child {
+  border-top: 0;
+}
+
+.courseHead {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-space-related);
+}
+
+.courseName {
+  color: var(--sp-color-on-surface-variant);
+  overflow-wrap: anywhere;
+}
+
+.barLabel {
+  grid-column: 1;
+  color: var(--sp-color-on-surface-variant);
+  font-size: var(--sp-type-label-large-size);
+}
+
+.track {
+  position: relative;
+  display: block;
+  height: 16px;
+  border-radius: 4px;
+  background: var(--sp-color-surface);
+  /* Graphics need 3:1 against their background: the track edge is drawn in outline. */
+  outline: 1px solid var(--sp-color-outline-variant);
+}
+
+.bar {
+  display: block;
+  height: 100%;
+  border-radius: 4px;
+}
+
+.focusBar {
+  background: var(--sp-color-primary);
+}
+
+.gradeBar {
+  background: var(--sp-color-secondary);
+}
+
+.gradeBarBelow {
+  background: var(--sp-color-error);
+}
+
+.target {
+  position: absolute;
+  top: -4px;
+  bottom: -4px;
+  width: 3px;
+  margin-left: -1px;
+  background: var(--sp-color-on-surface);
+}
+
+.value,
+.valueError {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  justify-self: end;
+  text-align: end;
+  font-variant-numeric: tabular-nums;
+}
+
+.valueError {
+  color: var(--sp-color-error);
+}
+
+/* Phones: the value wraps under its bar instead of squeezing it. */
+@media (max-width: 599px) {
+  .chart {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+  .value,
+  .valueError {
+    grid-column: 2;
+    justify-self: start;
+    text-align: start;
+  }
+}
+
+.note,
+.muted {
+  margin: 0;
+  color: var(--sp-color-on-surface-variant);
+}
+
+.alert {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-space-related);
+  margin: 0;
+  padding: 12px var(--sp-space-card);
+  border-radius: var(--sp-radius-control);
+  background: var(--sp-color-error-container);
+  color: var(--sp-color-on-error-container);
+}

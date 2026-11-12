@@ -1,0 +1,137 @@
+{
+  "description": "ACCT 210 Financial Accounting, Summer 2027, prose layout, America/New_York",
+  "tags": ["standard", "prose"],
+  "input": {
+    "timezone": "America/New_York",
+    "today": "2027-05-28",
+    "term_start": null,
+    "term_end": null
+  },
+  "expected": {
+    "course": {
+      "name": "Financial Accounting",
+      "code": "ACCT 210"
+    },
+    "categories": [
+      {
+        "name": "Projects",
+        "weight": 40
+      },
+      {
+        "name": "Exams",
+        "weight": 40
+      },
+      {
+        "name": "Homework",
+        "weight": 20
+      }
+    ],
+    "assignments": [
+      {
+        "title": "Project 1",
+        "kind": "project",
+        "due_date": "2027-06-09",
+        "due_time": null,
+        "category": "Projects"
+      },
+      {
+        "title": "Homework 1",
+        "kind": "assignment",
+        "due_date": "2027-06-09",
+        "due_time": "23:59",
+        "category": "Homework"
+      },
+      {
+        "title": "Exam 1",
+        "kind": "exam",
+        "due_date": "2027-06-16",
+        "due_time": "09:00",
+        "category": "Exams"
+      },
+      {
+        "title": "Project 2",
+        "kind": "project",
+        "due_date": "2027-06-17",
+        "due_time": null,
+        "category": "Projects"
+      },
+      {
+        "title": "Homework 2",
+        "kind": "assignment",
+        "due_date": "2027-06-17",
+        "due_time": "23:59",
+        "category": "Homework"
+      },
+      {
+        "title": "Project 3",
+        "kind": "project",
+        "due_date": "2027-06-25",
+        "due_time": null,
+        "category": "Projects"
+      },
+      {
+        "title": "Homework 3",
+        "kind": "assignment",
+        "due_date": "2027-06-25",
+        "due_time": null,
+        "category": "Homework"
+      },
+      {
+        "title": "Exam 2",
+        "kind": "exam",
+        "due_date": "2027-07-02",
+        "due_time": "10:30",
+        "category": "Exams"
+      },
+      {
+        "title": "Project 4",
+        "kind": "project",
+        "due_date": "2027-07-03",
+        "due_time": "23:59",
+        "category": "Projects"
+      },
+      {
+        "title": "Homework 4",
+        "kind": "assignment",
+        "due_date": "2027-07-03",
+        "due_time": "23:59",
+        "category": "Homework"
+      },
+      {
+        "title": "Project 5",
+        "kind": "project",
+        "due_date": "2027-07-11",
+        "due_time": "23:59",
+        "category": "Projects"
+      },
+      {
+        "title": "Homework 5",
+        "kind": "assignment",
+        "due_date": "2027-07-11",
+        "due_time": "23:59",
+        "category": "Homework"
+      },
+      {
+        "title": "Exam 3",
+        "kind": "exam",
+        "due_date": "2027-07-16",
+        "due_time": "14:00",
+        "category": "Exams"
+      },
+      {
+        "title": "Project 6",
+        "kind": "project",
+        "due_date": "2027-07-19",
+        "due_time": null,
+        "category": "Projects"
+      },
+      {
+        "title": "Homework 6",
+        "kind": "assignment",
+        "due_date": "2027-07-19",
+        "due_time": null,
+        "category": "Homework"
+      }
+    ]
+  }
+}

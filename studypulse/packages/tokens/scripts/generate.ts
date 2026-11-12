@@ -1,0 +1,176 @@
+// Generates src/generated.ts (Material 3 color roles for light and dark, and the course
+// palette) and tokens.css from a single seed color, using Google's
+// material-color-utilities. Run: pnpm --filter @studypulse/tokens generate
+// The output is committed; apps never depend on the color library at runtime.
+import { writeFileSync } from "node:fs";
+
+import {
+  argbFromHex,
+  Hct,
+  hexFromArgb,
+  MaterialDynamicColors,
+  SchemeTonalSpot,
+} from "@material/material-color-utilities";
+
+import { buildCss } from "../src/css.ts";
+import type { ColorRoles, CourseColor } from "../src/types.ts";
+
+/** Brand seed: a calm, studious blue. Changing it regenerates every role. */
+const SEED = "#2F6690";
+
+const ROLES = [
+  "primary",
+  "onPrimary",
+  "primaryContainer",
+  "onPrimaryContainer",
+  "secondary",
+  "onSecondary",
+  "secondaryContainer",
+  "onSecondaryContainer",
+  "tertiary",
+  "onTertiary",
+  "tertiaryContainer",
+  "onTertiaryContainer",
+  "error",
+  "onError",
+  "errorContainer",
+  "onErrorContainer",
+  "surface",
+  "onSurface",
+  "surfaceVariant",
+  "onSurfaceVariant",
+  "surfaceContainerLowest",
+  "surfaceContainerLow",
+  "surfaceContainer",
+  "surfaceContainerHigh",
+  "surfaceContainerHighest",
+  "outline",
+  "outlineVariant",
+  "inverseSurface",
+  "inverseOnSurface",
+  "inversePrimary",
+  "scrim",
+  "shadow",
+] as const satisfies readonly (keyof ColorRoles)[];
+
+function scheme(isDark: boolean): ColorRoles {
+  const s = new SchemeTonalSpot(Hct.fromInt(argbFromHex(SEED)), isDark, 0);
+  const out = {} as Record<(typeof ROLES)[number], string>;
+  for (const role of ROLES) {
+    const dynamic = MaterialDynamicColors[role];
+    out[role] = hexFromArgb(dynamic.getArgb(s));
+  }
+  return out;
+}
+
+// Course colors: distinct hues, each rendered per theme at fixed HCT tones. Tone gaps of
+// 40+ give at least 3:1 and 50+ at least 4.5:1, so every entry passes in both themes;
+// src/contrast.test.ts verifies the actual numbers.
+const COURSE_HUES: [key: string, label: string, hue: number, chroma: number][] = [
+  ["blue", "Blue", 255, 48],
+  ["teal", "Teal", 195, 40],
+  ["green", "Green", 145, 44],
+  ["olive", "Olive", 110, 40],
+  ["amber", "Amber", 80, 48],
+  ["orange", "Orange", 55, 52],
+  ["red", "Red", 25, 56],
+  ["pink", "Pink", 350, 48],
+  ["purple", "Purple", 305, 44],
+  ["indigo", "Indigo", 280, 44],
+];
+
+const tone = (hue: number, chroma: number, t: number) =>
+  hexFromArgb(Hct.from(hue, chroma, t).toInt());
+
+const coursePalette: CourseColor[] = COURSE_HUES.map(([key, label, hue, chroma]) => ({
+  key,
+  label,
+  // The value stored in courses.color_hex.
+  hex: tone(hue, chroma, 45),
+  light: {
+    stripe: tone(hue, chroma, 45),
+    chip: tone(hue, chroma * 0.4, 90),
+    onChip: tone(hue, chroma, 10),
+  },
+  dark: {
+    stripe: tone(hue, chroma, 75),
+    chip: tone(hue, chroma * 0.6, 30),
+    onChip: tone(hue, chroma * 0.4, 92),
+  },
+}));
+
+// The StudyPulse look (from the Lucky Study design): warm paper-white with deep ink navy in
+// light mode, and a deep navy night with periwinkle, lavender, and mint in dark mode. These
+// replace the generated roles by hand; src/contrast.test.ts checks every pair.
+const brandLight: Partial<ColorRoles> = {
+  primary: "#24356f",
+  onPrimary: "#ffffff",
+  primaryContainer: "#dfe5ff",
+  onPrimaryContainer: "#16224d",
+  secondary: "#525c72",
+  onSecondary: "#ffffff",
+  secondaryContainer: "#e3e7f3",
+  onSecondaryContainer: "#1c2640",
+  tertiary: "#5a4c99",
+  onTertiary: "#ffffff",
+  tertiaryContainer: "#e9e3ff",
+  onTertiaryContainer: "#2c2266",
+  surface: "#f6f3ec",
+  onSurface: "#141b2e",
+  surfaceVariant: "#e6e1d6",
+  onSurfaceVariant: "#4a5163",
+  surfaceContainerLowest: "#ffffff",
+  surfaceContainerLow: "#faf8f3",
+  surfaceContainer: "#fffdf9",
+  surfaceContainerHigh: "#efebe2",
+  surfaceContainerHighest: "#e7e2d7",
+  outline: "#737a8a",
+  outlineVariant: "#ddd7ca",
+  inverseSurface: "#0c1730",
+  inverseOnSurface: "#f6f3ec",
+  inversePrimary: "#8ea6ff",
+};
+const brandDark: Partial<ColorRoles> = {
+  primary: "#8ea6ff",
+  onPrimary: "#081127",
+  primaryContainer: "#2a3a70",
+  onPrimaryContainer: "#dfe5ff",
+  secondary: "#c3cad7",
+  onSecondary: "#1a2338",
+  secondaryContainer: "#273150",
+  onSecondaryContainer: "#e6e9f2",
+  tertiary: "#c6b9ff",
+  onTertiary: "#251c55",
+  tertiaryContainer: "#3a3266",
+  onTertiaryContainer: "#ece6ff",
+  surface: "#0c1730",
+  onSurface: "#f7f8fc",
+  surfaceVariant: "#26304a",
+  onSurfaceVariant: "#c3cad7",
+  surfaceContainerLowest: "#081127",
+  surfaceContainerLow: "#111a31",
+  surfaceContainer: "#151d32",
+  surfaceContainerHigh: "#1d2941",
+  surfaceContainerHighest: "#25324e",
+  outline: "#8792a8",
+  outlineVariant: "#2a3552",
+  inverseSurface: "#f6f3ec",
+  inverseOnSurface: "#192033",
+  inversePrimary: "#24356f",
+};
+
+const light = { ...scheme(false), ...brandLight };
+const dark = { ...scheme(true), ...brandDark };
+
+const ts = `// GENERATED by scripts/generate.ts from seed ${SEED}. Do not edit; run
+// \`pnpm --filter @studypulse/tokens generate\`.
+import type { ColorRoles, CourseColor } from "./types.ts";
+
+export const SEED_COLOR = "${SEED}";
+export const lightColors: ColorRoles = ${JSON.stringify(light, null, 2)};
+export const darkColors: ColorRoles = ${JSON.stringify(dark, null, 2)};
+export const coursePalette: readonly CourseColor[] = ${JSON.stringify(coursePalette, null, 2)};
+`;
+writeFileSync(new URL("../src/generated.ts", import.meta.url), ts);
+writeFileSync(new URL("../tokens.css", import.meta.url), buildCss({ light, dark, coursePalette }));
+console.log("wrote src/generated.ts and tokens.css");

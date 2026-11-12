@@ -1,0 +1,78 @@
+{
+  "description": "ENVS 120 Environmental Science, Fall 2026, table layout, America/Denver",
+  "tags": ["standard", "table"],
+  "input": {
+    "timezone": "America/Denver",
+    "today": "2026-08-20",
+    "term_start": null,
+    "term_end": null
+  },
+  "expected": {
+    "course": {
+      "name": "Environmental Science",
+      "code": "ENVS 120"
+    },
+    "categories": [
+      {
+        "name": "Midterm Exam",
+        "weight": 25
+      },
+      {
+        "name": "Final Exam",
+        "weight": 30
+      },
+      {
+        "name": "Problem Sets",
+        "weight": 35
+      },
+      {
+        "name": "Participation",
+        "weight": 10
+      }
+    ],
+    "assignments": [
+      {
+        "title": "Problem Set 1",
+        "kind": "assignment",
+        "due_date": "2026-09-16",
+        "due_time": null,
+        "category": "Problem Sets"
+      },
+      {
+        "title": "Problem Set 2",
+        "kind": "assignment",
+        "due_date": "2026-10-08",
+        "due_time": null,
+        "category": "Problem Sets"
+      },
+      {
+        "title": "Midterm Exam",
+        "kind": "exam",
+        "due_date": "2026-10-19",
+        "due_time": "10:30",
+        "category": "Midterm Exam"
+      },
+      {
+        "title": "Problem Set 3",
+        "kind": "assignment",
+        "due_date": "2026-10-31",
+        "due_time": null,
+        "category": "Problem Sets"
+      },
+      {
+        "title": "Problem Set 4",
+        "kind": "assignment",
+        "due_date": "2026-11-23",
+        "due_time": null,
+        "category": "Problem Sets"
+      },
+      {
+        "title": "Final Exam",
+        "kind": "exam",
+        "due_date": "2026-12-11",
+        "due_time": "10:30",
+        "category": "Final Exam"
+      }
+    ]
+  }
+}

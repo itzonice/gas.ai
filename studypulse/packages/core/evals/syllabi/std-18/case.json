@@ -1,0 +1,99 @@
+{
+  "description": "SPAN 102 Spanish II, Spring 2027, list layout, America/Los_Angeles",
+  "tags": ["standard", "list"],
+  "input": {
+    "timezone": "America/Los_Angeles",
+    "today": "2027-01-08",
+    "term_start": null,
+    "term_end": null
+  },
+  "expected": {
+    "course": {
+      "name": "Spanish II",
+      "code": "SPAN 102"
+    },
+    "categories": [
+      {
+        "name": "Essays",
+        "weight": 40
+      },
+      {
+        "name": "Midterm",
+        "weight": 20
+      },
+      {
+        "name": "Final Exam",
+        "weight": 25
+      },
+      {
+        "name": "Reading Responses",
+        "weight": 15
+      }
+    ],
+    "assignments": [
+      {
+        "title": "Reading Response 1",
+        "kind": "discussion",
+        "due_date": "2027-02-05",
+        "due_time": null,
+        "category": "Reading Responses"
+      },
+      {
+        "title": "Essay 1",
+        "kind": "project",
+        "due_date": "2027-02-12",
+        "due_time": null,
+        "category": "Essays"
+      },
+      {
+        "title": "Reading Response 2",
+        "kind": "discussion",
+        "due_date": "2027-03-01",
+        "due_time": "23:59",
+        "category": "Reading Responses"
+      },
+      {
+        "title": "Essay 2",
+        "kind": "project",
+        "due_date": "2027-03-15",
+        "due_time": "23:59",
+        "category": "Essays"
+      },
+      {
+        "title": "Midterm Exam",
+        "kind": "exam",
+        "due_date": "2027-03-15",
+        "due_time": "10:30",
+        "category": "Midterm"
+      },
+      {
+        "title": "Reading Response 3",
+        "kind": "discussion",
+        "due_date": "2027-03-25",
+        "due_time": null,
+        "category": "Reading Responses"
+      },
+      {
+        "title": "Essay 3",
+        "kind": "project",
+        "due_date": "2027-04-15",
+        "due_time": null,
+        "category": "Essays"
+      },
+      {
+        "title": "Reading Response 4",
+        "kind": "discussion",
+        "due_date": "2027-04-18",
+        "due_time": "23:59",
+        "category": "Reading Responses"
+      },
+      {
+        "title": "Final Exam",
+        "kind": "exam",
+        "due_date": "2027-05-07",
+        "due_time": "14:00",
+        "category": "Final Exam"
+      }
+    ]
+  }
+}

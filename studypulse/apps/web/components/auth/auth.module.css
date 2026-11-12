@@ -1,0 +1,104 @@
+.authMain {
+  display: grid;
+  place-items: center;
+  min-height: 100dvh;
+  padding: var(--sp-space-section) var(--sp-space-card);
+  box-sizing: border-box;
+  background: var(--sp-color-surface);
+}
+
+.card {
+  display: grid;
+  gap: var(--sp-space-section);
+  width: 100%;
+  max-width: 400px;
+  padding: var(--sp-space-section);
+  border-radius: var(--sp-radius-card);
+  background: var(--sp-color-surface-container);
+  box-sizing: border-box;
+}
+
+.title {
+  font-size: var(--sp-type-page-title-size);
+  line-height: var(--sp-type-page-title-line-height);
+}
+
+.form {
+  display: grid;
+  gap: var(--sp-space-card);
+}
+
+.alert {
+  display: flex;
+  gap: var(--sp-space-related);
+  align-items: flex-start;
+  margin: 0;
+  padding: 12px var(--sp-space-card);
+  border-radius: var(--sp-radius-control);
+  background: var(--sp-color-error-container);
+  color: var(--sp-color-on-error-container);
+}
+
+.switch {
+  margin: 0;
+  color: var(--sp-color-on-surface-variant);
+}
+
+.legal {
+  margin: 0;
+  color: var(--sp-color-on-surface-variant);
+}
+
+.legal a,
+.legalLinks a {
+  color: var(--sp-color-primary);
+}
+
+.legalLinks {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--sp-space-card);
+  margin: 0;
+}
+
+.legalLinks a {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--sp-layout-min-target);
+}
+
+.switch a {
+  color: var(--sp-color-primary);
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--sp-layout-min-target);
+}
+
+/* Birth month and year (age gate). */
+.fieldset {
+  border: 0;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--sp-space-related);
+  min-width: 0;
+}
+.legend {
+  padding: 0;
+  font-size: var(--sp-type-label-large-size);
+  line-height: var(--sp-type-label-large-line-height);
+  font-weight: var(--sp-type-label-large-weight);
+  color: var(--sp-color-on-surface);
+}
+.fieldsetHint {
+  margin: 0;
+  font-size: var(--sp-type-label-size);
+  line-height: var(--sp-type-label-line-height);
+  color: var(--sp-color-on-surface-variant);
+}
+.fieldRow {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr));
+  gap: var(--sp-space-related);
+}

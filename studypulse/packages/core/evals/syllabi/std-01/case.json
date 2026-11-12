@@ -1,0 +1,102 @@
+{
+  "description": "BIO 201 Cell Biology, Fall 2026, table layout, America/New_York",
+  "tags": ["standard", "table"],
+  "input": {
+    "timezone": "America/New_York",
+    "today": "2026-08-20",
+    "term_start": null,
+    "term_end": null
+  },
+  "expected": {
+    "course": {
+      "name": "Cell Biology",
+      "code": "BIO 201"
+    },
+    "categories": [
+      {
+        "name": "Exams",
+        "weight": 50
+      },
+      {
+        "name": "Homework",
+        "weight": 30
+      },
+      {
+        "name": "Quizzes",
+        "weight": 20
+      }
+    ],
+    "assignments": [
+      {
+        "title": "Homework 1",
+        "kind": "assignment",
+        "due_date": "2026-09-16",
+        "due_time": "23:59",
+        "category": "Homework"
+      },
+      {
+        "title": "Exam 1",
+        "kind": "exam",
+        "due_date": "2026-09-23",
+        "due_time": "14:00",
+        "category": "Exams"
+      },
+      {
+        "title": "Quiz 1",
+        "kind": "quiz",
+        "due_date": "2026-09-23",
+        "due_time": null,
+        "category": "Quizzes"
+      },
+      {
+        "title": "Homework 2",
+        "kind": "assignment",
+        "due_date": "2026-10-08",
+        "due_time": null,
+        "category": "Homework"
+      },
+      {
+        "title": "Exam 2",
+        "kind": "exam",
+        "due_date": "2026-10-21",
+        "due_time": "09:00",
+        "category": "Exams"
+      },
+      {
+        "title": "Quiz 2",
+        "kind": "quiz",
+        "due_date": "2026-10-21",
+        "due_time": "23:59",
+        "category": "Quizzes"
+      },
+      {
+        "title": "Homework 3",
+        "kind": "assignment",
+        "due_date": "2026-10-31",
+        "due_time": null,
+        "category": "Homework"
+      },
+      {
+        "title": "Exam 3",
+        "kind": "exam",
+        "due_date": "2026-11-20",
+        "due_time": "10:30",
+        "category": "Exams"
+      },
+      {
+        "title": "Quiz 3",
+        "kind": "quiz",
+        "due_date": "2026-11-20",
+        "due_time": "23:59",
+        "category": "Quizzes"
+      },
+      {
+        "title": "Homework 4",
+        "kind": "assignment",
+        "due_date": "2026-11-23",
+        "due_time": null,
+        "category": "Homework"
+      }
+    ]
+  }
+}

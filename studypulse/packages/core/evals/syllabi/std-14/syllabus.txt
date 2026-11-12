@@ -1,0 +1,27 @@
+MATH 240: Linear Algebra
+Spring 2027
+Instructor: Prof. Ingrid Solberg
+Class meets Monday/Wednesday.
+First day of classes: January 12, 2027. Last day (including finals): May 7, 2027.
+
+GRADING
+Labs: 30%
+Exams: 45%
+Quizzes: 15%
+Participation: 10%
+
+Late work loses 10% per day. Contact the instructor in advance for accommodations.
+
+IMPORTANT DUE DATES
+- Lab 1 (Labs) - due February 1
+- Quiz 1 (Quizzes) - due 2/8
+- Exam 1 (Exams) - due Mon 2/15 at 1 PM
+- Lab 2 (Labs) - due Saturday, Feb 20 at 11:59 PM
+- Quiz 2 (Quizzes) - due March 1, 2027
+- Lab 3 (Labs) - due March 12
+- Exam 2 (Exams) - due 3/15 at 1 PM
+- Quiz 3 (Quizzes) - due Mon 3/29 at 11:59 PM
+- Lab 4 (Labs) - due Thursday, Apr 1 at 11:59 PM
+- Exam 3 (Exams) - due April 19, 2027 at 1 PM
+- Quiz 4 (Quizzes) - due April 19 at 11:59 PM
+- Lab 5 (Labs) - due 4/20 at 11:59 PM

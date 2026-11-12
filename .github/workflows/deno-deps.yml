@@ -1,0 +1,36 @@
+# Weekly check of the edge functions' Deno imports (launch audit L8). Dependabot doesn't
+# read deno.json, so this lists anything outdated in the job summary and raises a warning;
+# update with `deno update` in studypulse/supabase/functions, then run the tests.
+name: Deno dependencies
+
+on:
+  schedule:
+    - cron: "17 6 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  outdated:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: studypulse/supabase/functions
+    steps:
+      - uses: actions/checkout@v5
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: 2.9.6
+      - name: List outdated imports
+        run: |
+          NO_COLOR=1 deno outdated > outdated.txt 2>&1 || true
+          {
+            echo "## Deno imports"
+            echo '```'
+            cat outdated.txt
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+          if grep -qE '(npm|jsr):' outdated.txt; then
+            echo "::warning::Some Deno imports are outdated. See the job summary."
+          fi

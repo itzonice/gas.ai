@@ -1,0 +1,67 @@
+{
+  "description": "Australian summer term that crosses New Year; week-relative dates; the student entered the term dates.",
+  "tags": ["tricky", "week-relative", "new-year", "term-hints"],
+  "input": {
+    "timezone": "Australia/Sydney",
+    "today": "2026-11-25",
+    "term_start": "2026-11-30",
+    "term_end": "2027-02-12"
+  },
+  "expected": {
+    "course": {
+      "name": "Marketing Fundamentals",
+      "code": "MKTG 1001"
+    },
+    "categories": [
+      {
+        "name": "Online quizzes",
+        "weight": 20
+      },
+      {
+        "name": "Case study report",
+        "weight": 40
+      },
+      {
+        "name": "Final exam",
+        "weight": 40
+      }
+    ],
+    "assignments": [
+      {
+        "title": "Online quiz 1",
+        "kind": "quiz",
+        "due_date": "2026-12-10",
+        "due_time": "17:00",
+        "category": "Online quizzes"
+      },
+      {
+        "title": "Online quiz 2",
+        "kind": "quiz",
+        "due_date": "2026-12-17",
+        "due_time": "17:00",
+        "category": "Online quizzes"
+      },
+      {
+        "title": "Case study report",
+        "kind": "project",
+        "due_date": "2027-01-04",
+        "due_time": "17:00",
+        "category": "Case study report"
+      },
+      {
+        "title": "Online quiz 3",
+        "kind": "quiz",
+        "due_date": "2027-01-14",
+        "due_time": "17:00",
+        "category": "Online quizzes"
+      },
+      {
+        "title": "Final exam",
+        "kind": "exam",
+        "due_date": "2027-02-10",
+        "due_time": "09:00",
+        "category": "Final exam"
+      }
+    ]
+  }
+}

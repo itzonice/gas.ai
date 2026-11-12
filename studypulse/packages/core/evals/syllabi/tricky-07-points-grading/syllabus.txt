@@ -1,0 +1,16 @@
+CS 110: Introduction to Programming - Fall 2026
+Instructor: Prof. Lena Fischer. Term: August 24 - December 11, 2026.
+
+Your grade is based on 1,000 points:
+Programming assignments (4 x 50 pts): 200 points
+Midterm exam: 250 points
+Final exam: 250 points
+Final project: 300 points
+
+Programming Assignment 1 - due Friday, Sept 11, 11:59 PM
+Programming Assignment 2 - due Friday, Oct 2, 11:59 PM
+Midterm exam - Thursday, Oct 15, in lecture (11:00 AM)
+Programming Assignment 3 - due Friday, Oct 30, 11:59 PM
+Programming Assignment 4 - due Friday, Nov 20, 11:59 PM
+Final project - due Wednesday, Dec 9, 11:59 PM
+Final exam - Friday, Dec 11, 1:30-3:30 PM

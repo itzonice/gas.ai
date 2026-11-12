@@ -160,13 +160,29 @@ async function run(browserName, size) {
         await page.goto(`${BASE}/calendar`);
         const grid = page.getByRole("grid");
         await grid.waitFor();
+        // The grid first selects the browser's date, then the account's "today" once the
+        // calendar loads. They differ when the account's timezone is still on another day
+        // (the demo account is in New York, CI's browser in UTC), so wait for the load.
+        await page.waitForLoadState("networkidle", { timeout: 10_000 }).catch(() => undefined);
         const cell = grid.locator("[role=gridcell][tabindex='0']").first();
         await cell.focus();
         const before = await page.evaluate(() => document.activeElement?.getAttribute("data-date"));
         await page.keyboard.press("ArrowRight");
+        await page
+          .waitForFunction(
+            (from) => document.activeElement?.getAttribute("data-date") !== from,
+            before,
+            { timeout: 5_000 },
+          )
+          .catch(() => undefined);
         const after = await page.evaluate(() => document.activeElement?.getAttribute("data-date"));
-        if (!before || !after || before === after) {
-          throw new Error(`focus didn't move right (${String(before)} -> ${String(after)})`);
+        const next = before
+          ? new Date(Date.parse(`${before}T00:00:00Z`) + 864e5).toISOString().slice(0, 10)
+          : null;
+        if (!before || after !== next) {
+          throw new Error(
+            `focus didn't move one day right (${String(before)} -> ${String(after)})`,
+          );
         }
       });
 

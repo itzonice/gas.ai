@@ -1,0 +1,13 @@
+# Netlify build settings for the web app. In the Netlify UI set:
+#   Base directory:    studypulse
+#   Package directory: studypulse/apps/web
+# Netlify installs the workspace with pnpm (from package.json "packageManager") and adds
+# its Next.js runtime automatically. Set NEXT_PUBLIC_SUPABASE_URL and
+# NEXT_PUBLIC_SUPABASE_ANON_KEY in Site configuration > Environment variables.
+[build]
+  command = "pnpm --filter @studypulse/web build"
+  publish = "apps/web/.next"
+
+[build.environment]
+  NODE_VERSION = "22"
+  NEXT_PUBLIC_APP_ENV = "preview"
